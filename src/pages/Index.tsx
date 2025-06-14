@@ -7,7 +7,6 @@ import RecentActivity from '@/components/dashboard/RecentActivity';
 import HeroSection from '@/components/dashboard/HeroSection';
 import StatsGrid from '@/components/dashboard/StatsGrid';
 import FeaturesGrid from '@/components/dashboard/FeaturesGrid';
-import PricingSection from '@/components/dashboard/PricingSection';
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -39,7 +38,6 @@ const Index = () => {
             </div>
 
             <FeaturesGrid />
-            <PricingSection />
           </div>
         </main>
       </div>
