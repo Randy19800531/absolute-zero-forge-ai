@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { Link } from 'react-router-dom';
 import { 
   Brain, 
   Building2, 
@@ -12,7 +13,8 @@ import {
   BarChart3,
   Zap,
   Home,
-  X
+  X,
+  Palette
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,6 +27,7 @@ const menuItems = [
   { icon: Brain, label: 'AI Engine', href: '/ai-engine', section: 'ai' },
   { icon: Workflow, label: 'Workflows', href: '/workflows', section: 'ai' },
   { icon: Code, label: 'VBA Generator', href: '/vba-generator', section: 'ai' },
+  { icon: Palette, label: 'Theme Customizer', href: '/theme-customizer', section: 'customization' },
   { icon: Building2, label: 'Agency Workspace', href: '/agency', section: 'workspace' },
   { icon: BarChart3, label: 'Projects', href: '/projects', section: 'workspace' },
   { icon: Shield, label: 'Admin Portal', href: '/admin', section: 'admin' },
@@ -73,10 +76,10 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               className="w-full justify-start text-gray-300 hover:text-white hover:bg-gray-800"
               asChild
             >
-              <a href={item.href} className="flex items-center gap-3">
+              <Link to={item.href} className="flex items-center gap-3">
                 <item.icon className="h-5 w-5" />
                 {item.label}
-              </a>
+              </Link>
             </Button>
           ))}
         </nav>

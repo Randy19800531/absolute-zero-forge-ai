@@ -10,6 +10,11 @@ import NotFound from "./pages/NotFound";
 import VBAGenerator from "./pages/VBAGenerator";
 import AIEngine from "./pages/AIEngine";
 import ThemeCustomizerPage from "./pages/ThemeCustomizer";
+import Agency from "./pages/Agency";
+import Projects from "./pages/Projects";
+import Admin from "./pages/Admin";
+import Testing from "./pages/Testing";
+import Integrations from "./pages/Integrations";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +30,11 @@ const App = () => (
           <Route path="/vba-generator" element={<VBAGenerator />} />
           <Route path="/ai-engine" element={<AIEngine />} />
           <Route path="/theme-customizer" element={<ThemeCustomizerPage />} />
+          <Route path="/agency" element={<Agency />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/testing" element={<Testing />} />
+          <Route path="/integrations" element={<Integrations />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
