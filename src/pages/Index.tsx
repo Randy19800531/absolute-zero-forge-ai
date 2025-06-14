@@ -2,172 +2,15 @@
 import React, { useState } from 'react';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
-import StatsCard from '@/components/dashboard/StatsCard';
 import QuickActions from '@/components/dashboard/QuickActions';
 import RecentActivity from '@/components/dashboard/RecentActivity';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Brain, 
-  Workflow, 
-  Code, 
-  Users, 
-  TrendingUp, 
-  Zap,
-  Shield,
-  Clock,
-  Palette,
-  BookOpen,
-  Building2,
-  Settings,
-  Check,
-  Star
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import HeroSection from '@/components/dashboard/HeroSection';
+import StatsGrid from '@/components/dashboard/StatsGrid';
+import FeaturesGrid from '@/components/dashboard/FeaturesGrid';
+import PricingSection from '@/components/dashboard/PricingSection';
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const navigate = useNavigate();
-
-  const features = [
-    {
-      icon: Brain,
-      title: 'AI Engine',
-      description: 'Voice + personality engine with context-aware conversation memory and intelligent agent routing.',
-      color: 'bg-blue-100',
-      iconColor: 'text-blue-600',
-      path: '/ai-engine',
-    },
-    {
-      icon: Settings,
-      title: 'LLM Configuration',
-      description: 'Configure API keys for GPT-4o, Claude, Gemini, Grok and manage knowledge sources.',
-      color: 'bg-purple-100',
-      iconColor: 'text-purple-600',
-      path: '/llm-config',
-    },
-    {
-      icon: Workflow,
-      title: 'Visual Workflows',
-      description: 'Drag-and-drop workflow builder with AI-enhanced nodes, nested subflows, and visual execution logs.',
-      color: 'bg-green-100',
-      iconColor: 'text-green-600',
-      path: '/workflows',
-    },
-    {
-      icon: Code,
-      title: 'VBA Generator',
-      description: 'AI-powered Excel automation with smart form generation, pattern recognition, and template export.',
-      color: 'bg-purple-100',
-      iconColor: 'text-purple-600',
-      path: '/vba-generator',
-    },
-    {
-      icon: Building2,
-      title: 'Agency Workspace',
-      description: 'Complete project management with requirements forms, dynamic pricing, and developer AI assistant.',
-      color: 'bg-orange-100',
-      iconColor: 'text-orange-600',
-      path: '/agency',
-    },
-    {
-      icon: Zap,
-      title: 'Integrations',
-      description: 'Connect with WhatsApp, Slack, Notion, Airtable and more through our comprehensive integration system.',
-      color: 'bg-indigo-100',
-      iconColor: 'text-indigo-600',
-      path: '/integrations',
-    },
-    {
-      icon: Palette,
-      title: 'Theme Customizer',
-      description: 'Personalize your workspace with custom themes, colors, and layout preferences.',
-      color: 'bg-pink-100',
-      iconColor: 'text-pink-600',
-      path: '/theme-customizer',
-    },
-    {
-      icon: BookOpen,
-      title: 'Documentation',
-      description: 'Comprehensive guides, security policies, feature documentation, and user manuals.',
-      color: 'bg-blue-100',
-      iconColor: 'text-blue-600',
-      path: '/documentation',
-    },
-    {
-      icon: Shield,
-      title: 'Admin Portal',
-      description: 'Security & compliance management with SOC 2, ISO 27001, GDPR compliance features.',
-      color: 'bg-red-100',
-      iconColor: 'text-red-600',
-      path: '/admin',
-    },
-  ];
-
-  const pricingPlans = [
-    {
-      name: 'Starter',
-      price: '$29',
-      period: '/month',
-      description: 'Perfect for individuals and small teams getting started',
-      features: [
-        'Up to 5 AI workflows',
-        '50 VBA script generations/month',
-        'Basic LLM integrations (GPT-4o)',
-        'Standard support',
-        '5GB storage',
-        'Basic analytics'
-      ],
-      buttonText: 'Start Free Trial',
-      popular: false,
-      color: 'border-gray-200'
-    },
-    {
-      name: 'Professional',
-      price: '$79',
-      period: '/month',
-      description: 'Ideal for growing businesses and professional teams',
-      features: [
-        'Unlimited AI workflows',
-        '500 VBA script generations/month',
-        'All LLM integrations (GPT-4o, Claude, Gemini)',
-        'Priority support',
-        '50GB storage',
-        'Advanced analytics',
-        'Custom integrations',
-        'Team collaboration tools'
-      ],
-      buttonText: 'Subscribe Now',
-      popular: true,
-      color: 'border-blue-500'
-    },
-    {
-      name: 'Enterprise',
-      price: '$199',
-      period: '/month',
-      description: 'For large organizations with advanced requirements',
-      features: [
-        'Unlimited everything',
-        'Custom VBA templates',
-        'All LLM integrations + custom models',
-        'Dedicated support manager',
-        '500GB storage',
-        'Custom analytics dashboard',
-        'White-label options',
-        'SOC 2 compliance',
-        'Custom knowledge sources',
-        'API access'
-      ],
-      buttonText: 'Contact Sales',
-      popular: false,
-      color: 'border-purple-500'
-    }
-  ];
-
-  const handleSubscribe = (planName: string) => {
-    console.log(`Subscribing to ${planName} plan`);
-    // TODO: Integrate with Stripe checkout
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex w-full">
@@ -178,49 +21,8 @@ const Index = () => {
         
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
-            {/* Hero Section */}
-            <div className="mb-8">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  Welcome to Absolute-0.AI
-                </h1>
-                <p className="text-gray-600">
-                  Your complete AI-native SaaS platform for workflow automation, VBA generation, and intelligent task execution.
-                </p>
-              </div>
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <StatsCard
-                title="Active Workflows"
-                value="24"
-                change="+12% from last month"
-                icon={Workflow}
-                color="blue"
-              />
-              <StatsCard
-                title="AI Agents"
-                value="8"
-                change="+3 new this week"
-                icon={Brain}
-                color="purple"
-              />
-              <StatsCard
-                title="VBA Scripts"
-                value="156"
-                change="+28 generated today"
-                icon={Code}
-                color="green"
-              />
-              <StatsCard
-                title="Active Users"
-                value="1,247"
-                change="+5.3% growth"
-                icon={Users}
-                color="orange"
-              />
-            </div>
+            <HeroSection />
+            <StatsGrid />
 
             {/* Main Content Grid - Equal Heights */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -236,108 +38,8 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Platform Features Grid */}
-            <div className="mb-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Platform Features</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {features.map((feature) => (
-                  <div 
-                    key={feature.title}
-                    className="bg-white rounded-lg p-6 shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => navigate(feature.path)}
-                  >
-                    <div className="flex flex-col items-center text-center gap-4">
-                      <div className={`p-3 ${feature.color} rounded-lg`}>
-                        <feature.icon className={`h-8 w-8 ${feature.iconColor}`} />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                        <p className="text-gray-600 text-sm">
-                          {feature.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Pricing Section */}
-            <div className="mb-8">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Plan</h2>
-                <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                  Scale your AI automation with flexible pricing options designed for teams of all sizes
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {pricingPlans.map((plan) => (
-                  <Card 
-                    key={plan.name} 
-                    className={`relative ${plan.color} ${plan.popular ? 'border-2 shadow-lg scale-105' : 'border'} transition-all duration-300 hover:shadow-lg`}
-                  >
-                    {plan.popular && (
-                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                        <div className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                          <Star className="h-3 w-3" />
-                          Most Popular
-                        </div>
-                      </div>
-                    )}
-                    
-                    <CardHeader className="text-center pb-4">
-                      <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
-                      <div className="mt-4">
-                        <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
-                        <span className="text-gray-600">{plan.period}</span>
-                      </div>
-                      <p className="text-gray-600 mt-2">{plan.description}</p>
-                    </CardHeader>
-                    
-                    <CardContent className="pt-0">
-                      <ul className="space-y-3 mb-6">
-                        {plan.features.map((feature, index) => (
-                          <li key={index} className="flex items-start gap-3">
-                            <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                            <span className="text-gray-700">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      
-                      <Button 
-                        className={`w-full ${plan.popular ? 'bg-blue-500 hover:bg-blue-600' : ''}`}
-                        variant={plan.popular ? 'default' : 'outline'}
-                        onClick={() => handleSubscribe(plan.name)}
-                      >
-                        {plan.buttonText}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {/* Additional Pricing Info */}
-              <div className="text-center mt-8 space-y-4">
-                <p className="text-gray-600">
-                  All plans include 14-day free trial • No setup fees • Cancel anytime
-                </p>
-                <div className="flex justify-center items-center gap-6 text-sm text-gray-500">
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    SOC 2 Compliant
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    24/7 Support
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Zap className="h-4 w-4" />
-                    99.9% Uptime
-                  </div>
-                </div>
-              </div>
-            </div>
+            <FeaturesGrid />
+            <PricingSection />
           </div>
         </main>
       </div>
