@@ -23,6 +23,57 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
+  const featureCards = [
+    {
+      icon: Brain,
+      title: 'AI Engine',
+      description: 'Voice + personality engine with context-aware conversation memory and intelligent agent routing.',
+      color: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      path: '/ai-engine',
+    },
+    {
+      icon: Workflow,
+      title: 'Visual Workflows',
+      description: 'Drag-and-drop workflow builder with AI-enhanced nodes, nested subflows, and visual execution logs.',
+      color: 'bg-green-100',
+      iconColor: 'text-green-600',
+      path: '/workflows',
+    },
+    {
+      icon: Code,
+      title: 'VBA Generator',
+      description: 'AI-powered Excel automation with smart form generation, pattern recognition, and template export.',
+      color: 'bg-purple-100',
+      iconColor: 'text-purple-600',
+      path: '/vba-generator',
+    },
+    {
+      icon: TrendingUp,
+      title: 'Agency Workspace',
+      description: 'Complete project management with requirements forms, dynamic pricing, and developer AI assistant.',
+      color: 'bg-orange-100',
+      iconColor: 'text-orange-600',
+      path: '/agency',
+    },
+    {
+      icon: Shield,
+      title: 'Security & Compliance',
+      description: 'SOC 2, ISO 27001, GDPR compliant with end-to-end encryption and comprehensive audit logging.',
+      color: 'bg-red-100',
+      iconColor: 'text-red-600',
+      path: '/admin',
+    },
+    {
+      icon: Zap,
+      title: 'Integrations',
+      description: 'Connect with WhatsApp, Slack, Notion, Airtable and more through our comprehensive integration system.',
+      color: 'bg-indigo-100',
+      iconColor: 'text-indigo-600',
+      path: '/integrations',
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 flex w-full">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -96,77 +147,23 @@ const Index = () => {
 
             {/* Feature Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-white rounded-lg p-6 shadow-sm border">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Brain className="h-6 w-6 text-blue-600" />
+              {featureCards.map((feature) => (
+                <div 
+                  key={feature.title}
+                  className="bg-white rounded-lg p-6 shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => navigate(feature.path)}
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`p-2 ${feature.color} rounded-lg`}>
+                      <feature.icon className={`h-6 w-6 ${feature.iconColor}`} />
+                    </div>
+                    <h3 className="font-semibold text-gray-900">{feature.title}</h3>
                   </div>
-                  <h3 className="font-semibold text-gray-900">AI Engine</h3>
+                  <p className="text-gray-600 text-sm">
+                    {feature.description}
+                  </p>
                 </div>
-                <p className="text-gray-600 text-sm">
-                  Voice + personality engine with context-aware conversation memory and intelligent agent routing.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-lg p-6 shadow-sm border">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Workflow className="h-6 w-6 text-green-600" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900">Visual Workflows</h3>
-                </div>
-                <p className="text-gray-600 text-sm">
-                  Drag-and-drop workflow builder with AI-enhanced nodes, nested subflows, and visual execution logs.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-lg p-6 shadow-sm border">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Code className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900">VBA Generator</h3>
-                </div>
-                <p className="text-gray-600 text-sm">
-                  AI-powered Excel automation with smart form generation, pattern recognition, and template export.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-lg p-6 shadow-sm border">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-orange-100 rounded-lg">
-                    <TrendingUp className="h-6 w-6 text-orange-600" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900">Agency Workspace</h3>
-                </div>
-                <p className="text-gray-600 text-sm">
-                  Complete project management with requirements forms, dynamic pricing, and developer AI assistant.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-lg p-6 shadow-sm border">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <Shield className="h-6 w-6 text-red-600" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900">Security & Compliance</h3>
-                </div>
-                <p className="text-gray-600 text-sm">
-                  SOC 2, ISO 27001, GDPR compliant with end-to-end encryption and comprehensive audit logging.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-lg p-6 shadow-sm border">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-indigo-100 rounded-lg">
-                    <Zap className="h-6 w-6 text-indigo-600" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900">Integrations</h3>
-                </div>
-                <p className="text-gray-600 text-sm">
-                  Connect with WhatsApp, Slack, Notion, Airtable and more through our comprehensive integration system.
-                </p>
-              </div>
+              ))}
             </div>
           </div>
         </main>
