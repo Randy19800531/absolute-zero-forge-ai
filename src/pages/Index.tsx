@@ -16,7 +16,8 @@ import {
   Shield,
   Clock,
   Palette,
-  BookOpen
+  BookOpen,
+  Building2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -24,7 +25,7 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
-  const coreFeatures = [
+  const features = [
     {
       icon: Brain,
       title: 'AI Engine',
@@ -49,11 +50,8 @@ const Index = () => {
       iconColor: 'text-purple-600',
       path: '/vba-generator',
     },
-  ];
-
-  const workspaceFeatures = [
     {
-      icon: TrendingUp,
+      icon: Building2,
       title: 'Agency Workspace',
       description: 'Complete project management with requirements forms, dynamic pricing, and developer AI assistant.',
       color: 'bg-orange-100',
@@ -76,9 +74,6 @@ const Index = () => {
       iconColor: 'text-pink-600',
       path: '/theme-customizer',
     },
-  ];
-
-  const supportFeatures = [
     {
       icon: BookOpen,
       title: 'Documentation',
@@ -89,8 +84,8 @@ const Index = () => {
     },
     {
       icon: Shield,
-      title: 'Security & Compliance',
-      description: 'SOC 2, ISO 27001, GDPR compliant with end-to-end encryption and comprehensive audit logging.',
+      title: 'Admin Portal',
+      description: 'Security & compliance management with SOC 2, ISO 27001, GDPR compliance features.',
       color: 'bg-red-100',
       iconColor: 'text-red-600',
       path: '/admin',
@@ -160,73 +155,27 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Core AI Features */}
+            {/* Platform Features Grid */}
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Core AI Features</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {coreFeatures.map((feature) => (
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Platform Features</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {features.map((feature) => (
                   <div 
                     key={feature.title}
                     className="bg-white rounded-lg p-6 shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
                     onClick={() => navigate(feature.path)}
                   >
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`p-2 ${feature.color} rounded-lg`}>
-                        <feature.icon className={`h-6 w-6 ${feature.iconColor}`} />
+                    <div className="flex flex-col items-center text-center gap-4">
+                      <div className={`p-3 ${feature.color} rounded-lg`}>
+                        <feature.icon className={`h-8 w-8 ${feature.iconColor}`} />
                       </div>
-                      <h3 className="font-semibold text-gray-900">{feature.title}</h3>
-                    </div>
-                    <p className="text-gray-600 text-sm">
-                      {feature.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Workspace & Tools */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Workspace & Tools</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {workspaceFeatures.map((feature) => (
-                  <div 
-                    key={feature.title}
-                    className="bg-white rounded-lg p-6 shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => navigate(feature.path)}
-                  >
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`p-2 ${feature.color} rounded-lg`}>
-                        <feature.icon className={`h-6 w-6 ${feature.iconColor}`} />
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                        <p className="text-gray-600 text-sm">
+                          {feature.description}
+                        </p>
                       </div>
-                      <h3 className="font-semibold text-gray-900">{feature.title}</h3>
                     </div>
-                    <p className="text-gray-600 text-sm">
-                      {feature.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Support & Security */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Support & Security</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {supportFeatures.map((feature) => (
-                  <div 
-                    key={feature.title}
-                    className="bg-white rounded-lg p-6 shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => navigate(feature.path)}
-                  >
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`p-2 ${feature.color} rounded-lg`}>
-                        <feature.icon className={`h-6 w-6 ${feature.iconColor}`} />
-                      </div>
-                      <h3 className="font-semibold text-gray-900">{feature.title}</h3>
-                    </div>
-                    <p className="text-gray-600 text-sm">
-                      {feature.description}
-                    </p>
                   </div>
                 ))}
               </div>
