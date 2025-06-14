@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
@@ -621,7 +620,7 @@ const Documentation = () => {
                           <div className="border rounded-lg p-4">
                             <div className="flex items-center gap-2 mb-2">
                               <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-mono">GET</span>
-                              <code className="text-sm">/workflows/{id}/status</code>
+                              <code className="text-sm">/workflows/[workflow_id]/status</code>
                             </div>
                             <p className="text-sm text-gray-600 mb-2">Get workflow execution status and results</p>
                             <div className="bg-gray-900 text-gray-100 p-3 rounded text-xs">
