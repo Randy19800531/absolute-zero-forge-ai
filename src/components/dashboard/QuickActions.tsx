@@ -40,14 +40,14 @@ const QuickActions = () => {
   ];
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Plus className="h-5 w-5" />
           Quick Actions
         </CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <CardContent className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
         {actions.map((action) => (
           <Button
             key={action.title}

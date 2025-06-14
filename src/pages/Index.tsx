@@ -145,13 +145,17 @@ const Index = () => {
               />
             </div>
 
-            {/* Main Content Grid */}
+            {/* Main Content Grid - Equal Heights */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <div className="lg:col-span-1">
-                <QuickActions />
+              <div className="lg:col-span-1 flex">
+                <div className="w-full">
+                  <QuickActions />
+                </div>
               </div>
-              <div className="lg:col-span-2">
-                <RecentActivity />
+              <div className="lg:col-span-2 flex">
+                <div className="w-full">
+                  <RecentActivity />
+                </div>
               </div>
             </div>
 
