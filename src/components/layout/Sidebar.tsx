@@ -16,7 +16,8 @@ import {
   X,
   Palette,
   BookOpen,
-  CreditCard
+  CreditCard,
+  Layers
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -29,6 +30,7 @@ const menuItems = [
   { icon: Brain, label: 'AI Engine', href: '/ai-engine', section: 'ai' },
   { icon: Workflow, label: 'Workflows', href: '/workflows', section: 'ai' },
   { icon: Code, label: 'VBA Generator', href: '/vba-generator', section: 'ai' },
+  { icon: Layers, label: 'Low-No Code Builder', href: '/low-no-code-builder', section: 'ai' },
   { icon: Palette, label: 'Theme Customizer', href: '/theme-customizer', section: 'customization' },
   { icon: Building2, label: 'Agency Workspace', href: '/agency', section: 'workspace' },
   { icon: BarChart3, label: 'Projects', href: '/projects', section: 'workspace' },

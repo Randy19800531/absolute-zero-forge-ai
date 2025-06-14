@@ -10,7 +10,8 @@ import {
   Zap,
   Palette,
   BookOpen,
-  Shield
+  Shield,
+  Layers
 } from 'lucide-react';
 
 const FeaturesGrid = () => {
@@ -48,6 +49,14 @@ const FeaturesGrid = () => {
       color: 'bg-purple-100',
       iconColor: 'text-purple-600',
       path: '/vba-generator',
+    },
+    {
+      icon: Layers,
+      title: 'Low-No Code Builder',
+      description: 'Generate React applications from text prompts or image uploads with visual design-to-code conversion.',
+      color: 'bg-indigo-100',
+      iconColor: 'text-indigo-600',
+      path: '/low-no-code-builder',
     },
     {
       icon: Building2,

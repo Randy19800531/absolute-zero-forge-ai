@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Workflow, Code, Brain, Settings } from 'lucide-react';
+import { Plus, Workflow, Code, Brain, Settings, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const QuickActions = () => {
@@ -29,6 +29,13 @@ const QuickActions = () => {
       description: 'AI task executor',
       color: 'bg-purple-500 hover:bg-purple-600',
       path: '/ai-engine',
+    },
+    {
+      icon: Layers,
+      title: 'Low-No Code',
+      description: 'Visual app builder',
+      color: 'bg-indigo-500 hover:bg-indigo-600',
+      path: '/low-no-code-builder',
     },
     {
       icon: Settings,

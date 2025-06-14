@@ -17,6 +17,7 @@ import Testing from "./pages/Testing";
 import Integrations from "./pages/Integrations";
 import Documentation from "./pages/Documentation";
 import LLMConfig from "./pages/LLMConfig";
+import LowNoCodeBuilder from "./pages/LowNoCodeBuilder";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/vba-generator" element={<VBAGenerator />} />
           <Route path="/ai-engine" element={<AIEngine />} />
           <Route path="/llm-config" element={<LLMConfig />} />
+          <Route path="/low-no-code-builder" element={<LowNoCodeBuilder />} />
           <Route path="/theme-customizer" element={<ThemeCustomizerPage />} />
           <Route path="/agency" element={<Agency />} />
           <Route path="/projects" element={<Projects />} />
