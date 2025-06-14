@@ -199,7 +199,7 @@ End Sub`;
                 <Checkbox
                   id={option}
                   checked={requirements.transformations.includes(option)}
-                  onCheckedChange={(checked) => handleArrayChange('transformations', option, checked)}
+                  onCheckedChange={(checked) => handleArrayChange('transformations', option, Boolean(checked))}
                 />
                 <Label htmlFor={option} className="text-sm">{option}</Label>
               </div>
@@ -217,7 +217,7 @@ End Sub`;
                 <Checkbox
                   id={option}
                   checked={requirements.formatting.includes(option)}
-                  onCheckedChange={(checked) => handleArrayChange('formatting', option, checked)}
+                  onCheckedChange={(checked) => handleArrayChange('formatting', option, Boolean(checked))}
                 />
                 <Label htmlFor={option} className="text-sm">{option}</Label>
               </div>
@@ -232,7 +232,7 @@ End Sub`;
             <Checkbox
               id="errorHandling"
               checked={requirements.errorHandling}
-              onCheckedChange={(checked) => handleInputChange('errorHandling', checked)}
+              onCheckedChange={(checked) => handleInputChange('errorHandling', Boolean(checked))}
             />
             <Label htmlFor="errorHandling">Include error handling</Label>
           </div>
@@ -240,7 +240,7 @@ End Sub`;
             <Checkbox
               id="optimization"
               checked={requirements.optimization}
-              onCheckedChange={(checked) => handleInputChange('optimization', checked)}
+              onCheckedChange={(checked) => handleInputChange('optimization', Boolean(checked))}
             />
             <Label htmlFor="optimization">Code optimization</Label>
           </div>
