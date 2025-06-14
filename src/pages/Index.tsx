@@ -15,7 +15,8 @@ import {
   Zap,
   Shield,
   Clock,
-  Palette
+  Palette,
+  BookOpen
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -23,7 +24,7 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
-  const featureCards = [
+  const coreFeatures = [
     {
       icon: Brain,
       title: 'AI Engine',
@@ -48,6 +49,9 @@ const Index = () => {
       iconColor: 'text-purple-600',
       path: '/vba-generator',
     },
+  ];
+
+  const workspaceFeatures = [
     {
       icon: TrendingUp,
       title: 'Agency Workspace',
@@ -57,20 +61,39 @@ const Index = () => {
       path: '/agency',
     },
     {
-      icon: Shield,
-      title: 'Security & Compliance',
-      description: 'SOC 2, ISO 27001, GDPR compliant with end-to-end encryption and comprehensive audit logging.',
-      color: 'bg-red-100',
-      iconColor: 'text-red-600',
-      path: '/admin',
-    },
-    {
       icon: Zap,
       title: 'Integrations',
       description: 'Connect with WhatsApp, Slack, Notion, Airtable and more through our comprehensive integration system.',
       color: 'bg-indigo-100',
       iconColor: 'text-indigo-600',
       path: '/integrations',
+    },
+    {
+      icon: Palette,
+      title: 'Theme Customizer',
+      description: 'Personalize your workspace with custom themes, colors, and layout preferences.',
+      color: 'bg-pink-100',
+      iconColor: 'text-pink-600',
+      path: '/theme-customizer',
+    },
+  ];
+
+  const supportFeatures = [
+    {
+      icon: BookOpen,
+      title: 'Documentation',
+      description: 'Comprehensive guides, security policies, feature documentation, and user manuals.',
+      color: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      path: '/documentation',
+    },
+    {
+      icon: Shield,
+      title: 'Security & Compliance',
+      description: 'SOC 2, ISO 27001, GDPR compliant with end-to-end encryption and comprehensive audit logging.',
+      color: 'bg-red-100',
+      iconColor: 'text-red-600',
+      path: '/admin',
     },
   ];
 
@@ -84,7 +107,7 @@ const Index = () => {
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
             {/* Hero Section */}
-            <div className="mb-8 flex justify-between items-start">
+            <div className="mb-8">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   Welcome to Absolute-0.AI
@@ -93,14 +116,6 @@ const Index = () => {
                   Your complete AI-native SaaS platform for workflow automation, VBA generation, and intelligent task execution.
                 </p>
               </div>
-              <Button 
-                onClick={() => navigate('/theme-customizer')}
-                className="flex items-center gap-2"
-                variant="outline"
-              >
-                <Palette className="h-4 w-4" />
-                Customize Theme
-              </Button>
             </div>
 
             {/* Stats Grid */}
@@ -145,25 +160,76 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Feature Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featureCards.map((feature) => (
-                <div 
-                  key={feature.title}
-                  className="bg-white rounded-lg p-6 shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => navigate(feature.path)}
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`p-2 ${feature.color} rounded-lg`}>
-                      <feature.icon className={`h-6 w-6 ${feature.iconColor}`} />
+            {/* Core AI Features */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Core AI Features</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {coreFeatures.map((feature) => (
+                  <div 
+                    key={feature.title}
+                    className="bg-white rounded-lg p-6 shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => navigate(feature.path)}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`p-2 ${feature.color} rounded-lg`}>
+                        <feature.icon className={`h-6 w-6 ${feature.iconColor}`} />
+                      </div>
+                      <h3 className="font-semibold text-gray-900">{feature.title}</h3>
                     </div>
-                    <h3 className="font-semibold text-gray-900">{feature.title}</h3>
+                    <p className="text-gray-600 text-sm">
+                      {feature.description}
+                    </p>
                   </div>
-                  <p className="text-gray-600 text-sm">
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+
+            {/* Workspace & Tools */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Workspace & Tools</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {workspaceFeatures.map((feature) => (
+                  <div 
+                    key={feature.title}
+                    className="bg-white rounded-lg p-6 shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => navigate(feature.path)}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`p-2 ${feature.color} rounded-lg`}>
+                        <feature.icon className={`h-6 w-6 ${feature.iconColor}`} />
+                      </div>
+                      <h3 className="font-semibold text-gray-900">{feature.title}</h3>
+                    </div>
+                    <p className="text-gray-600 text-sm">
+                      {feature.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Support & Security */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Support & Security</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {supportFeatures.map((feature) => (
+                  <div 
+                    key={feature.title}
+                    className="bg-white rounded-lg p-6 shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => navigate(feature.path)}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`p-2 ${feature.color} rounded-lg`}>
+                        <feature.icon className={`h-6 w-6 ${feature.iconColor}`} />
+                      </div>
+                      <h3 className="font-semibold text-gray-900">{feature.title}</h3>
+                    </div>
+                    <p className="text-gray-600 text-sm">
+                      {feature.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </main>

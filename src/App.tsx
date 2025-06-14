@@ -15,6 +15,7 @@ import Projects from "./pages/Projects";
 import Admin from "./pages/Admin";
 import Testing from "./pages/Testing";
 import Integrations from "./pages/Integrations";
+import Documentation from "./pages/Documentation";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/admin" element={<Admin />} />
           <Route path="/testing" element={<Testing />} />
           <Route path="/integrations" element={<Integrations />} />
+          <Route path="/documentation" element={<Documentation />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

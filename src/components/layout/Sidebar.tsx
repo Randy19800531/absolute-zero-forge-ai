@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -13,7 +14,8 @@ import {
   Zap,
   Home,
   X,
-  Palette
+  Palette,
+  BookOpen
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -29,6 +31,7 @@ const menuItems = [
   { icon: Palette, label: 'Theme Customizer', href: '/theme-customizer', section: 'customization' },
   { icon: Building2, label: 'Agency Workspace', href: '/agency', section: 'workspace' },
   { icon: BarChart3, label: 'Projects', href: '/projects', section: 'workspace' },
+  { icon: BookOpen, label: 'Documentation', href: '/documentation', section: 'support' },
   { icon: Shield, label: 'Admin Portal', href: '/admin', section: 'admin' },
   { icon: TestTube, label: 'Testing Suite', href: '/testing', section: 'dev' },
   { icon: Zap, label: 'Integrations', href: '/integrations', section: 'dev' },
