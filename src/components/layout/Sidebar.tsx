@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -54,12 +53,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <div className="flex items-center gap-3">
             <img 
-              src="/Logo Final.PNG" 
+              src="/lovable-uploads/e98ccf6d-cbf3-4af9-aadd-04d01eacfc41.png" 
               alt="Absolute-0.AI" 
-              className="h-6 w-auto"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
+              className="h-6 w-6 rounded-full"
             />
             <span className="font-bold text-lg">A0.AI</span>
           </div>
