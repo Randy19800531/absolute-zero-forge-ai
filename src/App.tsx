@@ -16,6 +16,7 @@ import Admin from "./pages/Admin";
 import Testing from "./pages/Testing";
 import Integrations from "./pages/Integrations";
 import Documentation from "./pages/Documentation";
+import LLMConfig from "./pages/LLMConfig";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/workflows" element={<Workflows />} />
           <Route path="/vba-generator" element={<VBAGenerator />} />
           <Route path="/ai-engine" element={<AIEngine />} />
+          <Route path="/llm-config" element={<LLMConfig />} />
           <Route path="/theme-customizer" element={<ThemeCustomizerPage />} />
           <Route path="/agency" element={<Agency />} />
           <Route path="/projects" element={<Projects />} />

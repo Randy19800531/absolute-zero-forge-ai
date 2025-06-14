@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Workflow, Code, Brain, Building2 } from 'lucide-react';
+import { Plus, Workflow, Code, Brain, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const QuickActions = () => {
@@ -31,11 +31,11 @@ const QuickActions = () => {
       path: '/ai-engine',
     },
     {
-      icon: Building2,
-      title: 'New Project',
-      description: 'Agency workspace',
+      icon: Settings,
+      title: 'LLM Config',
+      description: 'Setup AI models',
       color: 'bg-orange-500 hover:bg-orange-600',
-      path: '/agency',
+      path: '/llm-config',
     },
   ];
 

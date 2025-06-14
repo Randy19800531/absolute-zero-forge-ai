@@ -17,7 +17,8 @@ import {
   Clock,
   Palette,
   BookOpen,
-  Building2
+  Building2,
+  Settings
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -33,6 +34,14 @@ const Index = () => {
       color: 'bg-blue-100',
       iconColor: 'text-blue-600',
       path: '/ai-engine',
+    },
+    {
+      icon: Settings,
+      title: 'LLM Configuration',
+      description: 'Configure API keys for GPT-4o, Claude, Gemini, Grok and manage knowledge sources.',
+      color: 'bg-purple-100',
+      iconColor: 'text-purple-600',
+      path: '/llm-config',
     },
     {
       icon: Workflow,
@@ -162,7 +171,7 @@ const Index = () => {
             {/* Platform Features Grid */}
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Platform Features</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {features.map((feature) => (
                   <div 
                     key={feature.title}
