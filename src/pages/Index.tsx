@@ -5,6 +5,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import StatsCard from '@/components/dashboard/StatsCard';
 import QuickActions from '@/components/dashboard/QuickActions';
 import RecentActivity from '@/components/dashboard/RecentActivity';
+import { Button } from '@/components/ui/button';
 import { 
   Brain, 
   Workflow, 
@@ -13,11 +14,14 @@ import {
   TrendingUp, 
   Zap,
   Shield,
-  Clock
+  Clock,
+  Palette
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gray-50 flex w-full">
@@ -29,13 +33,23 @@ const Index = () => {
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
             {/* Hero Section */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Welcome to Absolute-0.AI
-              </h1>
-              <p className="text-gray-600">
-                Your complete AI-native SaaS platform for workflow automation, VBA generation, and intelligent task execution.
-              </p>
+            <div className="mb-8 flex justify-between items-start">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  Welcome to Absolute-0.AI
+                </h1>
+                <p className="text-gray-600">
+                  Your complete AI-native SaaS platform for workflow automation, VBA generation, and intelligent task execution.
+                </p>
+              </div>
+              <Button 
+                onClick={() => navigate('/theme-customizer')}
+                className="flex items-center gap-2"
+                variant="outline"
+              >
+                <Palette className="h-4 w-4" />
+                Customize Theme
+              </Button>
             </div>
 
             {/* Stats Grid */}
