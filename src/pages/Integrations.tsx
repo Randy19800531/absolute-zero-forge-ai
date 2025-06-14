@@ -1,14 +1,15 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Zap, Plus, Settings, CheckCircle, Clock } from 'lucide-react';
+import { Zap, Plus, Settings, CheckCircle, Clock, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Integrations = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
 
   const integrations = [
     { id: 1, name: 'Slack', description: 'Team communication', status: 'Connected', category: 'Communication' },
@@ -54,6 +55,16 @@ const Integrations = () => {
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-8">
               <div>
+                <div className="flex items-center gap-4 mb-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate('/')}
+                    className="flex items-center gap-2"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Home
+                  </Button>
+                </div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Integrations</h1>
                 <p className="text-gray-600">Connect your favorite tools and services</p>
               </div>

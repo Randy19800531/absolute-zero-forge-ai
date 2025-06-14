@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
@@ -7,11 +6,13 @@ import NodeLibrary from '@/components/workflow/NodeLibrary';
 import WorkflowToolbar from '@/components/workflow/WorkflowToolbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Workflow, Play, Save } from 'lucide-react';
+import { Plus, Workflow, Play, Save, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Workflows = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState(null);
+  const navigate = useNavigate();
 
   const workflows = [
     { id: 1, name: 'Customer Data Sync', status: 'active', lastRun: '2 hours ago' },
@@ -30,6 +31,16 @@ const Workflows = () => {
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-6">
               <div>
+                <div className="flex items-center gap-4 mb-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate('/')}
+                    className="flex items-center gap-2"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Home
+                  </Button>
+                </div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   Visual Workflows
                 </h1>
