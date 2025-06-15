@@ -1,7 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import AppSidebar from '@/components/layout/AppSidebar';
 import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import WorkflowBuilder from '@/components/workflow/WorkflowBuilder';
 import WorkflowList from '@/components/workflow/WorkflowList';
 import { Button } from '@/components/ui/button';
@@ -10,63 +11,63 @@ import { ArrowLeft, Workflow, Plus, List } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Workflows = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex w-full">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      
-      <div className="flex-1 flex flex-col lg:ml-0">
-        <Header onMenuToggle={() => setSidebarOpen(true)} />
-        
-        <main className="flex-1 p-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <div className="flex items-center gap-4 mb-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => navigate('/')}
-                    className="flex items-center gap-2"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Home
-                  </Button>
+    <SidebarProvider>
+      <div className="min-h-screen bg-gray-50 flex w-full">
+        <AppSidebar />
+        <SidebarInset>
+          <Header />
+          
+          <main className="flex-1 p-6">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <div className="flex items-center gap-4 mb-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate('/')}
+                      className="flex items-center gap-2"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      Back to Home
+                    </Button>
+                  </div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    Multi-Agent Workflows
+                  </h1>
+                  <p className="text-gray-600">
+                    Build applications using specialist AI agents for design, development, testing, and deployment
+                  </p>
                 </div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  Multi-Agent Workflows
-                </h1>
-                <p className="text-gray-600">
-                  Build applications using specialist AI agents for design, development, testing, and deployment
-                </p>
               </div>
+
+              <Tabs defaultValue="builder" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 max-w-md">
+                  <TabsTrigger value="builder" className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    Create Workflow
+                  </TabsTrigger>
+                  <TabsTrigger value="list" className="flex items-center gap-2">
+                    <List className="h-4 w-4" />
+                    My Workflows
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="builder" className="mt-6">
+                  <WorkflowBuilder />
+                </TabsContent>
+
+                <TabsContent value="list" className="mt-6">
+                  <WorkflowList />
+                </TabsContent>
+              </Tabs>
             </div>
-
-            <Tabs defaultValue="builder" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 max-w-md">
-                <TabsTrigger value="builder" className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create Workflow
-                </TabsTrigger>
-                <TabsTrigger value="list" className="flex items-center gap-2">
-                  <List className="h-4 w-4" />
-                  My Workflows
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="builder" className="mt-6">
-                <WorkflowBuilder />
-              </TabsContent>
-
-              <TabsContent value="list" className="mt-6">
-                <WorkflowList />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </main>
+          </main>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
