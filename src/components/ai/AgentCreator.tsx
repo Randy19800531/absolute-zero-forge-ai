@@ -10,10 +10,21 @@ import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import { Brain, Zap } from 'lucide-react';
 
+interface AgentData {
+  name: string;
+  type: string;
+  description: string;
+  personality: string;
+  capabilities: string[];
+  creativity: number[];
+  responsiveness: number[];
+  precision: number[];
+}
+
 const AgentCreator = () => {
   const { toast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
-  const [agent, setAgent] = useState({
+  const [agent, setAgent] = useState<AgentData>({
     name: '',
     type: '',
     description: '',
@@ -33,7 +44,7 @@ const AgentCreator = () => {
     'Content Creation Agent',
   ];
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: keyof AgentData, value: any) => {
     setAgent(prev => ({ ...prev, [field]: value }));
   };
 
@@ -50,12 +61,35 @@ const AgentCreator = () => {
     setIsCreating(true);
     
     try {
-      // Simulate agent creation
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Create agent configuration object
+      const agentConfig = {
+        id: `agent_${Date.now()}`,
+        name: agent.name,
+        type: agent.type,
+        description: agent.description || 'No description provided',
+        personality: agent.personality || 'Default personality',
+        capabilities: agent.capabilities,
+        parameters: {
+          creativity: agent.creativity[0],
+          responsiveness: agent.responsiveness[0],
+          precision: agent.precision[0],
+        },
+        status: 'idle' as const,
+        createdAt: new Date().toISOString(),
+        lastActive: 'Never',
+        tasksCompleted: 0,
+      };
+
+      console.log('Creating agent with config:', agentConfig);
+      
+      // Store in localStorage for persistence
+      const existingAgents = JSON.parse(localStorage.getItem('ai_agents') || '[]');
+      const updatedAgents = [...existingAgents, agentConfig];
+      localStorage.setItem('ai_agents', JSON.stringify(updatedAgents));
       
       toast({
-        title: "Agent Created",
-        description: `${agent.name} has been created successfully!`,
+        title: "Agent Created Successfully",
+        description: `${agent.name} has been created and is ready to use!`,
       });
       
       // Reset form
@@ -70,9 +104,10 @@ const AgentCreator = () => {
         precision: [0.9],
       });
     } catch (error) {
+      console.error('Agent creation error:', error);
       toast({
         title: "Creation Failed",
-        description: "Failed to create agent. Please try again.",
+        description: "Failed to create agent. Please check the console and try again.",
         variant: "destructive",
       });
     } finally {

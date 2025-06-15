@@ -1,53 +1,51 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Play, Pause, Settings, Trash2 } from 'lucide-react';
+import { Brain, Play, Pause, Settings, Trash2, Plus } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface Agent {
+  id: string;
+  name: string;
+  type: string;
+  status: 'active' | 'idle' | 'paused';
+  description: string;
+  lastActive: string;
+  tasksCompleted: number;
+}
 
 interface AgentListProps {
-  onAgentSelect: (agent: any) => void;
+  onAgentSelect: (agent: Agent) => void;
 }
 
 const AgentList = ({ onAgentSelect }: AgentListProps) => {
-  const agents = [
-    {
-      id: 1,
-      name: 'Data Analyst',
-      type: 'Spreadsheet Agent',
-      status: 'active',
-      description: 'Analyzes spreadsheet data and provides insights',
-      lastActive: '2 minutes ago',
-      tasksCompleted: 45,
-    },
-    {
-      id: 2,
-      name: 'Web Scraper',
-      type: 'Browser Agent',
-      status: 'idle',
-      description: 'Extracts data from websites automatically',
-      lastActive: '1 hour ago',
-      tasksCompleted: 23,
-    },
-    {
-      id: 3,
-      name: 'Customer Service',
-      type: 'Conversation Agent',
-      status: 'active',
-      description: 'Handles customer inquiries with empathy',
-      lastActive: '5 minutes ago',
-      tasksCompleted: 128,
-    },
-    {
-      id: 4,
-      name: 'Code Reviewer',
-      type: 'Development Agent',
-      status: 'paused',
-      description: 'Reviews code quality and suggests improvements',
-      lastActive: '3 hours ago',
-      tasksCompleted: 67,
-    },
-  ];
+  const { toast } = useToast();
+  const [agents, setAgents] = useState<Agent[]>([]);
+
+  const toggleAgentStatus = (agentId: string) => {
+    setAgents(prev => prev.map(agent => {
+      if (agent.id === agentId) {
+        const newStatus = agent.status === 'active' ? 'paused' : 'active';
+        toast({
+          title: `Agent ${newStatus === 'active' ? 'Started' : 'Paused'}`,
+          description: `${agent.name} has been ${newStatus === 'active' ? 'started' : 'paused'}.`,
+        });
+        return { ...agent, status: newStatus };
+      }
+      return agent;
+    }));
+  };
+
+  const deleteAgent = (agentId: string) => {
+    const agent = agents.find(a => a.id === agentId);
+    setAgents(prev => prev.filter(a => a.id !== agentId));
+    toast({
+      title: "Agent Deleted",
+      description: `${agent?.name} has been deleted successfully.`,
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -67,6 +65,20 @@ const AgentList = ({ onAgentSelect }: AgentListProps) => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  if (agents.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Brain className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No agents created yet</h3>
+        <p className="text-gray-500 mb-6">Create your first AI agent to get started with automation.</p>
+        <Button onClick={() => toast({ title: "Navigate to Create Tab", description: "Click on the 'Create' tab to build your first agent." })}>
+          <Plus className="h-4 w-4 mr-2" />
+          Create Your First Agent
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -113,6 +125,7 @@ const AgentList = ({ onAgentSelect }: AgentListProps) => {
                 variant="outline" 
                 size="sm"
                 className={agent.status === 'active' ? 'text-orange-600' : 'text-green-600'}
+                onClick={() => toggleAgentStatus(agent.id)}
               >
                 {agent.status === 'active' ? (
                   <><Pause className="h-3 w-3 mr-1" />Pause</>
@@ -120,7 +133,12 @@ const AgentList = ({ onAgentSelect }: AgentListProps) => {
                   <><Play className="h-3 w-3 mr-1" />Start</>
                 )}
               </Button>
-              <Button variant="outline" size="sm" className="text-red-600">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-red-600"
+                onClick={() => deleteAgent(agent.id)}
+              >
                 <Trash2 className="h-3 w-3" />
               </Button>
             </div>
