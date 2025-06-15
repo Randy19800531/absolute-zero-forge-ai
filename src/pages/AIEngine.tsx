@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import IntegrationButtons from '@/components/layout/IntegrationButtons';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Brain, Bot, MessageSquare, Zap } from 'lucide-react';
+import { Brain, Bot, MessageSquare, Zap, Plus } from 'lucide-react';
 import AgentList from '@/components/ai/AgentList';
 import AgentCreator from '@/components/ai/AgentCreator';
 import ConversationMemory from '@/components/ai/ConversationMemory';
