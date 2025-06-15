@@ -1,9 +1,9 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Workflows from "./pages/Workflows";
 import NotFound from "./pages/NotFound";
@@ -18,34 +18,38 @@ import Integrations from "./pages/Integrations";
 import Documentation from "./pages/Documentation";
 import LLMConfig from "./pages/LLMConfig";
 import LowNoCodeBuilder from "./pages/LowNoCodeBuilder";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/workflows" element={<Workflows />} />
-          <Route path="/vba-generator" element={<VBAGenerator />} />
-          <Route path="/ai-engine" element={<AIEngine />} />
-          <Route path="/llm-config" element={<LLMConfig />} />
-          <Route path="/low-no-code-builder" element={<LowNoCodeBuilder />} />
-          <Route path="/theme-customizer" element={<ThemeCustomizerPage />} />
-          <Route path="/agency" element={<Agency />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/testing" element={<Testing />} />
-          <Route path="/integrations" element={<Integrations />} />
-          <Route path="/documentation" element={<Documentation />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/workflows" element={<Workflows />} />
+            <Route path="/vba-generator" element={<VBAGenerator />} />
+            <Route path="/ai-engine" element={<AIEngine />} />
+            <Route path="/llm-config" element={<LLMConfig />} />
+            <Route path="/low-no-code-builder" element={<LowNoCodeBuilder />} />
+            <Route path="/theme-customizer" element={<ThemeCustomizerPage />} />
+            <Route path="/agency" element={<Agency />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/testing" element={<Testing />} />
+            <Route path="/integrations" element={<Integrations />} />
+            <Route path="/documentation" element={<Documentation />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
