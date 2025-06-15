@@ -11,6 +11,7 @@ import AIEngine from '@/pages/AIEngine';
 import Pricing from '@/pages/Pricing';
 import Account from '@/pages/Account';
 import Auth from '@/pages/Auth';
+import LLMConfig from '@/pages/LLMConfig';
 import WorkflowVisualBuilder from '@/pages/WorkflowVisualBuilder';
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ function AppRoutes() {
         <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
         <Route path="/workflows" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
         <Route path="/ai-engine" element={<ProtectedRoute><AIEngine /></ProtectedRoute>} />
+        <Route path="/llm-config" element={<ProtectedRoute><LLMConfig /></ProtectedRoute>} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
         <Route path="/auth" element={<Auth />} />

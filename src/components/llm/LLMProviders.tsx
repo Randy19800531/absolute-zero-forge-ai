@@ -1,12 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Eye, EyeOff, Save, Check, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import LLMProviderCard from './LLMProviderCard';
 
 interface LLMProvider {
   id: string;
@@ -14,6 +10,7 @@ interface LLMProvider {
   description: string;
   apiKeyLabel: string;
   status: 'connected' | 'disconnected';
+  website?: string;
 }
 
 const LLMProviders = () => {
@@ -24,35 +21,48 @@ const LLMProviders = () => {
       name: 'GPT-4o',
       description: 'Latest OpenAI model with advanced reasoning',
       apiKeyLabel: 'OpenAI API Key',
-      status: 'disconnected'
+      status: 'disconnected',
+      website: 'https://platform.openai.com/api-keys'
     },
     {
       id: 'o3',
       name: 'o3 / o1 (OpenAI)',
       description: 'Advanced reasoning models from OpenAI',
       apiKeyLabel: 'OpenAI API Key',
-      status: 'disconnected'
+      status: 'disconnected',
+      website: 'https://platform.openai.com/api-keys'
     },
     {
       id: 'gemini',
       name: 'Gemini',
       description: 'Google\'s multimodal AI model',
       apiKeyLabel: 'Google AI API Key',
-      status: 'disconnected'
+      status: 'disconnected',
+      website: 'https://makersuite.google.com/app/apikey'
     },
     {
       id: 'claude',
       name: 'Claude',
       description: 'Anthropic\'s conversational AI assistant',
       apiKeyLabel: 'Anthropic API Key',
-      status: 'disconnected'
+      status: 'disconnected',
+      website: 'https://console.anthropic.com/settings/keys'
     },
     {
       id: 'grok',
       name: 'Grok (xAI)',
       description: 'xAI\'s conversational AI model',
       apiKeyLabel: 'xAI API Key',
-      status: 'disconnected'
+      status: 'disconnected',
+      website: 'https://console.x.ai/'
+    },
+    {
+      id: 'perplexity',
+      name: 'Perplexity',
+      description: 'Real-time AI search and reasoning',
+      apiKeyLabel: 'Perplexity API Key',
+      status: 'disconnected',
+      website: 'https://www.perplexity.ai/settings/api'
     }
   ]);
 
@@ -135,83 +145,32 @@ const LLMProviders = () => {
     });
   };
 
+  const connectedCount = providers.filter(p => p.status === 'connected').length;
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>LLM Provider Configuration</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>LLM Provider Configuration</span>
+            <span className="text-sm font-normal text-gray-600">
+              {connectedCount} of {providers.length} connected
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {providers.map((provider) => (
-              <Card key={provider.id} className="border-2">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{provider.name}</CardTitle>
-                    <Badge 
-                      variant={provider.status === 'connected' ? 'default' : 'secondary'}
-                      className={provider.status === 'connected' ? 'bg-green-100 text-green-800' : ''}
-                    >
-                      {provider.status === 'connected' ? (
-                        <Check className="h-3 w-3 mr-1" />
-                      ) : (
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                      )}
-                      {provider.status}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">{provider.description}</p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor={`api-key-${provider.id}`}>
-                      {provider.apiKeyLabel}
-                    </Label>
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Input
-                          id={`api-key-${provider.id}`}
-                          type={showKeys[provider.id] ? 'text' : 'password'}
-                          placeholder="Enter your API key..."
-                          value={apiKeys[provider.id] || ''}
-                          onChange={(e) => handleApiKeyChange(provider.id, e.target.value)}
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                          onClick={() => toggleKeyVisibility(provider.id)}
-                        >
-                          {showKeys[provider.id] ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => saveApiKey(provider.id)}
-                      className="flex-1"
-                      disabled={!apiKeys[provider.id]?.trim()}
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      Save
-                    </Button>
-                    {provider.status === 'connected' && (
-                      <Button 
-                        variant="outline"
-                        onClick={() => removeApiKey(provider.id)}
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <LLMProviderCard
+                key={provider.id}
+                provider={provider}
+                apiKey={apiKeys[provider.id] || ''}
+                showKey={showKeys[provider.id] || false}
+                onApiKeyChange={(value) => handleApiKeyChange(provider.id, value)}
+                onToggleVisibility={() => toggleKeyVisibility(provider.id)}
+                onSave={() => saveApiKey(provider.id)}
+                onRemove={() => removeApiKey(provider.id)}
+              />
             ))}
           </div>
         </CardContent>
