@@ -13,7 +13,7 @@ import { useWorkflows } from '@/hooks/useWorkflows';
 import { workflowOrchestrator, WorkflowRequirements } from '@/services/workflowOrchestrator';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, Template, Code, Rocket } from 'lucide-react';
+import { Zap, Layout, Code, Rocket } from 'lucide-react';
 
 const WorkflowBuilder = () => {
   const { user } = useAuth();
@@ -195,7 +195,7 @@ const WorkflowBuilder = () => {
       <Tabs defaultValue="templates" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="templates" className="flex items-center gap-2">
-            <Template className="h-4 w-4" />
+            <Layout className="h-4 w-4" />
             Use Template
           </TabsTrigger>
           <TabsTrigger value="custom" className="flex items-center gap-2">

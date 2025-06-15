@@ -116,7 +116,12 @@ export class TemplateLibrary {
       const { data, error } = await query.order('usage_count', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Type assertion for template_data
+      return (data || []).map(template => ({
+        ...template,
+        template_data: template.template_data as AppTemplate['template_data']
+      }));
     } catch (error) {
       console.error('Error fetching templates:', error);
       return [];
@@ -135,7 +140,11 @@ export class TemplateLibrary {
         .single();
 
       if (error) throw error;
-      return data;
+      
+      return {
+        ...data,
+        template_data: data.template_data as AppTemplate['template_data']
+      };
     } catch (error) {
       console.error('Error creating template:', error);
       throw error;
@@ -144,11 +153,13 @@ export class TemplateLibrary {
 
   async useTemplate(templateId: string): Promise<void> {
     try {
-      const { error } = await supabase.rpc('increment', {
-        table_name: 'app_templates',
-        row_id: templateId,
-        column_name: 'usage_count'
-      });
+      // Simple update without using custom function
+      const { error } = await supabase
+        .from('app_templates')
+        .update({ 
+          usage_count: supabase.sql`usage_count + 1`
+        })
+        .eq('id', templateId);
 
       if (error) console.error('Error incrementing usage count:', error);
     } catch (error) {
@@ -159,7 +170,7 @@ export class TemplateLibrary {
   async seedBuiltInTemplates(userId: string): Promise<void> {
     try {
       for (const template of BUILT_IN_TEMPLATES) {
-        await this.createTemplate(template, userId);
+        await this.createTemplate({ ...template, created_by: userId }, userId);
       }
     } catch (error) {
       console.error('Error seeding built-in templates:', error);

@@ -35,7 +35,7 @@ export class WorkflowOrchestrator {
           name,
           description,
           user_id: userId,
-          requirements,
+          requirements: requirements as any,
           status: 'draft'
         })
         .select()
@@ -45,10 +45,10 @@ export class WorkflowOrchestrator {
 
       // Create workflow steps for each agent
       const steps = [
-        { agent_specialization: 'design', step_order: 1 },
-        { agent_specialization: 'development', step_order: 2 },
-        { agent_specialization: 'testing', step_order: 3 },
-        { agent_specialization: 'deployment', step_order: 4 }
+        { agent_specialization: 'design' as const, step_order: 1 },
+        { agent_specialization: 'development' as const, step_order: 2 },
+        { agent_specialization: 'testing' as const, step_order: 3 },
+        { agent_specialization: 'deployment' as const, step_order: 4 }
       ];
 
       const { error: stepsError } = await supabase
@@ -56,8 +56,9 @@ export class WorkflowOrchestrator {
         .insert(
           steps.map(step => ({
             workflow_id: workflow.id,
-            ...step,
-            input_data: requirements,
+            agent_specialization: step.agent_specialization,
+            step_order: step.step_order,
+            input_data: requirements as any,
             status: 'pending'
           }))
         );

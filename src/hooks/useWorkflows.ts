@@ -37,7 +37,14 @@ export const useWorkflows = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setWorkflows(data || []);
+      
+      // Type assertion to ensure proper status types
+      const typedWorkflows = (data || []).map(workflow => ({
+        ...workflow,
+        status: workflow.status as 'draft' | 'in_progress' | 'completed' | 'failed'
+      }));
+      
+      setWorkflows(typedWorkflows);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -59,8 +66,14 @@ export const useWorkflows = () => {
         .single();
 
       if (error) throw error;
-      setWorkflows(prev => [data, ...prev]);
-      return data;
+      
+      const typedWorkflow = {
+        ...data,
+        status: data.status as 'draft' | 'in_progress' | 'completed' | 'failed'
+      };
+      
+      setWorkflows(prev => [typedWorkflow, ...prev]);
+      return typedWorkflow;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create workflow');
       throw err;
@@ -77,8 +90,14 @@ export const useWorkflows = () => {
         .single();
 
       if (error) throw error;
-      setWorkflows(prev => prev.map(w => w.id === id ? data : w));
-      return data;
+      
+      const typedWorkflow = {
+        ...data,
+        status: data.status as 'draft' | 'in_progress' | 'completed' | 'failed'
+      };
+      
+      setWorkflows(prev => prev.map(w => w.id === id ? typedWorkflow : w));
+      return typedWorkflow;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update workflow');
       throw err;
