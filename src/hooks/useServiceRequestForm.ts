@@ -23,6 +23,7 @@ export interface ServiceRequestFormData {
   deadline: string;
   budget_range: string;
   inspiration: string;
+  files: Array<{ name: string; url: string; type: string }>;
 }
 
 export const useServiceRequestForm = () => {
@@ -47,7 +48,8 @@ export const useServiceRequestForm = () => {
     start_date: '',
     deadline: '',
     budget_range: '',
-    inspiration: ''
+    inspiration: '',
+    files: []
   });
 
   const handleFieldChange = (field: string, value: string) => {
@@ -61,6 +63,10 @@ export const useServiceRequestForm = () => {
         ? [...prev.devices, device]
         : prev.devices.filter(d => d !== device)
     }));
+  };
+
+  const handleFilesChange = (files: Array<{ name: string; url: string; type: string }>) => {
+    setFormData(prev => ({ ...prev, files }));
   };
 
   const resetForm = () => {
@@ -83,7 +89,8 @@ export const useServiceRequestForm = () => {
       start_date: '',
       deadline: '',
       budget_range: '',
-      inspiration: ''
+      inspiration: '',
+      files: []
     });
   };
 
@@ -100,6 +107,7 @@ export const useServiceRequestForm = () => {
         description: formData.description,
         main_features: formData.main_features,
         devices: formData.devices,
+        files: formData.files,
       };
 
       // Add optional fields only if they have values
@@ -149,6 +157,7 @@ export const useServiceRequestForm = () => {
     loading,
     handleFieldChange,
     handleDeviceChange,
+    handleFilesChange,
     submitForm,
     resetForm
   };

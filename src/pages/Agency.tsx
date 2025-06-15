@@ -3,9 +3,8 @@ import React, { useState } from 'react';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, ArrowLeft, Plus, Users, FolderOpen, Clock, Target, BarChart3 } from 'lucide-react';
+import { Building2, ArrowLeft, Users, FolderOpen, Clock, Target, BarChart3, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProjectDashboard from '@/components/agency/ProjectDashboard';
 import SprintManagement from '@/components/agency/SprintManagement';
@@ -15,6 +14,7 @@ import ServiceRequestForm from '@/components/agency/ServiceRequestForm';
 import ServiceRequestList from '@/components/agency/ServiceRequestList';
 import TimeTracking from '@/components/agency/TimeTracking';
 import ReportsAnalytics from '@/components/agency/ReportsAnalytics';
+import AdvancedAnalytics from '@/components/agency/AdvancedAnalytics';
 
 const Agency = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -53,7 +53,7 @@ const Agency = () => {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-7 mb-6">
+              <TabsList className="grid w-full grid-cols-8 mb-6">
                 <TabsTrigger value="dashboard" className="flex items-center gap-2">
                   <BarChart3 className="h-4 w-4" />
                   Dashboard
@@ -81,6 +81,10 @@ const Agency = () => {
                 <TabsTrigger value="reports" className="flex items-center gap-2">
                   <BarChart3 className="h-4 w-4" />
                   Reports
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Analytics
                 </TabsTrigger>
               </TabsList>
 
@@ -116,6 +120,10 @@ const Agency = () => {
 
               <TabsContent value="reports">
                 <ReportsAnalytics />
+              </TabsContent>
+
+              <TabsContent value="analytics">
+                <AdvancedAnalytics />
               </TabsContent>
             </Tabs>
           </div>
