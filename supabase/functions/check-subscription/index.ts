@@ -33,14 +33,24 @@ serve(async (req) => {
     const payfastPassphrase = Deno.env.get("PAYFAST_PASSPHRASE");
     
     if (!payfastMerchantId || !payfastMerchantKey || !payfastPassphrase) {
-      throw new Error("PayFast credentials are not configured. Please check PAYFAST_MERCHANT_ID, PAYFAST_MERCHANT_KEY, and PAYFAST_PASSPHRASE environment variables.");
+      logStep("PayFast credentials missing");
+      return new Response(JSON.stringify({ 
+        error: "PayFast credentials are not configured. Please check PAYFAST_MERCHANT_ID, PAYFAST_MERCHANT_KEY, and PAYFAST_PASSPHRASE environment variables." 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
     }
     
     logStep("PayFast credentials verified");
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error("No authorization header provided");
+      logStep("No authorization header");
+      return new Response(JSON.stringify({ error: "No authorization header provided" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
     logStep("Authorization header found");
 
@@ -49,11 +59,19 @@ serve(async (req) => {
     
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) {
-      throw new Error(`Authentication error: ${userError.message}`);
+      logStep("Authentication error", { error: userError.message });
+      return new Response(JSON.stringify({ error: `Authentication error: ${userError.message}` }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
     const user = userData.user;
     if (!user?.email) {
-      throw new Error("User not authenticated or email not available");
+      logStep("User not authenticated");
+      return new Response(JSON.stringify({ error: "User not authenticated or email not available" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
     logStep("User authenticated", { userId: user.id, email: user.email });
 
@@ -66,7 +84,10 @@ serve(async (req) => {
 
     if (subscriptionError) {
       logStep("Error querying subscriptions", { error: subscriptionError });
-      throw new Error(`Database error: ${subscriptionError.message}`);
+      return new Response(JSON.stringify({ error: `Database error: ${subscriptionError.message}` }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
     }
 
     if (!subscriptionData) {

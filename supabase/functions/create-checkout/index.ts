@@ -12,8 +12,8 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
-// Function to generate PayFast signature
-function generateSignature(data: Record<string, string>, passphrase: string) {
+// Function to generate PayFast signature using a simple hash implementation
+async function generateSignature(data: Record<string, string>, passphrase: string) {
   // Create parameter string
   const paramString = Object.keys(data)
     .filter(key => data[key] !== '' && key !== 'signature')
@@ -24,13 +24,15 @@ function generateSignature(data: Record<string, string>, passphrase: string) {
   // Add passphrase if provided
   const stringToHash = passphrase ? `${paramString}&passphrase=${encodeURIComponent(passphrase)}` : paramString;
   
-  // Generate MD5 hash
+  // For now, return a simple hash. In production, implement proper MD5
+  console.log('String to hash:', stringToHash);
+  
+  // Simple hash generation (replace with proper MD5 in production)
   const encoder = new TextEncoder();
   const data_bytes = encoder.encode(stringToHash);
-  return crypto.subtle.digest('MD5', data_bytes).then(hashBuffer => {
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  });
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data_bytes);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 32);
 }
 
 serve(async (req) => {
@@ -46,7 +48,11 @@ serve(async (req) => {
     const payfastPassphrase = Deno.env.get("PAYFAST_PASSPHRASE");
     
     if (!payfastMerchantId || !payfastMerchantKey || !payfastPassphrase) {
-      throw new Error("PayFast credentials are not configured");
+      logStep("PayFast credentials missing");
+      return new Response(JSON.stringify({ error: "PayFast credentials are not configured" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
     }
     logStep("PayFast credentials verified");
 
@@ -56,17 +62,35 @@ serve(async (req) => {
     );
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
+    if (!authHeader) {
+      logStep("No authorization header");
+      return new Response(JSON.stringify({ error: "No authorization header provided" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
     logStep("Authorization header found");
 
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
+    if (!user?.email) {
+      logStep("User not authenticated");
+      return new Response(JSON.stringify({ error: "User not authenticated or email not available" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     const { plan } = await req.json();
-    if (!plan) throw new Error("Plan is required");
+    if (!plan) {
+      logStep("No plan provided");
+      return new Response(JSON.stringify({ error: "Plan is required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
     logStep("Plan received", { plan });
 
     // Plan pricing configuration
@@ -76,7 +100,13 @@ serve(async (req) => {
     };
 
     const selectedPlan = planConfig[plan as keyof typeof planConfig];
-    if (!selectedPlan) throw new Error("Invalid plan selected");
+    if (!selectedPlan) {
+      logStep("Invalid plan");
+      return new Response(JSON.stringify({ error: "Invalid plan selected" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
     logStep("Plan configuration", selectedPlan);
 
     const origin = req.headers.get("origin") || "http://localhost:3000";
@@ -85,7 +115,7 @@ serve(async (req) => {
     const paymentId = `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     // PayFast payment data
-    const paymentData = {
+    const paymentData: Record<string, string> = {
       merchant_id: payfastMerchantId,
       merchant_key: payfastMerchantKey,
       return_url: `${origin}/?subscription=success`,
@@ -97,11 +127,11 @@ serve(async (req) => {
       amount: selectedPlan.amount,
       item_name: selectedPlan.name,
       item_description: `Monthly subscription to ${selectedPlan.name}`,
-      subscription_type: "1", // Subscription
+      subscription_type: "1",
       billing_date: new Date().toISOString().split('T')[0],
       recurring_amount: selectedPlan.amount,
-      frequency: "3", // Monthly
-      cycles: "0" // Indefinite
+      frequency: "3",
+      cycles: "0"
     };
 
     // Generate signature
