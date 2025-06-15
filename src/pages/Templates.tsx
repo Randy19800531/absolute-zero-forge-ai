@@ -4,7 +4,7 @@ import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Template } from 'lucide-react';
+import { ArrowLeft, LayoutTemplate } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Templates = () => {
@@ -45,7 +45,7 @@ const Templates = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Template className="h-5 w-5" />
+                    <LayoutTemplate className="h-5 w-5" />
                     Coming Soon
                   </CardTitle>
                 </CardHeader>
