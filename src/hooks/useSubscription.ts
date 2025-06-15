@@ -52,11 +52,11 @@ export const useSubscription = () => {
           details: error.details
         });
         
-        // More specific error handling
-        if (error.message?.includes('STRIPE_SECRET_KEY')) {
+        // More specific error handling for PayFast
+        if (error.message?.includes('PayFast credentials')) {
           toast({
             title: "Configuration Error",
-            description: "Stripe integration needs to be configured. Please contact support or check your Stripe settings.",
+            description: "PayFast integration needs to be configured. Please contact support or check your PayFast settings.",
             variant: "destructive",
           });
         } else if (error.message?.includes('Authentication error')) {
@@ -127,8 +127,19 @@ export const useSubscription = () => {
 
       if (error) throw error;
 
-      // Open Stripe checkout in a new tab
-      window.open(data.url, '_blank');
+      // For PayFast, we get HTML that redirects to PayFast
+      // Create a temporary window to handle the redirect
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write(data);
+        newWindow.document.close();
+      } else {
+        toast({
+          title: "Popup Blocked",
+          description: "Please allow popups for this site to complete payment.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Error creating checkout:', error);
       toast({
@@ -163,13 +174,13 @@ export const useSubscription = () => {
 
       if (error) throw error;
 
-      // Open customer portal in a new tab
+      // Open subscription management page
       window.open(data.url, '_blank');
     } catch (error) {
       console.error('Error opening customer portal:', error);
       toast({
         title: "Error",
-        description: "Failed to open customer portal. Please try again.",
+        description: "Failed to open subscription management. Please try again.",
         variant: "destructive",
       });
     }

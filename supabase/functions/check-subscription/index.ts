@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -28,19 +27,16 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Get the Stripe secret key from environment variables
-    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeSecretKey) {
-      throw new Error("STRIPE_SECRET_KEY environment variable is not set");
+    // Get the PayFast credentials from environment variables
+    const payfastMerchantId = Deno.env.get("PAYFAST_MERCHANT_ID");
+    const payfastMerchantKey = Deno.env.get("PAYFAST_MERCHANT_KEY");
+    const payfastPassphrase = Deno.env.get("PAYFAST_PASSPHRASE");
+    
+    if (!payfastMerchantId || !payfastMerchantKey || !payfastPassphrase) {
+      throw new Error("PayFast credentials are not configured. Please check PAYFAST_MERCHANT_ID, PAYFAST_MERCHANT_KEY, and PAYFAST_PASSPHRASE environment variables.");
     }
     
-    // Log the first few characters to verify we have a secret key (starts with sk_)
-    const keyPrefix = stripeSecretKey.substring(0, 3);
-    logStep("Stripe key verified", { prefix: keyPrefix });
-    
-    if (!keyPrefix.startsWith("sk_")) {
-      throw new Error("Invalid Stripe secret key format. Must start with 'sk_'");
-    }
+    logStep("PayFast credentials verified");
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -61,76 +57,70 @@ serve(async (req) => {
     }
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Initialize Stripe with the secret key
-    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
-    
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    
-    if (customers.data.length === 0) {
-      logStep("No customer found, updating unsubscribed state");
+    // Check for existing subscription in our database
+    const { data: subscriptionData, error: subscriptionError } = await supabaseClient
+      .from("subscribers")
+      .select("*")
+      .eq("email", user.email)
+      .maybeSingle();
+
+    if (subscriptionError) {
+      logStep("Error querying subscriptions", { error: subscriptionError });
+      throw new Error(`Database error: ${subscriptionError.message}`);
+    }
+
+    if (!subscriptionData) {
+      logStep("No subscription found, updating unsubscribed state");
       await supabaseClient.from("subscribers").upsert({
         email: user.email,
         user_id: user.id,
-        stripe_customer_id: null,
+        payfast_customer_id: null,
         subscribed: false,
         subscription_tier: null,
         subscription_end: null,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'email' });
+      
       return new Response(JSON.stringify({ subscribed: false }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     }
 
-    const customerId = customers.data[0].id;
-    logStep("Found Stripe customer", { customerId });
+    // Check if subscription is still active (not expired)
+    const hasActiveSub = subscriptionData.subscribed && 
+      subscriptionData.subscription_end && 
+      new Date(subscriptionData.subscription_end) > new Date();
 
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-      limit: 1,
+    logStep("Subscription status checked", { 
+      subscribed: hasActiveSub, 
+      tier: subscriptionData.subscription_tier,
+      endDate: subscriptionData.subscription_end 
     });
-    const hasActiveSub = subscriptions.data.length > 0;
-    let subscriptionTier = null;
-    let subscriptionEnd = null;
 
-    if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
+    // Update subscription status if it has expired
+    if (subscriptionData.subscribed && !hasActiveSub) {
+      await supabaseClient.from("subscribers").upsert({
+        email: user.email,
+        user_id: user.id,
+        payfast_customer_id: subscriptionData.payfast_customer_id,
+        subscribed: false,
+        subscription_tier: null,
+        subscription_end: null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'email' });
       
-      // Determine subscription tier from price
-      const priceId = subscription.items.data[0].price.id;
-      const price = await stripe.prices.retrieve(priceId);
-      const amount = price.unit_amount || 0;
-      if (amount === 7900) {
-        subscriptionTier = "Professional";
-      } else if (amount === 19900) {
-        subscriptionTier = "Enterprise";
-      } else {
-        subscriptionTier = "Unknown";
-      }
-      logStep("Determined subscription tier", { priceId, amount, subscriptionTier });
-    } else {
-      logStep("No active subscription found");
+      logStep("Subscription expired, updated to inactive");
+      return new Response(JSON.stringify({ subscribed: false }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
-    await supabaseClient.from("subscribers").upsert({
-      email: user.email,
-      user_id: user.id,
-      stripe_customer_id: customerId,
-      subscribed: hasActiveSub,
-      subscription_tier: subscriptionTier,
-      subscription_end: subscriptionEnd,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'email' });
-
-    logStep("Updated database with subscription info", { subscribed: hasActiveSub, subscriptionTier });
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
-      subscription_tier: subscriptionTier,
-      subscription_end: subscriptionEnd
+      subscription_tier: subscriptionData.subscription_tier,
+      subscription_end: subscriptionData.subscription_end
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
