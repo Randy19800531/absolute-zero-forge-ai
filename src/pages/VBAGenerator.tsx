@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,6 +50,16 @@ const VBAGenerator = () => {
   const handleLoadFromHistory = (historyItem: any) => {
     setRequirements(historyItem.requirements);
     setGeneratedCode(historyItem.code);
+    setCurrentView('generator');
+  };
+
+  const handleTemplateSelect = (template: any) => {
+    // Load template into requirements and switch to generator view
+    setRequirements(prev => ({
+      ...prev,
+      projectName: template.name,
+      description: template.description,
+    }));
     setCurrentView('generator');
   };
 
@@ -128,7 +137,7 @@ const VBAGenerator = () => {
       )}
 
       {currentView === 'templates' && (
-        <VBATemplateLibrary />
+        <VBATemplateLibrary onTemplateSelect={handleTemplateSelect} />
       )}
 
       {currentView === 'history' && (
