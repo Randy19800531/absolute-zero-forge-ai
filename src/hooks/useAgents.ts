@@ -14,7 +14,7 @@ export interface Agent {
   user_id: string;
   updated_at: string;
   configuration: any;
-  specialization?: string;
+  specialization?: 'design' | 'development' | 'testing' | 'deployment';
 }
 
 export const useAgents = () => {
@@ -53,7 +53,12 @@ export const useAgents = () => {
       const { data, error } = await supabase
         .from('ai_agents')
         .insert({
-          ...agent,
+          name: agent.name,
+          type: agent.type,
+          description: agent.description,
+          configuration: agent.configuration,
+          specialization: agent.specialization as 'design' | 'development' | 'testing' | 'deployment',
+          status: agent.status,
           user_id: user.id,
           tasks_completed: 0
         })
@@ -72,9 +77,14 @@ export const useAgents = () => {
 
   const updateAgent = async (id: string, updates: Partial<Agent>) => {
     try {
+      const updateData: any = { ...updates };
+      if (updates.specialization) {
+        updateData.specialization = updates.specialization as 'design' | 'development' | 'testing' | 'deployment';
+      }
+
       const { data, error } = await supabase
         .from('ai_agents')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
