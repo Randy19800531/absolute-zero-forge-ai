@@ -4,7 +4,6 @@ import Sidebar from '@/components/layout/Sidebar';
 import HeroSection from '@/components/dashboard/HeroSection';
 import StatsGrid from '@/components/dashboard/StatsGrid';
 import FeaturesGrid from '@/components/dashboard/FeaturesGrid';
-import QuickActions from '@/components/dashboard/QuickActions';
 import RecentActivity from '@/components/dashboard/RecentActivity';
 import PricingSection from '@/components/dashboard/PricingSection';
 import { useState } from 'react';
@@ -46,7 +45,6 @@ const Index = () => {
           <HeroSection />
           <StatsGrid />
           <FeaturesGrid />
-          <QuickActions />
           <RecentActivity />
           <PricingSection />
         </main>
