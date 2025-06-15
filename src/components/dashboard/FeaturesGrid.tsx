@@ -101,22 +101,22 @@ const FeaturesGrid = () => {
   ];
 
   return (
-    <div className="mb-12">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Platform Features</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div>
+      <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Platform Features</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {features.map((feature) => (
           <div 
             key={feature.title}
-            className="bg-white rounded-lg p-6 shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg p-6 shadow-sm border cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 h-full flex flex-col"
             onClick={() => navigate(feature.path)}
           >
-            <div className="flex flex-col items-center text-center gap-4">
+            <div className="flex flex-col items-center text-center gap-4 flex-1">
               <div className={`p-3 ${feature.color} rounded-lg`}>
                 <feature.icon className={`h-8 w-8 ${feature.iconColor}`} />
               </div>
-              <div>
+              <div className="flex-1 flex flex-col justify-between">
                 <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </div>

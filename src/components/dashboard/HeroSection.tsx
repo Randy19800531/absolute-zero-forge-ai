@@ -3,12 +3,12 @@ import React from 'react';
 
 const HeroSection = () => {
   return (
-    <div className="mb-8">
+    <div className="text-center">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
           Welcome to Absolute-0.AI
         </h1>
-        <p className="text-gray-600">
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
           Your complete AI-native SaaS platform for workflow automation, VBA generation, and intelligent task execution.
         </p>
       </div>

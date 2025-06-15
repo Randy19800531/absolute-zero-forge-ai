@@ -42,11 +42,16 @@ const Index = () => {
             </div>
           )}
           
-          <HeroSection />
-          <StatsGrid />
-          <FeaturesGrid />
-          <RecentActivity />
-          <PricingSection />
+          <div className="container mx-auto px-6 py-8 space-y-12">
+            <HeroSection />
+            <StatsGrid />
+            <FeaturesGrid />
+            <RecentActivity />
+          </div>
+          
+          <div className="container mx-auto px-6 py-8">
+            <PricingSection />
+          </div>
         </main>
       </div>
     </div>
