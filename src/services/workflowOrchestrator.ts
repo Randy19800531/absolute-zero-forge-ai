@@ -91,7 +91,20 @@ export class WorkflowOrchestrator {
 
       // Execute steps sequentially
       for (const step of steps) {
-        await this.executeStep(step);
+        // Convert database row to WorkflowStep type
+        const workflowStep: WorkflowStep = {
+          id: step.id,
+          workflow_id: step.workflow_id,
+          agent_specialization: step.agent_specialization as 'design' | 'development' | 'testing' | 'deployment',
+          step_order: step.step_order,
+          status: step.status as 'pending' | 'in_progress' | 'completed' | 'failed',
+          input_data: step.input_data,
+          output_data: step.output_data,
+          execution_time_ms: step.execution_time_ms || undefined,
+          error_message: step.error_message || undefined
+        };
+        
+        await this.executeStep(workflowStep);
       }
 
       // Mark workflow as completed

@@ -153,11 +153,23 @@ export class TemplateLibrary {
 
   async useTemplate(templateId: string): Promise<void> {
     try {
-      // Simple update without using custom function
+      // First get the current usage count
+      const { data: currentTemplate, error: fetchError } = await supabase
+        .from('app_templates')
+        .select('usage_count')
+        .eq('id', templateId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching current usage count:', fetchError);
+        return;
+      }
+
+      // Then increment it
       const { error } = await supabase
         .from('app_templates')
         .update({ 
-          usage_count: supabase.sql`usage_count + 1`
+          usage_count: (currentTemplate?.usage_count || 0) + 1
         })
         .eq('id', templateId);
 
