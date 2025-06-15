@@ -188,6 +188,216 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          actual_hours: number | null
+          budget: number | null
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string | null
+          estimated_hours: number | null
+          id: string
+          name: string
+          start_date: string | null
+          status: string | null
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          actual_hours?: number | null
+          budget?: number | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          name: string
+          start_date?: string | null
+          status?: string | null
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          actual_hours?: number | null
+          budget?: number | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          name?: string
+          start_date?: string | null
+          status?: string | null
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_requests: {
+        Row: {
+          assigned_to: string | null
+          budget_range: string | null
+          client_email: string
+          client_name: string
+          client_phone: string | null
+          company: string
+          created_at: string
+          current_software: string | null
+          daily_tasks: string | null
+          deadline: string | null
+          description: string
+          devices: Json | null
+          estimated_cost: number | null
+          estimated_hours: number | null
+          files: Json | null
+          id: string
+          inspiration: string | null
+          integrations: string | null
+          main_features: string
+          problem_statement: string | null
+          project_id: string | null
+          project_name: string
+          reports_needed: string | null
+          request_number: string
+          start_date: string | null
+          status: string | null
+          target_users: string | null
+          updated_at: string
+          urgency: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          budget_range?: string | null
+          client_email: string
+          client_name: string
+          client_phone?: string | null
+          company: string
+          created_at?: string
+          current_software?: string | null
+          daily_tasks?: string | null
+          deadline?: string | null
+          description: string
+          devices?: Json | null
+          estimated_cost?: number | null
+          estimated_hours?: number | null
+          files?: Json | null
+          id?: string
+          inspiration?: string | null
+          integrations?: string | null
+          main_features: string
+          problem_statement?: string | null
+          project_id?: string | null
+          project_name: string
+          reports_needed?: string | null
+          request_number: string
+          start_date?: string | null
+          status?: string | null
+          target_users?: string | null
+          updated_at?: string
+          urgency?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          budget_range?: string | null
+          client_email?: string
+          client_name?: string
+          client_phone?: string | null
+          company?: string
+          created_at?: string
+          current_software?: string | null
+          daily_tasks?: string | null
+          deadline?: string | null
+          description?: string
+          devices?: Json | null
+          estimated_cost?: number | null
+          estimated_hours?: number | null
+          files?: Json | null
+          id?: string
+          inspiration?: string | null
+          integrations?: string | null
+          main_features?: string
+          problem_statement?: string | null
+          project_id?: string | null
+          project_name?: string
+          reports_needed?: string | null
+          request_number?: string
+          start_date?: string | null
+          status?: string | null
+          target_users?: string | null
+          updated_at?: string
+          urgency?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sprints: {
+        Row: {
+          actual_hours: number | null
+          capacity_hours: number | null
+          created_at: string
+          end_date: string
+          goal: string | null
+          id: string
+          name: string
+          project_id: string
+          start_date: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_hours?: number | null
+          capacity_hours?: number | null
+          created_at?: string
+          end_date: string
+          goal?: string | null
+          id?: string
+          name: string
+          project_id: string
+          start_date: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_hours?: number | null
+          capacity_hours?: number | null
+          created_at?: string
+          end_date?: string
+          goal?: string | null
+          id?: string
+          name?: string
+          project_id?: string
+          start_date?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sprints_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       step_library: {
         Row: {
           created_at: string
@@ -223,6 +433,44 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      team_members: {
+        Row: {
+          capacity_hours_per_sprint: number | null
+          hourly_rate: number | null
+          id: string
+          joined_at: string
+          role: string | null
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          capacity_hours_per_sprint?: number | null
+          hourly_rate?: number | null
+          id?: string
+          joined_at?: string
+          role?: string | null
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          capacity_hours_per_sprint?: number | null
+          hourly_rate?: number | null
+          id?: string
+          joined_at?: string
+          role?: string | null
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_memberships: {
         Row: {
@@ -688,6 +936,10 @@ export type Database = {
       assign_superuser_role: {
         Args: { _email: string }
         Returns: undefined
+      }
+      generate_sr_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       has_role: {
         Args: {

@@ -4,11 +4,21 @@ import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, ArrowLeft } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Building2, ArrowLeft, Plus, Users, FolderOpen, Clock, Target, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ProjectDashboard from '@/components/agency/ProjectDashboard';
+import SprintManagement from '@/components/agency/SprintManagement';
+import TaskBoard from '@/components/agency/TaskBoard';
+import TeamManagement from '@/components/agency/TeamManagement';
+import ServiceRequestForm from '@/components/agency/ServiceRequestForm';
+import ServiceRequestList from '@/components/agency/ServiceRequestList';
+import TimeTracking from '@/components/agency/TimeTracking';
+import ReportsAnalytics from '@/components/agency/ReportsAnalytics';
 
 const Agency = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
   const navigate = useNavigate();
 
   return (
@@ -37,19 +47,77 @@ const Agency = () => {
                   Agency Workspace
                 </h1>
                 <p className="text-gray-600">
-                  Complete project management with requirements forms, dynamic pricing, and developer AI assistant
+                  Complete AGILE project management with sprint planning, task tracking, and team collaboration
                 </p>
               </div>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Agency Dashboard</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-500">Agency workspace features coming soon...</p>
-              </CardContent>
-            </Card>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-7 mb-6">
+                <TabsTrigger value="dashboard" className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Dashboard
+                </TabsTrigger>
+                <TabsTrigger value="service-requests" className="flex items-center gap-2">
+                  <FolderOpen className="h-4 w-4" />
+                  Service Requests
+                </TabsTrigger>
+                <TabsTrigger value="sprints" className="flex items-center gap-2">
+                  <Target className="h-4 w-4" />
+                  Sprints
+                </TabsTrigger>
+                <TabsTrigger value="tasks" className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Tasks
+                </TabsTrigger>
+                <TabsTrigger value="team" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Team
+                </TabsTrigger>
+                <TabsTrigger value="time" className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Time
+                </TabsTrigger>
+                <TabsTrigger value="reports" className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Reports
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="dashboard">
+                <ProjectDashboard />
+              </TabsContent>
+
+              <TabsContent value="service-requests">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold">Service Requests</h2>
+                    <ServiceRequestForm />
+                  </div>
+                  <ServiceRequestList />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="sprints">
+                <SprintManagement />
+              </TabsContent>
+
+              <TabsContent value="tasks">
+                <TaskBoard />
+              </TabsContent>
+
+              <TabsContent value="team">
+                <TeamManagement />
+              </TabsContent>
+
+              <TabsContent value="time">
+                <TimeTracking />
+              </TabsContent>
+
+              <TabsContent value="reports">
+                <ReportsAnalytics />
+              </TabsContent>
+            </Tabs>
           </div>
         </main>
       </div>
