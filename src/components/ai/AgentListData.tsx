@@ -12,10 +12,13 @@ interface Agent {
   id: string;
   name: string;
   type: string;
-  status: 'active' | 'idle' | 'paused';
-  description: string;
+  status: string; // Changed from union type to string to match database
+  description: string | null;
   created_at: string;
   tasks_completed: number;
+  user_id: string;
+  updated_at: string;
+  configuration: any; // Adding missing fields from database
 }
 
 interface AgentListDataProps {

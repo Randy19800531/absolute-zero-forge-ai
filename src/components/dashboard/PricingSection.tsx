@@ -2,26 +2,28 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Star, Shield, Clock, Zap } from 'lucide-react';
+import { Check, Star, Shield, Clock, Zap, Gift } from 'lucide-react';
 
 const PricingSection = () => {
   const pricingPlans = [
     {
-      name: 'Starter',
-      price: '$29',
-      period: '/month',
-      description: 'Perfect for individuals and small teams getting started',
+      name: 'Free',
+      price: '$0',
+      period: '/forever',
+      description: 'Perfect for getting started with AI automation',
       features: [
         'Up to 5 AI workflows',
         '50 VBA script generations/month',
         'Basic LLM integrations (GPT-4o)',
-        'Standard support',
+        'Community support',
         '5GB storage',
-        'Basic analytics'
+        'Basic analytics',
+        'Apache 2.0 licensed codebase'
       ],
-      buttonText: 'Start Free Trial',
+      buttonText: 'Start Free Now',
       popular: false,
-      color: 'border-gray-200'
+      color: 'border-gray-200',
+      highlight: 'free'
     },
     {
       name: 'Professional',
@@ -36,11 +38,13 @@ const PricingSection = () => {
         '50GB storage',
         'Advanced analytics',
         'Custom integrations',
-        'Team collaboration tools'
+        'Team collaboration tools',
+        '14-day free trial'
       ],
-      buttonText: 'Subscribe Now',
+      buttonText: 'Start Free Trial',
       popular: true,
-      color: 'border-blue-500'
+      color: 'border-blue-500',
+      highlight: 'trial'
     },
     {
       name: 'Enterprise',
@@ -57,11 +61,13 @@ const PricingSection = () => {
         'White-label options',
         'SOC 2 compliance',
         'Custom knowledge sources',
-        'API access'
+        'API access',
+        'Custom SLA agreements'
       ],
       buttonText: 'Contact Sales',
       popular: false,
-      color: 'border-purple-500'
+      color: 'border-purple-500',
+      highlight: 'enterprise'
     }
   ];
 
@@ -73,9 +79,15 @@ const PricingSection = () => {
   return (
     <div className="mb-8">
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Plan</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          Choose Your Plan
+          <span className="ml-3 inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+            <Gift className="h-4 w-4" />
+            Start Free
+          </span>
+        </h2>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-          Scale your AI automation with flexible pricing options designed for teams of all sizes
+          Begin with our generous free tier, then scale your AI automation with flexible pricing options
         </p>
       </div>
 
@@ -83,13 +95,22 @@ const PricingSection = () => {
         {pricingPlans.map((plan) => (
           <Card 
             key={plan.name} 
-            className={`relative ${plan.color} ${plan.popular ? 'border-2 shadow-lg scale-105' : 'border'} transition-all duration-300 hover:shadow-lg`}
+            className={`relative ${plan.color} ${plan.popular ? 'border-2 shadow-lg scale-105' : 'border'} ${plan.highlight === 'free' ? 'bg-gradient-to-br from-green-50 to-emerald-50' : ''} transition-all duration-300 hover:shadow-lg`}
           >
             {plan.popular && (
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                 <div className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center gap-1">
                   <Star className="h-3 w-3" />
                   Most Popular
+                </div>
+              </div>
+            )}
+
+            {plan.highlight === 'free' && (
+              <div className="absolute -top-3 right-4">
+                <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                  <Gift className="h-3 w-3" />
+                  Free Forever
                 </div>
               </div>
             )}
@@ -114,8 +135,14 @@ const PricingSection = () => {
               </ul>
               
               <Button 
-                className={`w-full ${plan.popular ? 'bg-blue-500 hover:bg-blue-600' : ''}`}
-                variant={plan.popular ? 'default' : 'outline'}
+                className={`w-full ${
+                  plan.highlight === 'free' 
+                    ? 'bg-green-500 hover:bg-green-600' 
+                    : plan.popular 
+                      ? 'bg-blue-500 hover:bg-blue-600' 
+                      : ''
+                }`}
+                variant={plan.popular || plan.highlight === 'free' ? 'default' : 'outline'}
                 onClick={() => handleSubscribe(plan.name)}
               >
                 {plan.buttonText}
@@ -128,7 +155,7 @@ const PricingSection = () => {
       {/* Additional Pricing Info */}
       <div className="text-center mt-8 space-y-4">
         <p className="text-gray-600">
-          All plans include 14-day free trial • No setup fees • Cancel anytime
+          Start free • No credit card required • 14-day premium trials • Cancel anytime
         </p>
         <div className="flex justify-center items-center gap-6 text-sm text-gray-500">
           <div className="flex items-center gap-2">
