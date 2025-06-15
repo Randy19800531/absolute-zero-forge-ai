@@ -91,29 +91,34 @@ export const useServiceRequestForm = () => {
     setLoading(true);
 
     try {
+      // Create the insert object with only the required fields and proper null handling
+      const insertData: any = {
+        client_name: formData.client_name,
+        client_email: formData.client_email,
+        company: formData.company,
+        project_name: formData.project_name,
+        description: formData.description,
+        main_features: formData.main_features,
+        devices: formData.devices,
+      };
+
+      // Add optional fields only if they have values
+      if (formData.client_phone) insertData.client_phone = formData.client_phone;
+      if (formData.problem_statement) insertData.problem_statement = formData.problem_statement;
+      if (formData.target_users) insertData.target_users = formData.target_users;
+      if (formData.daily_tasks) insertData.daily_tasks = formData.daily_tasks;
+      if (formData.reports_needed) insertData.reports_needed = formData.reports_needed;
+      if (formData.current_software) insertData.current_software = formData.current_software;
+      if (formData.integrations) insertData.integrations = formData.integrations;
+      if (formData.urgency) insertData.urgency = formData.urgency;
+      if (formData.start_date) insertData.start_date = formData.start_date;
+      if (formData.deadline) insertData.deadline = formData.deadline;
+      if (formData.budget_range) insertData.budget_range = formData.budget_range;
+      if (formData.inspiration) insertData.inspiration = formData.inspiration;
+
       const { data, error } = await supabase
         .from('service_requests')
-        .insert({
-          client_name: formData.client_name,
-          client_email: formData.client_email,
-          client_phone: formData.client_phone || null,
-          company: formData.company,
-          project_name: formData.project_name,
-          description: formData.description,
-          main_features: formData.main_features,
-          problem_statement: formData.problem_statement || null,
-          target_users: formData.target_users || null,
-          daily_tasks: formData.daily_tasks || null,
-          reports_needed: formData.reports_needed || null,
-          devices: formData.devices,
-          current_software: formData.current_software || null,
-          integrations: formData.integrations || null,
-          urgency: formData.urgency || null,
-          start_date: formData.start_date || null,
-          deadline: formData.deadline || null,
-          budget_range: formData.budget_range || null,
-          inspiration: formData.inspiration || null
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -127,6 +132,7 @@ export const useServiceRequestForm = () => {
       resetForm();
       return true;
     } catch (error: any) {
+      console.error('Service request submission error:', error);
       toast({
         title: "Error",
         description: error.message,
