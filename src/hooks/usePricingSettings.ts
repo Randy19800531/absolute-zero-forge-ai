@@ -9,24 +9,28 @@ interface PricingSettings {
 export const usePricingSettings = () => {
   const [pricingEnabled, setPricingEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPricingSettings = async () => {
       try {
-        const { data, error } = await supabase
+        setError(null);
+        const { data, error: fetchError } = await supabase
           .from('app_settings')
           .select('setting_value')
           .eq('setting_key', 'pricing_enabled')
-          .single();
+          .maybeSingle();
 
-        if (error) {
-          console.error('Error fetching pricing settings:', error);
+        if (fetchError) {
+          console.error('Error fetching pricing settings:', fetchError);
+          setError('Failed to fetch pricing settings');
         } else {
           const settings = data?.setting_value as unknown as PricingSettings;
           setPricingEnabled(settings?.enabled ?? true);
         }
       } catch (error) {
         console.error('Error fetching pricing settings:', error);
+        setError('Failed to fetch pricing settings');
       } finally {
         setLoading(false);
       }
@@ -37,13 +41,20 @@ export const usePricingSettings = () => {
 
   const updatePricingEnabled = async (enabled: boolean) => {
     try {
-      const { error } = await supabase
+      setError(null);
+      const { error: updateError } = await supabase
         .from('app_settings')
-        .update({ setting_value: { enabled } })
-        .eq('setting_key', 'pricing_enabled');
+        .upsert({ 
+          setting_key: 'pricing_enabled',
+          setting_value: { enabled },
+          updated_at: new Date().toISOString()
+        }, { 
+          onConflict: 'setting_key' 
+        });
 
-      if (error) {
-        console.error('Error updating pricing settings:', error);
+      if (updateError) {
+        console.error('Error updating pricing settings:', updateError);
+        setError('Failed to update pricing settings');
         return false;
       }
 
@@ -51,9 +62,10 @@ export const usePricingSettings = () => {
       return true;
     } catch (error) {
       console.error('Error updating pricing settings:', error);
+      setError('Failed to update pricing settings');
       return false;
     }
   };
 
-  return { pricingEnabled, loading, updatePricingEnabled };
+  return { pricingEnabled, loading, error, updatePricingEnabled };
 };

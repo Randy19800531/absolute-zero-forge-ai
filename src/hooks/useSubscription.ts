@@ -28,13 +28,21 @@ export const useSubscription = () => {
 
     setLoading(true);
     try {
+      const session = await supabase.auth.getSession();
+      if (!session.data.session?.access_token) {
+        throw new Error('No valid session found');
+      }
+
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          Authorization: `Bearer ${session.data.session.access_token}`,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Subscription check error:', error);
+        throw error;
+      }
 
       setSubscriptionStatus({
         subscribed: data.subscribed || false,
@@ -44,6 +52,15 @@ export const useSubscription = () => {
     } catch (error) {
       console.error('Error checking subscription:', error);
       setSubscriptionStatus({ subscribed: false, subscription_tier: null, subscription_end: null });
+      
+      // Only show toast for unexpected errors, not network issues
+      if (error instanceof Error && !error.message.includes('Failed to fetch')) {
+        toast({
+          title: "Error",
+          description: "Failed to check subscription status. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -60,10 +77,15 @@ export const useSubscription = () => {
     }
 
     try {
+      const session = await supabase.auth.getSession();
+      if (!session.data.session?.access_token) {
+        throw new Error('No valid session found');
+      }
+
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { plan },
         headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          Authorization: `Bearer ${session.data.session.access_token}`,
         },
       });
 
@@ -92,9 +114,14 @@ export const useSubscription = () => {
     }
 
     try {
+      const session = await supabase.auth.getSession();
+      if (!session.data.session?.access_token) {
+        throw new Error('No valid session found');
+      }
+
       const { data, error } = await supabase.functions.invoke('customer-portal', {
         headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          Authorization: `Bearer ${session.data.session.access_token}`,
         },
       });
 
@@ -115,8 +142,13 @@ export const useSubscription = () => {
   useEffect(() => {
     checkSubscription();
 
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(checkSubscription, 30000);
+    // Auto-refresh every 30 seconds when user is active
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        checkSubscription();
+      }
+    }, 30000);
+
     return () => clearInterval(interval);
   }, [user]);
 
