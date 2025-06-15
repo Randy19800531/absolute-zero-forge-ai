@@ -105,37 +105,40 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
           </MenubarMenu>
         </Menubar>
 
-        {/* Quick Actions */}
-        <div className="hidden lg:flex items-center gap-2">
-          {quickActions.map((action) => (
-            <Button
-              key={action.title}
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0"
-              onClick={() => navigate(action.path)}
-              title={action.title}
-            >
-              <div className={`p-1.5 rounded ${action.color} text-white`}>
-                <action.icon className="h-3 w-3" />
-              </div>
-            </Button>
-          ))}
-        </div>
-
-        {/* Admin Portal */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="hidden lg:flex items-center gap-2 h-8"
-          onClick={() => navigate('/admin')}
-          title="Admin Portal"
-        >
-          <div className="p-1.5 rounded bg-red-500 hover:bg-red-600 text-white">
-            <Shield className="h-3 w-3" />
+        {/* Quick Actions and Admin Portal - Side by Side */}
+        <div className="hidden lg:flex items-center gap-3">
+          {/* Quick Actions */}
+          <div className="flex items-center gap-2">
+            {quickActions.map((action) => (
+              <Button
+                key={action.title}
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => navigate(action.path)}
+                title={action.title}
+              >
+                <div className={`p-1.5 rounded ${action.color} text-white`}>
+                  <action.icon className="h-3 w-3" />
+                </div>
+              </Button>
+            ))}
           </div>
-          <span className="text-xs">Admin Portal</span>
-        </Button>
+
+          {/* Admin Portal */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2 h-8"
+            onClick={() => navigate('/admin')}
+            title="Admin Portal"
+          >
+            <div className="p-1.5 rounded bg-red-500 hover:bg-red-600 text-white">
+              <Shield className="h-3 w-3" />
+            </div>
+            <span className="text-xs">Admin Portal</span>
+          </Button>
+        </div>
       </div>
       
       <div className="flex items-center gap-3">
