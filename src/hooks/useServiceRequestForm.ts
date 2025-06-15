@@ -96,23 +96,23 @@ export const useServiceRequestForm = () => {
         .insert({
           client_name: formData.client_name,
           client_email: formData.client_email,
-          client_phone: formData.client_phone,
+          client_phone: formData.client_phone || null,
           company: formData.company,
           project_name: formData.project_name,
           description: formData.description,
           main_features: formData.main_features,
-          problem_statement: formData.problem_statement,
-          target_users: formData.target_users,
-          daily_tasks: formData.daily_tasks,
-          reports_needed: formData.reports_needed,
-          devices: JSON.stringify(formData.devices),
-          current_software: formData.current_software,
-          integrations: formData.integrations,
-          urgency: formData.urgency,
+          problem_statement: formData.problem_statement || null,
+          target_users: formData.target_users || null,
+          daily_tasks: formData.daily_tasks || null,
+          reports_needed: formData.reports_needed || null,
+          devices: formData.devices,
+          current_software: formData.current_software || null,
+          integrations: formData.integrations || null,
+          urgency: formData.urgency || null,
           start_date: formData.start_date || null,
           deadline: formData.deadline || null,
-          budget_range: formData.budget_range,
-          inspiration: formData.inspiration
+          budget_range: formData.budget_range || null,
+          inspiration: formData.inspiration || null
         })
         .select()
         .single();
