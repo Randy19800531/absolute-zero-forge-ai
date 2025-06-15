@@ -47,30 +47,32 @@ const QuickActions = () => {
   ];
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <Card className="h-full">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <Plus className="h-5 w-5" />
           Quick Actions
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {actions.map((action) => (
-          <Button
-            key={action.title}
-            variant="outline"
-            className="h-auto p-4 flex flex-col items-start gap-2 text-left hover:shadow-md transition-shadow"
-            onClick={() => navigate(action.path)}
-          >
-            <div className={`p-2 rounded-lg ${action.color} text-white`}>
-              <action.icon className="h-4 w-4" />
-            </div>
-            <div>
-              <div className="font-semibold">{action.title}</div>
-              <div className="text-sm text-gray-500">{action.description}</div>
-            </div>
-          </Button>
-        ))}
+      <CardContent className="pt-0">
+        <div className="grid grid-cols-1 gap-3">
+          {actions.map((action) => (
+            <Button
+              key={action.title}
+              variant="outline"
+              className="h-auto p-4 flex items-center gap-3 text-left hover:shadow-md transition-shadow justify-start"
+              onClick={() => navigate(action.path)}
+            >
+              <div className={`p-2 rounded-lg ${action.color} text-white flex-shrink-0`}>
+                <action.icon className="h-4 w-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-sm">{action.title}</div>
+                <div className="text-xs text-gray-500 truncate">{action.description}</div>
+              </div>
+            </Button>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

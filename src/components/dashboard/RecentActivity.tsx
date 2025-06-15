@@ -90,24 +90,24 @@ const RecentActivity = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <Card className="h-full">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <Clock className="h-5 w-5" />
           Recent Activity
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <CardContent className="pt-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {Object.entries(activityGroups).map(([feature, activities]) => (
             <div key={feature} className="space-y-3">
               <h3 className="font-semibold text-sm text-gray-700 border-b border-gray-200 pb-2">
                 {feature}
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {activities.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100">
-                    <div className="p-1">
+                  <div key={activity.id} className="flex items-start gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100">
+                    <div className="flex-shrink-0 mt-0.5">
                       <activity.icon className={`h-4 w-4 ${
                         activity.status === 'completed' ? 'text-green-500' :
                         activity.status === 'running' ? 'text-blue-500' :
@@ -117,8 +117,8 @@ const RecentActivity = () => {
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm truncate">{activity.title}</div>
                       <div className="text-xs text-gray-500 mt-1 line-clamp-2">{activity.description}</div>
-                      <div className="flex flex-col gap-1 mt-2">
-                        <Badge variant="secondary" className={`${getStatusColor(activity.status)} text-xs w-fit`}>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="secondary" className={`${getStatusColor(activity.status)} text-xs px-2 py-0.5`}>
                           {activity.status}
                         </Badge>
                         <span className="text-xs text-gray-400">{activity.time}</span>
