@@ -22,7 +22,7 @@ export const usePricingSettings = () => {
         if (error) {
           console.error('Error fetching pricing settings:', error);
         } else {
-          const settings = data?.setting_value as PricingSettings;
+          const settings = data?.setting_value as unknown as PricingSettings;
           setPricingEnabled(settings?.enabled ?? true);
         }
       } catch (error) {
