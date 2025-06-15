@@ -28,11 +28,19 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) {
-      throw new Error("STRIPE_SECRET_KEY is not set");
+    // Get the Stripe secret key from environment variables
+    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeSecretKey) {
+      throw new Error("STRIPE_SECRET_KEY environment variable is not set");
     }
-    logStep("Stripe key verified");
+    
+    // Log the first few characters to verify we have a secret key (starts with sk_)
+    const keyPrefix = stripeSecretKey.substring(0, 3);
+    logStep("Stripe key verified", { prefix: keyPrefix });
+    
+    if (!keyPrefix.startsWith("sk_")) {
+      throw new Error("Invalid Stripe secret key format. Must start with 'sk_'");
+    }
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -53,7 +61,9 @@ serve(async (req) => {
     }
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
+    // Initialize Stripe with the secret key
+    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
+    
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {

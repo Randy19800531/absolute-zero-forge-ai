@@ -33,6 +33,8 @@ export const useSubscription = () => {
         throw new Error('No valid session found');
       }
 
+      console.log('Checking subscription for user:', user.email);
+
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         headers: {
           Authorization: `Bearer ${session.data.session.access_token}`,
@@ -41,8 +43,25 @@ export const useSubscription = () => {
 
       if (error) {
         console.error('Subscription check error:', error);
+        
+        // Check if it's a Stripe API key error
+        if (error.message?.includes('publishable API key')) {
+          toast({
+            title: "Configuration Error",
+            description: "Subscription service needs to be configured. Please contact support.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to check subscription status. Please try again.",
+            variant: "destructive",
+          });
+        }
         throw error;
       }
+
+      console.log('Subscription check response:', data);
 
       setSubscriptionStatus({
         subscribed: data.subscribed || false,
@@ -54,12 +73,15 @@ export const useSubscription = () => {
       setSubscriptionStatus({ subscribed: false, subscription_tier: null, subscription_end: null });
       
       // Only show toast for unexpected errors, not network issues
-      if (error instanceof Error && !error.message.includes('Failed to fetch')) {
-        toast({
-          title: "Error",
-          description: "Failed to check subscription status. Please try again.",
-          variant: "destructive",
-        });
+      if (error instanceof Error && !error.message.includes('Failed to fetch') && !error.message.includes('No valid session')) {
+        // Don't show another toast if we already showed one above
+        if (!error.message?.includes('publishable API key')) {
+          toast({
+            title: "Error",
+            description: "Failed to check subscription status. Please try again.",
+            variant: "destructive",
+          });
+        }
       }
     } finally {
       setLoading(false);
