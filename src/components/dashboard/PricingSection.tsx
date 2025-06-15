@@ -3,8 +3,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Check, Star, Shield, Clock, Zap, Gift } from 'lucide-react';
+import { usePricingSettings } from '@/hooks/usePricingSettings';
 
 const PricingSection = () => {
+  const { pricingEnabled, loading } = usePricingSettings();
+
   const pricingPlans = [
     {
       name: 'Free',
@@ -75,6 +78,93 @@ const PricingSection = () => {
     console.log(`Subscribing to ${planName} plan`);
     // TODO: Integrate with Stripe checkout
   };
+
+  if (loading) {
+    return (
+      <div className="mb-8 text-center">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-96 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!pricingEnabled) {
+    return (
+      <div className="mb-8">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Free Access for Everyone
+            <span className="ml-3 inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+              <Gift className="h-4 w-4" />
+              Community Access
+            </span>
+          </h2>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            We're proud to offer free access to all features for students, educators, and underprivileged communities
+          </p>
+        </div>
+
+        <Card className="max-w-md mx-auto border-2 border-green-500 bg-gradient-to-br from-green-50 to-emerald-50">
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-xl font-bold">Community Access</CardTitle>
+            <div className="mt-4">
+              <span className="text-4xl font-bold text-gray-900">Free</span>
+              <span className="text-gray-600">/forever</span>
+            </div>
+            <p className="text-gray-600 mt-2">Full access to all AI automation features</p>
+          </CardHeader>
+          
+          <CardContent className="pt-0">
+            <ul className="space-y-3 mb-6">
+              {[
+                'Unlimited AI workflows',
+                'Unlimited VBA script generation',
+                'All LLM integrations',
+                'Priority community support',
+                'Unlimited storage',
+                'Advanced analytics',
+                'All premium features included'
+              ].map((feature, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                  <span className="text-gray-700">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            
+            <Button 
+              className="w-full bg-green-500 hover:bg-green-600"
+              onClick={() => handleSubscribe('Community')}
+            >
+              Get Started Free
+            </Button>
+          </CardContent>
+        </Card>
+
+        <div className="text-center mt-8 space-y-4">
+          <p className="text-gray-600">
+            Free access • No credit card required • Full features included
+          </p>
+          <div className="flex justify-center items-center gap-6 text-sm text-gray-500">
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              SOC 2 Compliant
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              24/7 Support
+            </div>
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              99.9% Uptime
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mb-8">
