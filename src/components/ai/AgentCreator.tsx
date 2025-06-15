@@ -6,227 +6,88 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { useToast } from '@/hooks/use-toast';
-import { Brain, Zap } from 'lucide-react';
 
-interface AgentData {
-  name: string;
-  type: string;
-  description: string;
-  personality: string;
-  capabilities: string[];
-  creativity: number[];
-  responsiveness: number[];
-  precision: number[];
+interface AgentCreatorProps {
+  onSubmit: (agentData: any) => Promise<void>;
+  onCancel: () => void;
 }
 
-const AgentCreator = () => {
-  const { toast } = useToast();
-  const [isCreating, setIsCreating] = useState(false);
-  const [agent, setAgent] = useState<AgentData>({
+const AgentCreator = ({ onSubmit, onCancel }: AgentCreatorProps) => {
+  const [formData, setFormData] = useState({
     name: '',
     type: '',
     description: '',
-    personality: '',
-    capabilities: [],
-    creativity: [0.7],
-    responsiveness: [0.8],
-    precision: [0.9],
+    specialization: '',
   });
 
-  const agentTypes = [
-    'Spreadsheet Agent',
-    'Browser Agent',
-    'Conversation Agent',
-    'Development Agent',
-    'Data Analysis Agent',
-    'Content Creation Agent',
-  ];
-
-  const handleInputChange = (field: keyof AgentData, value: any) => {
-    setAgent(prev => ({ ...prev, [field]: value }));
-  };
-
-  const createAgent = async () => {
-    if (!agent.name || !agent.type) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in the agent name and type",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsCreating(true);
-    
-    try {
-      // Create agent configuration object
-      const agentConfig = {
-        id: `agent_${Date.now()}`,
-        name: agent.name,
-        type: agent.type,
-        description: agent.description || 'No description provided',
-        personality: agent.personality || 'Default personality',
-        capabilities: agent.capabilities,
-        parameters: {
-          creativity: agent.creativity[0],
-          responsiveness: agent.responsiveness[0],
-          precision: agent.precision[0],
-        },
-        status: 'idle' as const,
-        createdAt: new Date().toISOString(),
-        lastActive: 'Never',
-        tasksCompleted: 0,
-      };
-
-      console.log('Creating agent with config:', agentConfig);
-      
-      // Store in localStorage for persistence
-      const existingAgents = JSON.parse(localStorage.getItem('ai_agents') || '[]');
-      const updatedAgents = [...existingAgents, agentConfig];
-      localStorage.setItem('ai_agents', JSON.stringify(updatedAgents));
-      
-      toast({
-        title: "Agent Created Successfully",
-        description: `${agent.name} has been created and is ready to use!`,
-      });
-      
-      // Reset form
-      setAgent({
-        name: '',
-        type: '',
-        description: '',
-        personality: '',
-        capabilities: [],
-        creativity: [0.7],
-        responsiveness: [0.8],
-        precision: [0.9],
-      });
-    } catch (error) {
-      console.error('Agent creation error:', error);
-      toast({
-        title: "Creation Failed",
-        description: "Failed to create agent. Please check the console and try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCreating(false);
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await onSubmit(formData);
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5 text-purple-500" />
-            Create New AI Agent
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="agentName">Agent Name</Label>
-              <Input
-                id="agentName"
-                placeholder="e.g., Data Analyst Pro"
-                value={agent.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="agentType">Agent Type</Label>
-              <Select value={agent.type} onValueChange={(value) => handleInputChange('type', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select agent type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {agentTypes.map((type) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Create New AI Agent</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="name">Agent Name</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Enter agent name"
+              required
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="type">Agent Type</Label>
+            <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select agent type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="assistant">Assistant</SelectItem>
+                <SelectItem value="analyzer">Analyzer</SelectItem>
+                <SelectItem value="generator">Generator</SelectItem>
+                <SelectItem value="processor">Processor</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="specialization">Specialization</Label>
+            <Input
+              id="specialization"
+              value={formData.specialization}
+              onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+              placeholder="e.g., Data Analysis, Content Creation"
+            />
           </div>
 
           <div>
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              placeholder="What does this agent do?"
-              value={agent.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Describe what this agent does"
+              rows={3}
             />
           </div>
 
-          <div>
-            <Label htmlFor="personality">Personality & Tone</Label>
-            <Textarea
-              id="personality"
-              placeholder="Describe the agent's personality, communication style, and approach..."
-              value={agent.personality}
-              onChange={(e) => handleInputChange('personality', e.target.value)}
-            />
+          <div className="flex gap-2 pt-4">
+            <Button type="submit">Create Agent</Button>
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
           </div>
-
-          <div className="space-y-4">
-            <Label className="text-base font-medium">Agent Parameters</Label>
-            
-            <div>
-              <div className="flex justify-between mb-2">
-                <Label>Creativity</Label>
-                <span className="text-sm text-gray-500">{agent.creativity[0]}</span>
-              </div>
-              <Slider
-                value={agent.creativity}
-                onValueChange={(value) => handleInputChange('creativity', value)}
-                max={1}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-
-            <div>
-              <div className="flex justify-between mb-2">
-                <Label>Responsiveness</Label>
-                <span className="text-sm text-gray-500">{agent.responsiveness[0]}</span>
-              </div>
-              <Slider
-                value={agent.responsiveness}
-                onValueChange={(value) => handleInputChange('responsiveness', value)}
-                max={1}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-
-            <div>
-              <div className="flex justify-between mb-2">
-                <Label>Precision</Label>
-                <span className="text-sm text-gray-500">{agent.precision[0]}</span>
-              </div>
-              <Slider
-                value={agent.precision}
-                onValueChange={(value) => handleInputChange('precision', value)}
-                max={1}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
-          </div>
-
-          <Button 
-            onClick={createAgent}
-            disabled={isCreating || !agent.name || !agent.type}
-            className="w-full"
-          >
-            <Zap className="h-4 w-4 mr-2" />
-            {isCreating ? 'Creating Agent...' : 'Create Agent'}
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 
