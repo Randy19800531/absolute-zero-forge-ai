@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -105,7 +104,7 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
           </MenubarMenu>
         </Menubar>
 
-        {/* Admin Portal and Quick Actions - Admin Portal first, then Quick Actions */}
+        {/* Admin Portal and Quick Actions - Horizontal layout */}
         <div className="hidden lg:flex items-center gap-3">
           {/* Admin Portal */}
           <Button
@@ -121,23 +120,22 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
             <span className="text-xs">Admin Portal</span>
           </Button>
 
-          {/* Quick Actions */}
-          <div className="flex items-center gap-2">
-            {quickActions.map((action) => (
-              <Button
-                key={action.title}
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => navigate(action.path)}
-                title={action.title}
-              >
-                <div className={`p-1.5 rounded ${action.color} text-white`}>
-                  <action.icon className="h-3 w-3" />
-                </div>
-              </Button>
-            ))}
-          </div>
+          {/* Quick Actions - Horizontal buttons with labels */}
+          {quickActions.map((action) => (
+            <Button
+              key={action.title}
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-2 h-8"
+              onClick={() => navigate(action.path)}
+              title={action.title}
+            >
+              <div className={`p-1.5 rounded ${action.color} text-white`}>
+                <action.icon className="h-3 w-3" />
+              </div>
+              <span className="text-xs">{action.title}</span>
+            </Button>
+          ))}
         </div>
       </div>
       
