@@ -2,14 +2,17 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Star, Shield, Clock, Zap, Gift } from 'lucide-react';
+import { Check, Star, Shield, Clock, Zap, Gift, Crown } from 'lucide-react';
 import { usePricingSettings } from '@/hooks/usePricingSettings';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const PricingSection = () => {
   const { pricingEnabled, loading } = usePricingSettings();
+  const { subscriptionStatus, createCheckout, openCustomerPortal } = useSubscription();
 
   const pricingPlans = [
     {
+      id: 'free',
       name: 'Free',
       price: '$0',
       period: '/forever',
@@ -29,6 +32,7 @@ const PricingSection = () => {
       highlight: 'free'
     },
     {
+      id: 'professional',
       name: 'Professional',
       price: '$79',
       period: '/month',
@@ -50,6 +54,7 @@ const PricingSection = () => {
       highlight: 'trial'
     },
     {
+      id: 'enterprise',
       name: 'Enterprise',
       price: '$199',
       period: '/month',
@@ -74,9 +79,31 @@ const PricingSection = () => {
     }
   ];
 
-  const handleSubscribe = (planName: string) => {
-    console.log(`Subscribing to ${planName} plan`);
-    // TODO: Integrate with Stripe checkout
+  const handleSubscribe = (planId: string) => {
+    if (planId === 'free') {
+      console.log('Free plan selected - no payment required');
+      return;
+    }
+    
+    if (planId === 'enterprise') {
+      console.log('Contact sales for Enterprise plan');
+      // TODO: Implement contact sales functionality
+      return;
+    }
+
+    if (subscriptionStatus.subscribed && subscriptionStatus.subscription_tier?.toLowerCase() === planId) {
+      // User already has this subscription, open customer portal
+      openCustomerPortal();
+    } else {
+      // Create new subscription
+      createCheckout(planId);
+    }
+  };
+
+  const isCurrentPlan = (planId: string) => {
+    if (planId === 'free' && !subscriptionStatus.subscribed) return true;
+    return subscriptionStatus.subscribed && 
+           subscriptionStatus.subscription_tier?.toLowerCase() === planId;
   };
 
   if (loading) {
@@ -136,7 +163,7 @@ const PricingSection = () => {
             
             <Button 
               className="w-full bg-green-500 hover:bg-green-600"
-              onClick={() => handleSubscribe('Community')}
+              onClick={() => handleSubscribe('free')}
             >
               Get Started Free
             </Button>
@@ -179,67 +206,102 @@ const PricingSection = () => {
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
           Begin with our generous free tier, then scale your AI automation with flexible pricing options
         </p>
+        {subscriptionStatus.subscribed && (
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg max-w-md mx-auto">
+            <div className="flex items-center gap-2 text-blue-700">
+              <Crown className="h-4 w-4" />
+              <span className="font-medium">
+                Current Plan: {subscriptionStatus.subscription_tier}
+              </span>
+            </div>
+            {subscriptionStatus.subscription_end && (
+              <p className="text-sm text-blue-600 mt-1">
+                Renews on {new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
+              </p>
+            )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-2 border-blue-300 text-blue-700 hover:bg-blue-100"
+              onClick={openCustomerPortal}
+            >
+              Manage Subscription
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {pricingPlans.map((plan) => (
-          <Card 
-            key={plan.name} 
-            className={`relative ${plan.color} ${plan.popular ? 'border-2 shadow-lg scale-105' : 'border'} ${plan.highlight === 'free' ? 'bg-gradient-to-br from-green-50 to-emerald-50' : ''} transition-all duration-300 hover:shadow-lg`}
-          >
-            {plan.popular && (
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <div className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                  <Star className="h-3 w-3" />
-                  Most Popular
+        {pricingPlans.map((plan) => {
+          const currentPlan = isCurrentPlan(plan.id);
+          return (
+            <Card 
+              key={plan.name} 
+              className={`relative ${plan.color} ${plan.popular ? 'border-2 shadow-lg scale-105' : 'border'} ${plan.highlight === 'free' ? 'bg-gradient-to-br from-green-50 to-emerald-50' : ''} ${currentPlan ? 'ring-2 ring-blue-500' : ''} transition-all duration-300 hover:shadow-lg`}
+            >
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                    <Star className="h-3 w-3" />
+                    Most Popular
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {plan.highlight === 'free' && (
-              <div className="absolute -top-3 right-4">
-                <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                  <Gift className="h-3 w-3" />
-                  Free Forever
+              {currentPlan && (
+                <div className="absolute -top-3 right-4">
+                  <div className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                    <Crown className="h-3 w-3" />
+                    Current Plan
+                  </div>
                 </div>
-              </div>
-            )}
-            
-            <CardHeader className="text-center pb-4">
-              <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
-              <div className="mt-4">
-                <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
-                <span className="text-gray-600">{plan.period}</span>
-              </div>
-              <p className="text-gray-600 mt-2">{plan.description}</p>
-            </CardHeader>
-            
-            <CardContent className="pt-0">
-              <ul className="space-y-3 mb-6">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                    <span className="text-gray-700">{feature}</span>
-                  </li>
-                ))}
-              </ul>
+              )}
+
+              {plan.highlight === 'free' && !currentPlan && (
+                <div className="absolute -top-3 right-4">
+                  <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                    <Gift className="h-3 w-3" />
+                    Free Forever
+                  </div>
+                </div>
+              )}
               
-              <Button 
-                className={`w-full ${
-                  plan.highlight === 'free' 
-                    ? 'bg-green-500 hover:bg-green-600' 
-                    : plan.popular 
-                      ? 'bg-blue-500 hover:bg-blue-600' 
-                      : ''
-                }`}
-                variant={plan.popular || plan.highlight === 'free' ? 'default' : 'outline'}
-                onClick={() => handleSubscribe(plan.name)}
-              >
-                {plan.buttonText}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
+                  <span className="text-gray-600">{plan.period}</span>
+                </div>
+                <p className="text-gray-600 mt-2">{plan.description}</p>
+              </CardHeader>
+              
+              <CardContent className="pt-0">
+                <ul className="space-y-3 mb-6">
+                  {plan.features.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                      <span className="text-gray-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <Button 
+                  className={`w-full ${
+                    plan.highlight === 'free' 
+                      ? 'bg-green-500 hover:bg-green-600' 
+                      : plan.popular 
+                        ? 'bg-blue-500 hover:bg-blue-600' 
+                        : ''
+                  } ${currentPlan ? 'bg-gray-500 hover:bg-gray-600' : ''}`}
+                  variant={plan.popular || plan.highlight === 'free' || currentPlan ? 'default' : 'outline'}
+                  onClick={() => handleSubscribe(plan.id)}
+                >
+                  {currentPlan ? 'Manage Plan' : plan.buttonText}
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Additional Pricing Info */}

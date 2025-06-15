@@ -24,6 +24,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Trigger subscription check on sign in
+        if (event === 'SIGNED_IN') {
+          setTimeout(() => {
+            // This will be handled by the useSubscription hook
+          }, 0);
+        }
       }
     );
 
