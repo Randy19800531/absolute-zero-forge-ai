@@ -53,10 +53,12 @@ const LowNoCodeBuilder = () => {
               />
             </div>
 
-            <CodeOutput
-              generatedCode={generatedCode}
-              downloadCode={downloadCode}
-            />
+            {generatedCode && (
+              <CodeOutput
+                generatedCode={generatedCode}
+                downloadCode={downloadCode}
+              />
+            )}
           </div>
         </main>
       </div>
