@@ -16,6 +16,9 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          specialization:
+            | Database["public"]["Enums"]["agent_specialization"]
+            | null
           status: string | null
           tasks_completed: number | null
           type: string
@@ -28,6 +31,9 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          specialization?:
+            | Database["public"]["Enums"]["agent_specialization"]
+            | null
           status?: string | null
           tasks_completed?: number | null
           type: string
@@ -40,6 +46,9 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          specialization?:
+            | Database["public"]["Enums"]["agent_specialization"]
+            | null
           status?: string | null
           tasks_completed?: number | null
           type?: string
@@ -69,6 +78,48 @@ export type Database = {
           setting_key?: string
           setting_value?: Json | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      app_templates: {
+        Row: {
+          category: string
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          preview_image_url: string | null
+          template_data: Json
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          preview_image_url?: string | null
+          template_data: Json
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          preview_image_url?: string | null
+          template_data?: Json
+          updated_at?: string | null
+          usage_count?: number | null
         }
         Relationships: []
       }
@@ -170,6 +221,60 @@ export type Database = {
           parameters?: Json | null
           type?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      team_memberships: {
+        Row: {
+          id: string
+          invited_by: string | null
+          joined_at: string | null
+          role: string | null
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          role?: string | null
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          role?: string | null
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      teams: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -478,6 +583,103 @@ export type Database = {
         }
         Relationships: []
       }
+      workflow_steps: {
+        Row: {
+          agent_specialization: Database["public"]["Enums"]["agent_specialization"]
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string
+          input_data: Json | null
+          output_data: Json | null
+          status: string | null
+          step_order: number
+          workflow_id: string
+        }
+        Insert: {
+          agent_specialization: Database["public"]["Enums"]["agent_specialization"]
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_data?: Json | null
+          output_data?: Json | null
+          status?: string | null
+          step_order: number
+          workflow_id: string
+        }
+        Update: {
+          agent_specialization?: Database["public"]["Enums"]["agent_specialization"]
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_data?: Json | null
+          output_data?: Json | null
+          status?: string | null
+          step_order?: number
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_steps_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflows: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          generated_code: string | null
+          id: string
+          name: string
+          requirements: Json | null
+          status: string | null
+          team_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          generated_code?: string | null
+          id?: string
+          name: string
+          requirements?: Json | null
+          status?: string | null
+          team_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          generated_code?: string | null
+          id?: string
+          name?: string
+          requirements?: Json | null
+          status?: string | null
+          team_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflows_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -500,6 +702,7 @@ export type Database = {
       }
     }
     Enums: {
+      agent_specialization: "design" | "development" | "testing" | "deployment"
       user_role: "user" | "admin" | "superuser"
     }
     CompositeTypes: {
@@ -616,6 +819,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      agent_specialization: ["design", "development", "testing", "deployment"],
       user_role: ["user", "admin", "superuser"],
     },
   },
