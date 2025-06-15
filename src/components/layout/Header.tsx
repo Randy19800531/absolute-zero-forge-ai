@@ -105,8 +105,22 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
           </MenubarMenu>
         </Menubar>
 
-        {/* Quick Actions and Admin Portal - Side by Side */}
+        {/* Admin Portal and Quick Actions - Admin Portal first, then Quick Actions */}
         <div className="hidden lg:flex items-center gap-3">
+          {/* Admin Portal */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2 h-8"
+            onClick={() => navigate('/admin')}
+            title="Admin Portal"
+          >
+            <div className="p-1.5 rounded bg-red-500 hover:bg-red-600 text-white">
+              <Shield className="h-3 w-3" />
+            </div>
+            <span className="text-xs">Admin Portal</span>
+          </Button>
+
           {/* Quick Actions */}
           <div className="flex items-center gap-2">
             {quickActions.map((action) => (
@@ -124,20 +138,6 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
               </Button>
             ))}
           </div>
-
-          {/* Admin Portal */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex items-center gap-2 h-8"
-            onClick={() => navigate('/admin')}
-            title="Admin Portal"
-          >
-            <div className="p-1.5 rounded bg-red-500 hover:bg-red-600 text-white">
-              <Shield className="h-3 w-3" />
-            </div>
-            <span className="text-xs">Admin Portal</span>
-          </Button>
         </div>
       </div>
       
