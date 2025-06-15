@@ -1,63 +1,162 @@
 
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { 
-  ArrowLeft, 
   Play, 
+  Pause, 
+  Square, 
   Save, 
-  Settings, 
-  Eye, 
+  Undo, 
+  Redo, 
+  ZoomIn, 
+  ZoomOut,
   Download,
-  Upload,
-  Share2
+  Upload
 } from 'lucide-react';
 
 interface WorkflowToolbarProps {
-  workflow: any;
-  onBack: () => void;
+  onPlay?: () => void;
+  onPause?: () => void;
+  onStop?: () => void;
+  onSave?: () => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  onExport?: () => void;
+  onImport?: () => void;
+  isPlaying?: boolean;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
-const WorkflowToolbar = ({ workflow, onBack }: WorkflowToolbarProps) => {
+const WorkflowToolbar = ({
+  onPlay,
+  onPause,
+  onStop,
+  onSave,
+  onUndo,
+  onRedo,
+  onZoomIn,
+  onZoomOut,
+  onExport,
+  onImport,
+  isPlaying = false,
+  canUndo = false,
+  canRedo = false
+}: WorkflowToolbarProps) => {
   return (
-    <div className="flex items-center justify-between p-4 border-b bg-white">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-        <div>
-          <h2 className="text-lg font-semibold">{workflow.name}</h2>
-          <p className="text-sm text-gray-500">Visual workflow editor</p>
+    <Card className="w-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm">Workflow Controls</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Playback Controls */}
+          <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={isPlaying ? onPause : onPlay}
+              className="flex items-center gap-1"
+            >
+              {isPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+              {isPlaying ? 'Pause' : 'Run'}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onStop}
+              className="flex items-center gap-1"
+            >
+              <Square className="h-3 w-3" />
+              Stop
+            </Button>
+          </div>
+
+          <Separator orientation="vertical" className="h-6" />
+
+          {/* Edit Controls */}
+          <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onSave}
+              className="flex items-center gap-1"
+            >
+              <Save className="h-3 w-3" />
+              Save
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onUndo}
+              disabled={!canUndo}
+              className="flex items-center gap-1"
+            >
+              <Undo className="h-3 w-3" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onRedo}
+              disabled={!canRedo}
+              className="flex items-center gap-1"
+            >
+              <Redo className="h-3 w-3" />
+            </Button>
+          </div>
+
+          <Separator orientation="vertical" className="h-6" />
+
+          {/* View Controls */}
+          <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onZoomIn}
+              className="flex items-center gap-1"
+            >
+              <ZoomIn className="h-3 w-3" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onZoomOut}
+              className="flex items-center gap-1"
+            >
+              <ZoomOut className="h-3 w-3" />
+            </Button>
+          </div>
+
+          <Separator orientation="vertical" className="h-6" />
+
+          {/* Import/Export */}
+          <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onImport}
+              className="flex items-center gap-1"
+            >
+              <Upload className="h-3 w-3" />
+              Import
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onExport}
+              className="flex items-center gap-1"
+            >
+              <Download className="h-3 w-3" />
+              Export
+            </Button>
+          </div>
         </div>
-      </div>
-      
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm">
-          <Upload className="h-4 w-4 mr-2" />
-          Import
-        </Button>
-        <Button variant="outline" size="sm">
-          <Download className="h-4 w-4 mr-2" />
-          Export
-        </Button>
-        <Button variant="outline" size="sm">
-          <Eye className="h-4 w-4 mr-2" />
-          Preview
-        </Button>
-        <Button variant="outline" size="sm">
-          <Settings className="h-4 w-4 mr-2" />
-          Settings
-        </Button>
-        <Button variant="outline" size="sm">
-          <Save className="h-4 w-4 mr-2" />
-          Save
-        </Button>
-        <Button size="sm" className="bg-green-500 hover:bg-green-600">
-          <Play className="h-4 w-4 mr-2" />
-          Run
-        </Button>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

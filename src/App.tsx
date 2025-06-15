@@ -1,56 +1,49 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
-import Index from "./pages/Index";
-import Workflows from "./pages/Workflows";
-import NotFound from "./pages/NotFound";
-import VBAGenerator from "./pages/VBAGenerator";
-import AIEngine from "./pages/AIEngine";
-import ThemeCustomizerPage from "./pages/ThemeCustomizer";
-import Agency from "./pages/Agency";
-import Projects from "./pages/Projects";
-import Admin from "./pages/Admin";
-import Testing from "./pages/Testing";
-import Integrations from "./pages/Integrations";
-import Documentation from "./pages/Documentation";
-import LLMConfig from "./pages/LLMConfig";
-import LowNoCodeBuilder from "./pages/LowNoCodeBuilder";
-import Auth from "./pages/Auth";
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { Toaster } from '@/components/ui/toaster';
+import { useAuth } from '@/hooks/useAuth';
+import Home from '@/pages/Home';
+import Templates from '@/pages/Templates';
+import Workflows from '@/pages/Workflows';
+import AIEngine from '@/pages/AIEngine';
+import Pricing from '@/pages/Pricing';
+import Account from '@/pages/Account';
+import Login from '@/pages/Login';
+import SignUp from '@/pages/SignUp';
+import WorkflowVisualBuilder from '@/pages/WorkflowVisualBuilder';
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/workflows" element={<Workflows />} />
-            <Route path="/vba-generator" element={<VBAGenerator />} />
-            <Route path="/ai-engine" element={<AIEngine />} />
-            <Route path="/llm-config" element={<LLMConfig />} />
-            <Route path="/low-no-code-builder" element={<LowNoCodeBuilder />} />
-            <Route path="/theme-customizer" element={<ThemeCustomizerPage />} />
-            <Route path="/agency" element={<Agency />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/testing" element={<Testing />} />
-            <Route path="/integrations" element={<Integrations />} />
-            <Route path="/documentation" element={<Documentation />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isLoggedIn } = useAuth();
+
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Toaster />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
+          <Route path="/workflows" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
+          <Route path="/ai-engine" element={<ProtectedRoute><AIEngine /></ProtectedRoute>} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/workflow-builder" element={<ProtectedRoute><WorkflowVisualBuilder /></ProtectedRoute>} />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

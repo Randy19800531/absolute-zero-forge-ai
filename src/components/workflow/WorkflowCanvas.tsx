@@ -3,9 +3,11 @@ import React, { useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import WorkflowNode from './WorkflowNode';
 import ConnectionLine from './ConnectionLine';
+import WorkflowToolbar from './WorkflowToolbar';
+import NodeLibrary from './NodeLibrary';
 
 interface WorkflowCanvasProps {
-  workflow: any;
+  workflow?: any;
 }
 
 const WorkflowCanvas = ({ workflow }: WorkflowCanvasProps) => {
@@ -20,13 +22,16 @@ const WorkflowCanvas = ({ workflow }: WorkflowCanvasProps) => {
     { from: 'process', to: 'end' },
   ]);
   
-  const [draggedNode, setDraggedNode] = useState(null);
+  const [draggedNode, setDraggedNode] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const canvasRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const canvasRef = useRef<HTMLDivElement>(null);
 
-  const handleNodeDragStart = (nodeId, e) => {
+  const handleNodeDragStart = (nodeId: string, e: React.MouseEvent) => {
     const node = nodes.find(n => n.id === nodeId);
-    const rect = e.target.getBoundingClientRect();
+    if (!node) return;
+    
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
     setDragOffset({
       x: e.clientX - rect.left,
       y: e.clientY - rect.top,
@@ -34,8 +39,8 @@ const WorkflowCanvas = ({ workflow }: WorkflowCanvasProps) => {
     setDraggedNode(nodeId);
   };
 
-  const handleNodeDrag = (e) => {
-    if (!draggedNode) return;
+  const handleNodeDrag = (e: React.MouseEvent) => {
+    if (!draggedNode || !canvasRef.current) return;
     
     const canvasRect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - canvasRect.left - dragOffset.x;
@@ -53,10 +58,10 @@ const WorkflowCanvas = ({ workflow }: WorkflowCanvasProps) => {
     setDragOffset({ x: 0, y: 0 });
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const nodeType = e.dataTransfer.getData('nodeType');
-    if (!nodeType) return;
+    if (!nodeType || !canvasRef.current) return;
     
     const canvasRect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - canvasRect.left;
@@ -73,57 +78,90 @@ const WorkflowCanvas = ({ workflow }: WorkflowCanvasProps) => {
     setNodes([...nodes, newNode]);
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
 
+  const handlePlay = () => {
+    setIsPlaying(true);
+    console.log('Starting workflow execution...');
+  };
+
+  const handlePause = () => {
+    setIsPlaying(false);
+    console.log('Pausing workflow execution...');
+  };
+
+  const handleStop = () => {
+    setIsPlaying(false);
+    console.log('Stopping workflow execution...');
+  };
+
+  const handleSave = () => {
+    console.log('Saving workflow...', { nodes, connections });
+  };
+
   return (
-    <Card className="flex-1 relative overflow-hidden">
-      <div 
-        ref={canvasRef}
-        className="w-full h-full bg-gray-50 relative"
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onMouseMove={handleNodeDrag}
-        onMouseUp={handleNodeDragEnd}
-      >
-        {/* Grid background */}
-        <div 
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: '20px 20px',
-          }}
+    <div className="flex gap-4 h-full">
+      <NodeLibrary />
+      
+      <div className="flex-1 flex flex-col gap-4">
+        <WorkflowToolbar
+          onPlay={handlePlay}
+          onPause={handlePause}
+          onStop={handleStop}
+          onSave={handleSave}
+          isPlaying={isPlaying}
         />
         
-        {/* Connection lines */}
-        {connections.map((connection, index) => {
-          const fromNode = nodes.find(n => n.id === connection.from);
-          const toNode = nodes.find(n => n.id === connection.to);
-          if (!fromNode || !toNode) return null;
-          
-          return (
-            <ConnectionLine
-              key={index}
-              from={{ x: fromNode.x + 80, y: fromNode.y + 40 }}
-              to={{ x: toNode.x, y: toNode.y + 40 }}
+        <Card className="flex-1 relative overflow-hidden">
+          <div 
+            ref={canvasRef}
+            className="w-full h-full bg-gray-50 relative min-h-[600px]"
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onMouseMove={handleNodeDrag}
+            onMouseUp={handleNodeDragEnd}
+          >
+            {/* Grid background */}
+            <div 
+              className="absolute inset-0 opacity-20"
+              style={{
+                backgroundImage: `
+                  linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)
+                `,
+                backgroundSize: '20px 20px',
+              }}
             />
-          );
-        })}
-        
-        {/* Workflow nodes */}
-        {nodes.map((node) => (
-          <WorkflowNode
-            key={node.id}
-            node={node}
-            onDragStart={(e) => handleNodeDragStart(node.id, e)}
-          />
-        ))}
+            
+            {/* Connection lines */}
+            {connections.map((connection, index) => {
+              const fromNode = nodes.find(n => n.id === connection.from);
+              const toNode = nodes.find(n => n.id === connection.to);
+              if (!fromNode || !toNode) return null;
+              
+              return (
+                <ConnectionLine
+                  key={index}
+                  from={{ x: fromNode.x + 80, y: fromNode.y + 40 }}
+                  to={{ x: toNode.x, y: toNode.y + 40 }}
+                />
+              );
+            })}
+            
+            {/* Workflow nodes */}
+            {nodes.map((node) => (
+              <WorkflowNode
+                key={node.id}
+                node={node}
+                onDragStart={(e) => handleNodeDragStart(node.id, e)}
+              />
+            ))}
+          </div>
+        </Card>
       </div>
-    </Card>
+    </div>
   );
 };
 

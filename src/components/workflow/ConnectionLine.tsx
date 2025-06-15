@@ -7,19 +7,14 @@ interface ConnectionLineProps {
 }
 
 const ConnectionLine = ({ from, to }: ConnectionLineProps) => {
-  // Calculate control points for smooth curve
-  const midX = (from.x + to.x) / 2;
-  const pathData = `M ${from.x} ${from.y} C ${midX} ${from.y}, ${midX} ${to.y}, ${to.x} ${to.y}`;
+  // Calculate control points for a smooth curve
+  const controlPoint1 = { x: from.x + 50, y: from.y };
+  const controlPoint2 = { x: to.x - 50, y: to.y };
+
+  const pathData = `M ${from.x} ${from.y} C ${controlPoint1.x} ${controlPoint1.y}, ${controlPoint2.x} ${controlPoint2.y}, ${to.x} ${to.y}`;
 
   return (
-    <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
-      <path
-        d={pathData}
-        stroke="#6b7280"
-        strokeWidth="2"
-        fill="none"
-        markerEnd="url(#arrowhead)"
-      />
+    <svg className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
       <defs>
         <marker
           id="arrowhead"
@@ -31,10 +26,17 @@ const ConnectionLine = ({ from, to }: ConnectionLineProps) => {
         >
           <polygon
             points="0 0, 10 3.5, 0 7"
-            fill="#6b7280"
+            fill="#6B7280"
           />
         </marker>
       </defs>
+      <path
+        d={pathData}
+        stroke="#6B7280"
+        strokeWidth="2"
+        fill="none"
+        markerEnd="url(#arrowhead)"
+      />
     </svg>
   );
 };

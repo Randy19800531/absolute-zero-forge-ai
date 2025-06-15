@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,10 +13,12 @@ import { workflowOrchestrator, WorkflowRequirements } from '@/services/workflowO
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Zap, Layout, Code, Rocket } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const WorkflowBuilder = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { templates, loading: templatesLoading } = useTemplates();
   const { createWorkflow } = useWorkflows();
   
@@ -190,6 +191,16 @@ const WorkflowBuilder = () => {
       <div className="text-center">
         <h1 className="text-3xl font-bold mb-2">Multi-Agent Workflow Builder</h1>
         <p className="text-gray-600">Create applications using AI specialist agents</p>
+        <div className="mt-4">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/workflow-builder')}
+            className="flex items-center gap-2"
+          >
+            <Layout className="h-4 w-4" />
+            Open Visual Builder
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="templates" className="w-full">

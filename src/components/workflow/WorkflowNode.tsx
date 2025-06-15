@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { 
   Webhook, 
   Database, 
@@ -9,7 +9,9 @@ import {
   Filter, 
   Brain,
   Globe,
-  FileSpreadsheet
+  FileSpreadsheet,
+  MessageSquare,
+  Chrome
 } from 'lucide-react';
 
 interface WorkflowNodeProps {
@@ -18,58 +20,55 @@ interface WorkflowNodeProps {
     type: string;
     x: number;
     y: number;
-    data: { label: string };
+    data: {
+      label: string;
+    };
   };
   onDragStart: (e: React.MouseEvent) => void;
 }
 
 const WorkflowNode = ({ node, onDragStart }: WorkflowNodeProps) => {
-  const getNodeIcon = (type: string) => {
+  const getIcon = (type: string) => {
     switch (type) {
       case 'trigger': return Webhook;
+      case 'api': return Globe;
       case 'database': return Database;
       case 'transform': return Code;
-      case 'action': return Mail;
       case 'filter': return Filter;
       case 'ai': return Brain;
-      case 'api': return Globe;
       case 'excel': return FileSpreadsheet;
+      case 'chatbot': return MessageSquare;
+      case 'browser': return Chrome;
+      case 'action': return Mail;
       default: return Code;
     }
   };
 
-  const getNodeColor = (type: string) => {
+  const getColor = (type: string) => {
     switch (type) {
-      case 'trigger': return 'border-green-500 bg-green-50';
-      case 'database': return 'border-blue-500 bg-blue-50';
-      case 'transform': return 'border-purple-500 bg-purple-50';
-      case 'action': return 'border-orange-500 bg-orange-50';
-      case 'filter': return 'border-yellow-500 bg-yellow-50';
-      case 'ai': return 'border-pink-500 bg-pink-50';
-      case 'api': return 'border-indigo-500 bg-indigo-50';
-      case 'excel': return 'border-emerald-500 bg-emerald-50';
-      default: return 'border-gray-500 bg-gray-50';
+      case 'trigger': return 'bg-green-100 border-green-300 text-green-700';
+      case 'api': return 'bg-blue-100 border-blue-300 text-blue-700';
+      case 'database': return 'bg-purple-100 border-purple-300 text-purple-700';
+      case 'transform': return 'bg-yellow-100 border-yellow-300 text-yellow-700';
+      case 'filter': return 'bg-orange-100 border-orange-300 text-orange-700';
+      case 'ai': return 'bg-pink-100 border-pink-300 text-pink-700';
+      case 'action': return 'bg-red-100 border-red-300 text-red-700';
+      default: return 'bg-gray-100 border-gray-300 text-gray-700';
     }
   };
 
-  const Icon = getNodeIcon(node.type);
+  const Icon = getIcon(node.type);
 
   return (
     <Card 
-      className={`absolute w-40 h-20 cursor-move border-2 ${getNodeColor(node.type)} hover:shadow-lg transition-shadow select-none`}
+      className={`absolute cursor-move w-40 h-20 flex items-center justify-center ${getColor(node.type)} hover:shadow-md transition-shadow`}
       style={{ left: node.x, top: node.y }}
       onMouseDown={onDragStart}
     >
-      <CardContent className="p-3 h-full flex items-center">
-        <div className="flex items-center gap-2">
-          <Icon className="h-5 w-5" />
-          <span className="text-sm font-medium truncate">{node.data.label}</span>
-        </div>
-        
-        {/* Connection points */}
-        <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-white border-2 border-gray-300 rounded-full"></div>
-        <div className="absolute -right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-white border-2 border-gray-300 rounded-full"></div>
-      </CardContent>
+      <div className="flex flex-col items-center gap-1">
+        <Icon className="h-5 w-5" />
+        <span className="text-xs font-medium text-center">{node.data.label}</span>
+      </div>
     </Card>
   );
 };
