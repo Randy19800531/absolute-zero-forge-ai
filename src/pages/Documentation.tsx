@@ -382,6 +382,55 @@ const Documentation = () => {
                       </div>
 
                       <div>
+                        <h4 className="font-semibold text-gray-900 mb-4">🔗 Essential Integrations</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="p-4 bg-purple-50 rounded-lg border">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-6 h-6 bg-black rounded-full flex items-center justify-center">
+                                <span className="text-white text-xs font-bold">G</span>
+                              </div>
+                              <h5 className="font-semibold text-purple-900">GitHub Integration</h5>
+                            </div>
+                            <p className="text-sm text-purple-700 mb-3">
+                              Connect your project to GitHub for version control, collaboration, and deployment workflows.
+                            </p>
+                            <ul className="text-xs text-purple-600 space-y-1 mb-3">
+                              <li>• Bidirectional sync between Lovable and GitHub</li>
+                              <li>• Automatic commits and version tracking</li>
+                              <li>• Branch management and pull requests</li>
+                              <li>• CI/CD pipeline integration</li>
+                              <li>• Self-hosting deployment options</li>
+                            </ul>
+                            <div className="text-xs text-purple-600">
+                              <strong>Setup:</strong> Click GitHub button → Authorize → Create Repository
+                            </div>
+                          </div>
+                          
+                          <div className="p-4 bg-green-50 rounded-lg border">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
+                                <span className="text-white text-xs font-bold">S</span>
+                              </div>
+                              <h5 className="font-semibold text-green-900">Supabase Backend</h5>
+                            </div>
+                            <p className="text-sm text-green-700 mb-3">
+                              Enable powerful backend functionality with authentication, databases, and APIs.
+                            </p>
+                            <ul className="text-xs text-green-600 space-y-1 mb-3">
+                              <li>• User authentication and session management</li>
+                              <li>• PostgreSQL database with real-time features</li>
+                              <li>• Edge functions for serverless computing</li>
+                              <li>• Secure API key and secrets management</li>
+                              <li>• File storage and CDN capabilities</li>
+                            </ul>
+                            <div className="text-xs text-green-600">
+                              <strong>Setup:</strong> Click Supabase button → Connect Account → Configure Project
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
                         <h4 className="font-semibold text-gray-900 mb-4">🧭 Detailed Navigation Guide</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-4">
@@ -525,6 +574,34 @@ const Documentation = () => {
                               <li>• Backup critical workflows and data</li>
                               <li>• Follow principle of least privilege</li>
                               <li>• Stay updated with platform features</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-4">🔧 Integration Best Practices</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <h5 className="font-medium text-gray-800 mb-2">GitHub Workflow</h5>
+                            <ul className="space-y-1 text-sm text-gray-600">
+                              <li>• Connect GitHub early in your project</li>
+                              <li>• Use meaningful commit messages</li>
+                              <li>• Create feature branches for major changes</li>
+                              <li>• Set up automated testing and deployment</li>
+                              <li>• Review changes through pull requests</li>
+                              <li>• Keep your repository documentation updated</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h5 className="font-medium text-gray-800 mb-2">Supabase Backend</h5>
+                            <ul className="space-y-1 text-sm text-gray-600">
+                              <li>• Set up authentication before other features</li>
+                              <li>• Design your database schema carefully</li>
+                              <li>• Use Row Level Security (RLS) policies</li>
+                              <li>• Store sensitive data in Supabase secrets</li>
+                              <li>• Monitor database performance and usage</li>
+                              <li>• Implement proper error handling</li>
                             </ul>
                           </div>
                         </div>
