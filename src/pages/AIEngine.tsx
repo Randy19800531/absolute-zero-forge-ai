@@ -1,13 +1,14 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Play, Pause, Trash2, Brain, Settings, Activity } from 'lucide-react';
+import { Plus, Play, Pause, Trash2, Brain, Settings, Activity, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import AgentCreator from '@/components/ai/AgentCreator';
 
 const AIEngine = () => {
   const [showAgentCreator, setShowAgentCreator] = useState(false);
+  const navigate = useNavigate();
   const [agents, setAgents] = useState([
     {
       id: 1,
@@ -85,6 +86,16 @@ const AIEngine = () => {
   if (showAgentCreator) {
     return (
       <div className="container mx-auto p-6">
+        <div className="mb-6">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 mb-4"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Button>
+        </div>
         <AgentCreator onSubmit={handleCreateAgent} onCancel={handleCancelCreation} />
       </div>
     );
@@ -95,6 +106,16 @@ const AIEngine = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
+          <div className="flex items-center gap-4 mb-2">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Home
+            </Button>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900">AI Engine</h1>
           <p className="text-gray-600 mt-2">Manage and deploy your AI agents</p>
         </div>
