@@ -62,7 +62,14 @@ export const useSprints = (projectId?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setSprints(data || []);
+      
+      // Transform the data to match Sprint interface with proper status typing
+      const transformedData = (data || []).map(sprint => ({
+        ...sprint,
+        status: sprint.status as Sprint['status']
+      }));
+      
+      setSprints(transformedData);
     } catch (error) {
       console.error('Error fetching sprints:', error);
       toast({
@@ -75,11 +82,22 @@ export const useSprints = (projectId?: string) => {
     }
   };
 
-  const createSprint = async (sprintData: Partial<Sprint>) => {
+  const createSprint = async (sprintData: Omit<Sprint, 'id' | 'created_at' | 'updated_at' | 'actual_hours'>) => {
     try {
+      const insertData = {
+        name: sprintData.name,
+        goal: sprintData.goal,
+        status: sprintData.status,
+        project_id: sprintData.project_id,
+        start_date: sprintData.start_date,
+        end_date: sprintData.end_date,
+        capacity_hours: sprintData.capacity_hours,
+        actual_hours: 0
+      };
+
       const { data, error } = await supabase
         .from('sprints')
-        .insert(sprintData)
+        .insert(insertData)
         .select()
         .single();
 
@@ -102,7 +120,7 @@ export const useSprints = (projectId?: string) => {
     }
   };
 
-  const updateSprint = async (id: string, updates: Partial<Sprint>) => {
+  const updateSprint = async (id: string, updates: Partial<Omit<Sprint, 'id' | 'created_at' | 'updated_at'>>) => {
     try {
       const { data, error } = await supabase
         .from('sprints')

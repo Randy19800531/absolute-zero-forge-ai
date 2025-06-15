@@ -434,6 +434,72 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          actual_hours: number | null
+          assignee_id: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          estimated_hours: number | null
+          id: string
+          priority: string | null
+          project_id: string
+          sprint_id: string | null
+          status: string | null
+          story_points: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actual_hours?: number | null
+          assignee_id?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          priority?: string | null
+          project_id: string
+          sprint_id?: string | null
+          status?: string | null
+          story_points?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actual_hours?: number | null
+          assignee_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          priority?: string | null
+          project_id?: string
+          sprint_id?: string | null
+          status?: string | null
+          story_points?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           capacity_hours_per_sprint: number | null

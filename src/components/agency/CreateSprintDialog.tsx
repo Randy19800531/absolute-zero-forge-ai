@@ -7,10 +7,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useSprints } from '@/hooks/useSprints';
+import { useProjects } from '@/hooks/useProjects';
 import { Plus, Target } from 'lucide-react';
 
 const CreateSprintDialog = () => {
   const { toast } = useToast();
+  const { createSprint } = useSprints();
+  const { projects } = useProjects();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -19,7 +23,8 @@ const CreateSprintDialog = () => {
     project_id: '',
     start_date: '',
     end_date: '',
-    capacity_hours: 80
+    capacity_hours: 80,
+    status: 'planning' as const
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,12 +32,18 @@ const CreateSprintDialog = () => {
     setLoading(true);
 
     try {
-      // Here you would call your sprint creation API
-      console.log('Creating sprint:', formData);
-      
-      toast({
-        title: "Sprint Created",
-        description: `${formData.name} has been created successfully!`,
+      if (!formData.project_id) {
+        throw new Error('Please select a project');
+      }
+
+      await createSprint({
+        name: formData.name,
+        goal: formData.goal,
+        project_id: formData.project_id,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        capacity_hours: formData.capacity_hours,
+        status: formData.status
       });
 
       setOpen(false);
@@ -42,7 +53,8 @@ const CreateSprintDialog = () => {
         project_id: '',
         start_date: '',
         end_date: '',
-        capacity_hours: 80
+        capacity_hours: 80,
+        status: 'planning'
       });
     } catch (error: any) {
       toast({
@@ -94,15 +106,17 @@ const CreateSprintDialog = () => {
           </div>
 
           <div>
-            <Label htmlFor="project_id">Project</Label>
+            <Label htmlFor="project_id">Project *</Label>
             <Select value={formData.project_id} onValueChange={(value) => setFormData(prev => ({ ...prev, project_id: value }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a project" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">Customer Management System</SelectItem>
-                <SelectItem value="2">E-commerce Platform</SelectItem>
-                <SelectItem value="3">Mobile App Development</SelectItem>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

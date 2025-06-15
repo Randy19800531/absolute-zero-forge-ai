@@ -65,7 +65,15 @@ export const useTasks = (projectId?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setTasks(data || []);
+      
+      // Transform the data to match Task interface with proper typing
+      const transformedData = (data || []).map(task => ({
+        ...task,
+        status: task.status as Task['status'],
+        priority: task.priority as Task['priority']
+      }));
+      
+      setTasks(transformedData);
     } catch (error) {
       console.error('Error fetching tasks:', error);
       toast({
@@ -78,14 +86,28 @@ export const useTasks = (projectId?: string) => {
     }
   };
 
-  const createTask = async (taskData: Partial<Task>) => {
+  const createTask = async (taskData: Omit<Task, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
     try {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error('User not authenticated');
+
+      const insertData = {
+        title: taskData.title,
+        description: taskData.description,
+        status: taskData.status,
+        priority: taskData.priority,
+        assignee_id: taskData.assignee_id,
+        sprint_id: taskData.sprint_id,
+        project_id: taskData.project_id,
+        estimated_hours: taskData.estimated_hours,
+        actual_hours: taskData.actual_hours || 0,
+        story_points: taskData.story_points,
+        created_by: user.data.user.id
+      };
+
       const { data, error } = await supabase
         .from('tasks')
-        .insert({
-          ...taskData,
-          created_by: (await supabase.auth.getUser()).data.user?.id
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -108,7 +130,7 @@ export const useTasks = (projectId?: string) => {
     }
   };
 
-  const updateTask = async (id: string, updates: Partial<Task>) => {
+  const updateTask = async (id: string, updates: Partial<Omit<Task, 'id' | 'created_at' | 'updated_at' | 'created_by'>>) => {
     try {
       const { data, error } = await supabase
         .from('tasks')
