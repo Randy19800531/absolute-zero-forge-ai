@@ -1,260 +1,238 @@
 
 import React, { useState } from 'react';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Brain, Settings, Play, Pause, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAgents } from '@/hooks/useAgents';
-import AgentCreator from '@/components/ai/AgentCreator';
-import AgentList from '@/components/ai/AgentList';
 import { Badge } from '@/components/ui/badge';
+import { Plus, Play, Pause, Trash2, Brain, Settings, Activity } from 'lucide-react';
+import AgentCreator from '@/components/ai/AgentCreator';
 
 const AIEngine = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showCreator, setShowCreator] = useState(false);
-  const navigate = useNavigate();
-  const { agents, loading, createAgent, updateAgent, deleteAgent } = useAgents();
+  const [showAgentCreator, setShowAgentCreator] = useState(false);
+  const [agents, setAgents] = useState([
+    {
+      id: 1,
+      name: 'Data Analyzer',
+      type: 'analyzer',
+      status: 'active',
+      specialization: 'Data Analysis',
+      description: 'Processes and analyzes large datasets',
+      tasksCompleted: 142,
+      lastActive: '2 hours ago',
+    },
+    {
+      id: 2,
+      name: 'Content Generator',
+      type: 'generator',
+      status: 'paused',
+      specialization: 'Content Creation',
+      description: 'Creates marketing content and documentation',
+      tasksCompleted: 89,
+      lastActive: '1 day ago',
+    },
+    {
+      id: 3,
+      name: 'Code Assistant',
+      type: 'assistant',
+      status: 'active',
+      specialization: 'Programming',
+      description: 'Helps with code generation and debugging',
+      tasksCompleted: 256,
+      lastActive: '30 minutes ago',
+    },
+  ]);
 
   const handleCreateAgent = async (agentData: any) => {
-    try {
-      await createAgent(agentData);
-      setShowCreator(false);
-    } catch (error) {
-      console.error('Failed to create agent:', error);
-    }
-  };
-
-  const handleToggleAgent = async (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'active' ? 'idle' : 'active';
-    try {
-      await updateAgent(id, { status: newStatus });
-    } catch (error) {
-      console.error('Failed to toggle agent status:', error);
-    }
-  };
-
-  const handleDeleteAgent = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this agent?')) {
-      try {
-        await deleteAgent(id);
-      } catch (error) {
-        console.error('Failed to delete agent:', error);
-      }
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      active: { label: 'Active', variant: 'default' as const },
-      idle: { label: 'Idle', variant: 'secondary' as const },
-      error: { label: 'Error', variant: 'destructive' as const },
+    console.log('Creating agent:', agentData);
+    const newAgent = {
+      id: agents.length + 1,
+      ...agentData,
+      status: 'active',
+      tasksCompleted: 0,
+      lastActive: 'Just created',
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.idle;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    setAgents([...agents, newAgent]);
+    setShowAgentCreator(false);
   };
 
-  if (showCreator) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex w-full">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        
-        <div className="flex-1 flex flex-col lg:ml-0">
-          <Header onMenuToggle={() => setSidebarOpen(true)} />
-          
-          <main className="flex-1 p-6">
-            <div className="max-w-4xl mx-auto">
-              <div className="flex items-center gap-4 mb-6">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowCreator(false)}
-                  className="flex items-center gap-2"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Agents
-                </Button>
-                <h1 className="text-3xl font-bold text-gray-900">Create New Agent</h1>
-              </div>
+  const handleCancelCreation = () => {
+    setShowAgentCreator(false);
+  };
 
-              <AgentCreator onSubmit={handleCreateAgent} onCancel={() => setShowCreator(false)} />
-            </div>
-          </main>
-        </div>
+  const toggleAgentStatus = (id: number) => {
+    setAgents(agents.map(agent => 
+      agent.id === id 
+        ? { ...agent, status: agent.status === 'active' ? 'paused' : 'active' }
+        : agent
+    ));
+  };
+
+  const deleteAgent = (id: number) => {
+    setAgents(agents.filter(agent => agent.id !== id));
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-500';
+      case 'paused': return 'bg-yellow-500';
+      case 'error': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const activeAgents = agents.filter(agent => agent.status === 'active').length;
+  const totalTasks = agents.reduce((sum, agent) => sum + agent.tasksCompleted, 0);
+
+  if (showAgentCreator) {
+    return (
+      <div className="container mx-auto p-6">
+        <AgentCreator onSubmit={handleCreateAgent} onCancel={handleCancelCreation} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex w-full">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      
-      <div className="flex-1 flex flex-col lg:ml-0">
-        <Header onMenuToggle={() => setSidebarOpen(true)} />
-        
-        <main className="flex-1 p-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">AI Engine</h1>
+          <p className="text-gray-600 mt-2">Manage and deploy your AI agents</p>
+        </div>
+        <Button onClick={() => setShowAgentCreator(true)} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Create Agent
+        </Button>
+      </div>
+
+      {/* Overview Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <div className="flex items-center gap-4 mb-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => navigate('/')}
-                    className="flex items-center gap-2"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Home
-                  </Button>
-                </div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  AI Engine
-                </h1>
-                <p className="text-gray-600">
-                  Manage and deploy intelligent AI agents
-                </p>
+                <p className="text-sm font-medium text-gray-600">Total Agents</p>
+                <p className="text-2xl font-bold text-gray-900">{agents.length}</p>
               </div>
-              <Button 
-                onClick={() => setShowCreator(true)}
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
+              <Brain className="h-8 w-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Agents</p>
+                <p className="text-2xl font-bold text-green-600">{activeAgents}</p>
+              </div>
+              <Activity className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Tasks Completed</p>
+                <p className="text-2xl font-bold text-purple-600">{totalTasks}</p>
+              </div>
+              <Settings className="h-8 w-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Success Rate</p>
+                <p className="text-2xl font-bold text-blue-600">94%</p>
+              </div>
+              <Brain className="h-8 w-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Agents List */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold text-gray-900">Your Agents</h2>
+        
+        {agents.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No agents yet</h3>
+              <p className="text-gray-600 mb-4">Create your first AI agent to get started</p>
+              <Button onClick={() => setShowAgentCreator(true)}>
+                <Plus className="h-4 w-4 mr-2" />
                 Create Agent
               </Button>
-            </div>
-
-            {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total Agents</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{agents.length}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Active Agents</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">
-                    {agents.filter(a => a.status === 'active').length}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {agents.map((agent) => (
+              <Card key={agent.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${getStatusColor(agent.status)}`} />
+                      <CardTitle className="text-lg">{agent.name}</CardTitle>
+                    </div>
+                    <Badge variant="secondary" className="capitalize">
+                      {agent.type}
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Tasks Completed</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {agents.reduce((sum, agent) => sum + agent.tasks_completed, 0)}
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Specialization</p>
+                    <p className="font-medium">{agent.specialization}</p>
                   </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Specializations</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {new Set(agents.map(a => a.specialization).filter(Boolean)).size}
+                  
+                  <p className="text-sm text-gray-600">{agent.description}</p>
+                  
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>Tasks: {agent.tasksCompleted}</span>
+                    <span>Last active: {agent.lastActive}</span>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Agents List */}
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-              </div>
-            ) : agents.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No agents created yet</h3>
-                  <p className="text-gray-600 mb-4">Create your first AI agent to get started</p>
-                  <Button onClick={() => setShowCreator(true)} className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    Create Your First Agent
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {agents.map((agent) => (
-                  <Card key={agent.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-lg">{agent.name}</CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">{agent.type}</p>
-                        </div>
-                        {getStatusBadge(agent.status)}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                        {agent.description || 'No description provided'}
-                      </p>
-                      
-                      {agent.specialization && (
-                        <div className="mb-4">
-                          <Badge variant="outline" className="text-xs">
-                            {agent.specialization}
-                          </Badge>
-                        </div>
+                  
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => toggleAgentStatus(agent.id)}
+                      className="flex items-center gap-1"
+                    >
+                      {agent.status === 'active' ? (
+                        <>
+                          <Pause className="h-3 w-3" />
+                          Pause
+                        </>
+                      ) : (
+                        <>
+                          <Play className="h-3 w-3" />
+                          Start
+                        </>
                       )}
-
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                        <span>Tasks: {agent.tasks_completed}</span>
-                        <span>Created: {new Date(agent.created_at).toLocaleDateString()}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant={agent.status === 'active' ? 'outline' : 'default'}
-                          onClick={() => handleToggleAgent(agent.id, agent.status)}
-                          className="flex-1 flex items-center gap-2"
-                        >
-                          {agent.status === 'active' ? (
-                            <>
-                              <Pause className="h-3 w-3" />
-                              Pause
-                            </>
-                          ) : (
-                            <>
-                              <Play className="h-3 w-3" />
-                              Activate
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => console.log('Configure agent:', agent.id)}
-                        >
-                          <Settings className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteAgent(agent.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => deleteAgent(agent.id)}
+                      className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      Delete
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </main>
+        )}
       </div>
     </div>
   );
