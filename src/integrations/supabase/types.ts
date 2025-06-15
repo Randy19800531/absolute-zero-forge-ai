@@ -137,6 +137,293 @@ export type Database = {
         }
         Relationships: []
       }
+      step_library: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_custom: boolean | null
+          name: string
+          parameters: Json | null
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_custom?: boolean | null
+          name: string
+          parameters?: Json | null
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_custom?: boolean | null
+          name?: string
+          parameters?: Json | null
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      test_case_versions: {
+        Row: {
+          assertions: Json | null
+          author_id: string
+          changes: Json | null
+          commit_message: string | null
+          conditions: Json | null
+          created_at: string
+          data_sources: Json | null
+          id: string
+          steps: Json | null
+          test_case_id: string
+          version_number: number
+        }
+        Insert: {
+          assertions?: Json | null
+          author_id: string
+          changes?: Json | null
+          commit_message?: string | null
+          conditions?: Json | null
+          created_at?: string
+          data_sources?: Json | null
+          id?: string
+          steps?: Json | null
+          test_case_id: string
+          version_number: number
+        }
+        Update: {
+          assertions?: Json | null
+          author_id?: string
+          changes?: Json | null
+          commit_message?: string | null
+          conditions?: Json | null
+          created_at?: string
+          data_sources?: Json | null
+          id?: string
+          steps?: Json | null
+          test_case_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_case_versions_test_case_id_fkey"
+            columns: ["test_case_id"]
+            isOneToOne: false
+            referencedRelation: "test_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_cases: {
+        Row: {
+          assertions: Json | null
+          category: string
+          conditions: Json | null
+          created_at: string
+          created_by: string | null
+          data_sources: Json | null
+          description: string | null
+          id: string
+          name: string
+          status: string | null
+          steps: Json | null
+          updated_at: string
+          user_id: string
+          version: number | null
+        }
+        Insert: {
+          assertions?: Json | null
+          category?: string
+          conditions?: Json | null
+          created_at?: string
+          created_by?: string | null
+          data_sources?: Json | null
+          description?: string | null
+          id?: string
+          name: string
+          status?: string | null
+          steps?: Json | null
+          updated_at?: string
+          user_id: string
+          version?: number | null
+        }
+        Update: {
+          assertions?: Json | null
+          category?: string
+          conditions?: Json | null
+          created_at?: string
+          created_by?: string | null
+          data_sources?: Json | null
+          description?: string | null
+          id?: string
+          name?: string
+          status?: string | null
+          steps?: Json | null
+          updated_at?: string
+          user_id?: string
+          version?: number | null
+        }
+        Relationships: []
+      }
+      test_runs: {
+        Row: {
+          actual_output: string | null
+          completed_at: string | null
+          created_at: string
+          environment: string
+          error_message: string | null
+          evidence_links: Json | null
+          expected_output: string | null
+          id: string
+          retry_count: number | null
+          started_at: string | null
+          status: string | null
+          test_case_id: string
+          triggered_by: string | null
+          user_id: string
+        }
+        Insert: {
+          actual_output?: string | null
+          completed_at?: string | null
+          created_at?: string
+          environment?: string
+          error_message?: string | null
+          evidence_links?: Json | null
+          expected_output?: string | null
+          id?: string
+          retry_count?: number | null
+          started_at?: string | null
+          status?: string | null
+          test_case_id: string
+          triggered_by?: string | null
+          user_id: string
+        }
+        Update: {
+          actual_output?: string | null
+          completed_at?: string | null
+          created_at?: string
+          environment?: string
+          error_message?: string | null
+          evidence_links?: Json | null
+          expected_output?: string | null
+          id?: string
+          retry_count?: number | null
+          started_at?: string | null
+          status?: string | null
+          test_case_id?: string
+          triggered_by?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_runs_test_case_id_fkey"
+            columns: ["test_case_id"]
+            isOneToOne: false
+            referencedRelation: "test_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_schedules: {
+        Row: {
+          created_at: string
+          cron_expression: string | null
+          environment: string
+          id: string
+          is_active: boolean | null
+          name: string
+          notification_settings: Json | null
+          retry_policy: Json | null
+          test_case_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          cron_expression?: string | null
+          environment?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notification_settings?: Json | null
+          retry_policy?: Json | null
+          test_case_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          cron_expression?: string | null
+          environment?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notification_settings?: Json | null
+          retry_policy?: Json | null
+          test_case_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_schedules_test_case_id_fkey"
+            columns: ["test_case_id"]
+            isOneToOne: false
+            referencedRelation: "test_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_sign_offs: {
+        Row: {
+          comments: string | null
+          created_at: string
+          id: string
+          reviewer_id: string
+          role: string
+          signed_at: string | null
+          signed_off: boolean | null
+          test_run_id: string
+        }
+        Insert: {
+          comments?: string | null
+          created_at?: string
+          id?: string
+          reviewer_id: string
+          role: string
+          signed_at?: string | null
+          signed_off?: boolean | null
+          test_run_id: string
+        }
+        Update: {
+          comments?: string | null
+          created_at?: string
+          id?: string
+          reviewer_id?: string
+          role?: string
+          signed_at?: string | null
+          signed_off?: boolean | null
+          test_run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_sign_offs_test_run_id_fkey"
+            columns: ["test_run_id"]
+            isOneToOne: false
+            referencedRelation: "test_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       two_factor_auth: {
         Row: {
           backup_codes: string[] | null
