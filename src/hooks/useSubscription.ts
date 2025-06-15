@@ -22,18 +22,22 @@ export const useSubscription = () => {
 
   const checkSubscription = async () => {
     if (!user) {
+      console.log('No user found, setting unsubscribed state');
       setSubscriptionStatus({ subscribed: false, subscription_tier: null, subscription_end: null });
       return;
     }
 
     setLoading(true);
     try {
+      console.log('Starting subscription check for user:', user.email);
+
       const session = await supabase.auth.getSession();
       if (!session.data.session?.access_token) {
+        console.error('No valid session found');
         throw new Error('No valid session found');
       }
 
-      console.log('Checking subscription for user:', user.email);
+      console.log('Session found, calling check-subscription function');
 
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         headers: {
@@ -42,26 +46,43 @@ export const useSubscription = () => {
       });
 
       if (error) {
-        console.error('Subscription check error:', error);
+        console.error('Subscription check error details:', {
+          message: error.message,
+          context: error.context,
+          details: error.details
+        });
         
-        // Check if it's a Stripe API key error
-        if (error.message?.includes('publishable API key')) {
+        // More specific error handling
+        if (error.message?.includes('STRIPE_SECRET_KEY')) {
           toast({
             title: "Configuration Error",
-            description: "Subscription service needs to be configured. Please contact support.",
+            description: "Stripe integration needs to be configured. Please contact support or check your Stripe settings.",
+            variant: "destructive",
+          });
+        } else if (error.message?.includes('Authentication error')) {
+          console.log('Authentication error, user may need to log in again');
+          toast({
+            title: "Authentication Required",
+            description: "Please log out and log back in to refresh your session.",
+            variant: "destructive",
+          });
+        } else if (error.message?.includes('Function not found')) {
+          toast({
+            title: "Service Error",
+            description: "Subscription service is not available. Please try again later.",
             variant: "destructive",
           });
         } else {
           toast({
-            title: "Error",
-            description: "Failed to check subscription status. Please try again.",
+            title: "Subscription Check Failed",
+            description: `Error: ${error.message || 'Unknown error occurred'}`,
             variant: "destructive",
           });
         }
         throw error;
       }
 
-      console.log('Subscription check response:', data);
+      console.log('Subscription check successful:', data);
 
       setSubscriptionStatus({
         subscribed: data.subscribed || false,
@@ -69,19 +90,12 @@ export const useSubscription = () => {
         subscription_end: data.subscription_end
       });
     } catch (error) {
-      console.error('Error checking subscription:', error);
+      console.error('Error in checkSubscription:', error);
       setSubscriptionStatus({ subscribed: false, subscription_tier: null, subscription_end: null });
       
-      // Only show toast for unexpected errors, not network issues
-      if (error instanceof Error && !error.message.includes('Failed to fetch') && !error.message.includes('No valid session')) {
-        // Don't show another toast if we already showed one above
-        if (!error.message?.includes('publishable API key')) {
-          toast({
-            title: "Error",
-            description: "Failed to check subscription status. Please try again.",
-            variant: "destructive",
-          });
-        }
+      // Only show generic error toast if we haven't already shown a specific one
+      if (error instanceof Error && !error.message.includes('No valid session')) {
+        console.log('Showing generic error toast');
       }
     } finally {
       setLoading(false);
