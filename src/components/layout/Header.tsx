@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -22,31 +23,31 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
   const quickActions = [
     {
       icon: Workflow,
-      title: 'Create Workflow',
+      title: 'Workflow',
       color: 'bg-blue-500 hover:bg-blue-600',
       path: '/workflows',
     },
     {
       icon: Code,
-      title: 'Generate VBA',
+      title: 'VBA',
       color: 'bg-green-500 hover:bg-green-600',
       path: '/vba-generator',
     },
     {
       icon: Brain,
-      title: 'Deploy Agent',
+      title: 'Agent',
       color: 'bg-purple-500 hover:bg-purple-600',
       path: '/ai-engine',
     },
     {
       icon: Layers,
-      title: 'Low-No Code',
+      title: 'Builder',
       color: 'bg-indigo-500 hover:bg-indigo-600',
       path: '/low-no-code-builder',
     },
     {
       icon: Settings,
-      title: 'LLM Config',
+      title: 'LLM',
       color: 'bg-orange-500 hover:bg-orange-600',
       path: '/llm-config',
     },
@@ -104,33 +105,33 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
           </MenubarMenu>
         </Menubar>
 
-        {/* Admin Portal and Quick Actions - Horizontal layout */}
-        <div className="hidden lg:flex items-center gap-3">
+        {/* Admin Portal and Quick Actions - Compact horizontal layout */}
+        <div className="hidden lg:flex items-center gap-2">
           {/* Admin Portal */}
           <Button
             variant="ghost"
             size="sm"
-            className="flex items-center gap-2 h-8"
+            className="flex items-center gap-2 h-8 px-3"
             onClick={() => navigate('/admin')}
             title="Admin Portal"
           >
-            <div className="p-1.5 rounded bg-red-500 hover:bg-red-600 text-white">
+            <div className="p-1 rounded bg-red-500 hover:bg-red-600 text-white">
               <Shield className="h-3 w-3" />
             </div>
             <span className="text-xs">Admin Portal</span>
           </Button>
 
-          {/* Quick Actions - Horizontal buttons with labels */}
+          {/* Quick Actions - Compact horizontal buttons */}
           {quickActions.map((action) => (
             <Button
               key={action.title}
               variant="ghost"
               size="sm"
-              className="flex items-center gap-2 h-8"
+              className="flex items-center gap-1.5 h-8 px-2"
               onClick={() => navigate(action.path)}
               title={action.title}
             >
-              <div className={`p-1.5 rounded ${action.color} text-white`}>
+              <div className={`p-1 rounded ${action.color} text-white`}>
                 <action.icon className="h-3 w-3" />
               </div>
               <span className="text-xs">{action.title}</span>
