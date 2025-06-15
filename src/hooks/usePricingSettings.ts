@@ -2,6 +2,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+interface PricingSettings {
+  enabled: boolean;
+}
+
 export const usePricingSettings = () => {
   const [pricingEnabled, setPricingEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -18,7 +22,8 @@ export const usePricingSettings = () => {
         if (error) {
           console.error('Error fetching pricing settings:', error);
         } else {
-          setPricingEnabled(data?.setting_value?.enabled ?? true);
+          const settings = data?.setting_value as PricingSettings;
+          setPricingEnabled(settings?.enabled ?? true);
         }
       } catch (error) {
         console.error('Error fetching pricing settings:', error);
