@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -139,7 +138,7 @@ const TaskBoard = () => {
           {columnTasks.map((task) => (
             <TaskCard key={task.id} task={task} />
           ))}
-          <Button variant="dashed" className="w-full" size="sm">
+          <Button variant="outline" className="w-full border-dashed" size="sm">
             <Plus className="h-4 w-4 mr-2" />
             Add Task
           </Button>

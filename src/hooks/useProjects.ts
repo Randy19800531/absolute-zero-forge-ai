@@ -38,7 +38,14 @@ export const useProjects = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProjects(data || []);
+      
+      // Transform the data to match our Project interface
+      const transformedData = (data || []).map(project => ({
+        ...project,
+        status: project.status as Project['status']
+      }));
+      
+      setProjects(transformedData);
     } catch (error) {
       console.error('Error fetching projects:', error);
     } finally {
@@ -50,17 +57,22 @@ export const useProjects = () => {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .insert([{
+        .insert({
           ...projectData,
           created_by: user?.id
-        }])
+        })
         .select()
         .single();
 
       if (error) throw error;
 
-      setProjects(prev => [data, ...prev]);
-      return data;
+      const transformedData = {
+        ...data,
+        status: data.status as Project['status']
+      };
+
+      setProjects(prev => [transformedData, ...prev]);
+      return transformedData;
     } catch (error) {
       console.error('Error creating project:', error);
       throw error;
@@ -78,8 +90,13 @@ export const useProjects = () => {
 
       if (error) throw error;
 
-      setProjects(prev => prev.map(p => p.id === id ? data : p));
-      return data;
+      const transformedData = {
+        ...data,
+        status: data.status as Project['status']
+      };
+
+      setProjects(prev => prev.map(p => p.id === id ? transformedData : p));
+      return transformedData;
     } catch (error) {
       console.error('Error updating project:', error);
       throw error;
