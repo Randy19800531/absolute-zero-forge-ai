@@ -3,12 +3,13 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { usePricingSettings } from '@/hooks/usePricingSettings';
-import { DollarSign, Users, GraduationCap, Heart } from 'lucide-react';
+import { DollarSign, Users, GraduationCap, Heart, AlertCircle } from 'lucide-react';
 
 const PricingControl = () => {
-  const { pricingEnabled, loading, updatePricingEnabled } = usePricingSettings();
+  const { pricingEnabled, loading, error, updatePricingEnabled } = usePricingSettings();
   const { toast } = useToast();
 
   const handleTogglePricing = async (enabled: boolean) => {
@@ -23,7 +24,7 @@ const PricingControl = () => {
     } else {
       toast({
         title: "Error",
-        description: "Failed to update pricing settings. Please try again.",
+        description: error || "Failed to update pricing settings. Please try again.",
         variant: "destructive",
       });
     }
@@ -38,6 +39,13 @@ const PricingControl = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h3 className="font-medium">Enable Pricing</h3>

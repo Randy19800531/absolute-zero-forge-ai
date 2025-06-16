@@ -42,6 +42,25 @@ export const usePricingSettings = () => {
   const updatePricingEnabled = async (enabled: boolean) => {
     try {
       setError(null);
+      
+      // Check if user has the required permissions
+      const { data: userRoles, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+
+      if (roleError) {
+        console.error('Error checking user roles:', roleError);
+        setError('Permission check failed');
+        return false;
+      }
+
+      const hasAdminRole = userRoles?.some(ur => ur.role === 'admin' || ur.role === 'superuser');
+      if (!hasAdminRole) {
+        setError('You need admin or superuser privileges to modify pricing settings');
+        return false;
+      }
+
       const { error: updateError } = await supabase
         .from('app_settings')
         .upsert({ 
@@ -54,7 +73,11 @@ export const usePricingSettings = () => {
 
       if (updateError) {
         console.error('Error updating pricing settings:', updateError);
-        setError('Failed to update pricing settings');
+        if (updateError.code === '42501') {
+          setError('Insufficient permissions. You need admin or superuser privileges to modify pricing settings.');
+        } else {
+          setError('Failed to update pricing settings');
+        }
         return false;
       }
 
