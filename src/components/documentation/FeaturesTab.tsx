@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Brain, Workflow, Code, Building2 } from 'lucide-react';
+import { Brain, Workflow, Code, Building2, TestTube, Shield } from 'lucide-react';
 
 const FeaturesTab = () => {
   return (
@@ -46,6 +46,52 @@ const FeaturesTab = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
+            <TestTube className="h-5 w-5 text-purple-600" />
+            AI-Powered Testing Suite - Intelligent Quality Assurance
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-gray-600">
+            Comprehensive testing platform with AI-generated test cases, automated execution, and intelligent quality assessment.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2">🤖 AI Test Generation</h4>
+              <ul className="space-y-1 text-sm text-gray-600">
+                <li>• Natural language test case creation</li>
+                <li>• Intelligent test scenario generation</li>
+                <li>• Context-aware test step suggestions</li>
+                <li>• Automated edge case detection</li>
+                <li>• Smart test data generation</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2">🎯 Smart Execution</h4>
+              <ul className="space-y-1 text-sm text-gray-600">
+                <li>• Cross-environment test execution</li>
+                <li>• Real-time test monitoring</li>
+                <li>• Intelligent retry mechanisms</li>
+                <li>• Performance threshold validation</li>
+                <li>• Automated deployment readiness</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-2">📊 Quality Assessment</h4>
+            <ul className="space-y-1 text-sm text-gray-600 ml-4">
+              <li>• AI-driven quality scoring and deployment readiness assessment</li>
+              <li>• Risk analysis with confidence levels and impact assessment</li>
+              <li>• Comprehensive test coverage analysis and gap identification</li>
+              <li>• Performance benchmarking against industry standards</li>
+              <li>• Automated regression detection and impact analysis</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
             <Workflow className="h-5 w-5 text-green-600" />
             Visual Workflows - Drag-and-Drop Automation
           </CardTitle>
@@ -82,7 +128,7 @@ const FeaturesTab = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Code className="h-5 w-5 text-purple-600" />
+            <Code className="h-5 w-5 text-orange-600" />
             VBA Generator - Excel Automation Suite
           </CardTitle>
         </CardHeader>
@@ -118,7 +164,7 @@ const FeaturesTab = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-orange-600" />
+            <Building2 className="h-5 w-5 text-indigo-600" />
             Agency Workspace - Project Management Hub
           </CardTitle>
         </CardHeader>
@@ -145,6 +191,42 @@ const FeaturesTab = () => {
                 <li>• Proposal generation and approval</li>
                 <li>• Invoice automation and tracking</li>
                 <li>• Revenue forecasting and analytics</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-red-600" />
+            Enterprise Security & Compliance
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-gray-600">
+            Enterprise-grade security framework with comprehensive compliance and audit capabilities.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2">🔐 Security Features</h4>
+              <ul className="space-y-1 text-sm text-gray-600">
+                <li>• End-to-end encryption for all data</li>
+                <li>• Multi-factor authentication (MFA)</li>
+                <li>• Role-based access control (RBAC)</li>
+                <li>• Zero-trust security architecture</li>
+                <li>• Real-time threat detection</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2">📋 Compliance</h4>
+              <ul className="space-y-1 text-sm text-gray-600">
+                <li>• SOC 2 Type II certified</li>
+                <li>• ISO 27001 compliant</li>
+                <li>• GDPR and CCPA ready</li>
+                <li>• HIPAA compliance available</li>
+                <li>• Comprehensive audit trails</li>
               </ul>
             </div>
           </div>
