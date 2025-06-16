@@ -12,6 +12,13 @@ interface TaskLLMMapping {
   reasoning: string;
 }
 
+interface SpecializedEndpoint {
+  taskType: string;
+  url: string;
+  name: string;
+  description?: string;
+}
+
 export class LLMRouter {
   private taskMappings: TaskLLMMapping[] = [
     {
@@ -66,7 +73,42 @@ export class LLMRouter {
     return Object.keys(keys).filter(key => keys[key] && keys[key].trim());
   }
 
-  public getOptimalLLM(taskType: string): { provider: LLMProvider; isAvailable: boolean; fallbackProvider?: LLMProvider; fallbackAvailable?: boolean } {
+  private getSpecializedEndpoints(): SpecializedEndpoint[] {
+    const saved = localStorage.getItem('specialized-llm-endpoints');
+    return saved ? JSON.parse(saved) : [];
+  }
+
+  public saveSpecializedEndpoint(endpoint: SpecializedEndpoint): void {
+    const endpoints = this.getSpecializedEndpoints();
+    const existingIndex = endpoints.findIndex(e => e.taskType === endpoint.taskType);
+    
+    if (existingIndex >= 0) {
+      endpoints[existingIndex] = endpoint;
+    } else {
+      endpoints.push(endpoint);
+    }
+    
+    localStorage.setItem('specialized-llm-endpoints', JSON.stringify(endpoints));
+  }
+
+  public removeSpecializedEndpoint(taskType: string): void {
+    const endpoints = this.getSpecializedEndpoints();
+    const filtered = endpoints.filter(e => e.taskType !== taskType);
+    localStorage.setItem('specialized-llm-endpoints', JSON.stringify(filtered));
+  }
+
+  public getSpecializedEndpoint(taskType: string): SpecializedEndpoint | null {
+    const endpoints = this.getSpecializedEndpoints();
+    return endpoints.find(e => e.taskType === taskType) || null;
+  }
+
+  public getOptimalLLM(taskType: string): { 
+    provider: LLMProvider; 
+    isAvailable: boolean; 
+    fallbackProvider?: LLMProvider; 
+    fallbackAvailable?: boolean;
+    specializedEndpoint?: SpecializedEndpoint;
+  } {
     const mapping = this.taskMappings.find(m => m.taskType === taskType);
     if (!mapping) {
       // Default fallback
@@ -79,12 +121,14 @@ export class LLMRouter {
     const availableProviders = this.getAvailableProviders();
     const primaryAvailable = availableProviders.includes(mapping.primary.id);
     const secondaryAvailable = availableProviders.includes(mapping.secondary.id);
+    const specializedEndpoint = this.getSpecializedEndpoint(taskType);
 
     return {
       provider: mapping.primary,
       isAvailable: primaryAvailable,
       fallbackProvider: mapping.secondary,
-      fallbackAvailable: secondaryAvailable
+      fallbackAvailable: secondaryAvailable,
+      specializedEndpoint
     };
   }
 
@@ -97,7 +141,14 @@ export class LLMRouter {
   }
 
   public async executeWithOptimalLLM(taskType: string, prompt: string, options?: any): Promise<string> {
-    const { provider, isAvailable, fallbackProvider, fallbackAvailable } = this.getOptimalLLM(taskType);
+    const { provider, isAvailable, fallbackProvider, fallbackAvailable, specializedEndpoint } = this.getOptimalLLM(taskType);
+    
+    // Use specialized endpoint if configured and primary provider is available
+    if (specializedEndpoint && isAvailable) {
+      console.log(`Using specialized endpoint: ${specializedEndpoint.name} (${specializedEndpoint.url}) for ${taskType}`);
+      // In a real implementation, you would call the specialized endpoint here
+      return `Response from specialized ${specializedEndpoint.name} for ${taskType} task`;
+    }
     
     let selectedProvider = provider;
     if (!isAvailable && fallbackAvailable && fallbackProvider) {

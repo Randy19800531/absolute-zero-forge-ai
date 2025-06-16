@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, Info } from 'lucide-react';
+import { CheckCircle, XCircle, Info, ExternalLink } from 'lucide-react';
 import { llmRouter } from '@/services/llmRouter';
 
 interface LLMTaskRouterProps {
@@ -11,7 +11,7 @@ interface LLMTaskRouterProps {
 }
 
 const LLMTaskRouter = ({ taskType, showDetails = false }: LLMTaskRouterProps) => {
-  const { provider, isAvailable, fallbackProvider, fallbackAvailable } = llmRouter.getOptimalLLM(taskType);
+  const { provider, isAvailable, fallbackProvider, fallbackAvailable, specializedEndpoint } = llmRouter.getOptimalLLM(taskType);
   const mapping = llmRouter.getTaskMapping(taskType);
 
   const getStatusIcon = (available: boolean) => {
@@ -53,11 +53,38 @@ const LLMTaskRouter = ({ taskType, showDetails = false }: LLMTaskRouterProps) =>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {/* Specialized Endpoint Info */}
+        {specializedEndpoint && isAvailable && (
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <ExternalLink className="h-4 w-4 text-green-600" />
+                <span className="font-medium text-sm text-green-700">Specialized: {specializedEndpoint.name}</span>
+              </div>
+              <Badge className="bg-green-100 text-green-800">Priority</Badge>
+            </div>
+            <a 
+              href={specializedEndpoint.url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-xs text-green-600 hover:underline break-all"
+            >
+              {specializedEndpoint.url}
+            </a>
+            {specializedEndpoint.description && (
+              <p className="text-xs text-green-600 mt-1">{specializedEndpoint.description}</p>
+            )}
+          </div>
+        )}
+
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {getStatusIcon(isAvailable)}
-              <span className="font-medium text-sm">Primary: {provider.name}</span>
+              <span className="font-medium text-sm">
+                Primary: {provider.name}
+                {specializedEndpoint && isAvailable && <span className="text-green-600 ml-1">(via specialized)</span>}
+              </span>
             </div>
             {getStatusBadge(isAvailable)}
           </div>

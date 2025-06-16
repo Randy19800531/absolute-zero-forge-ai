@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Lock, Settings } from 'lucide-react';
+import { Lock, Settings, ExternalLink } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LLMProviderCard from './LLMProviderCard';
 import AdminPasswordManager from '@/components/admin/AdminPasswordManager';
+import SpecializedEndpoints from './SpecializedEndpoints';
 
 interface LLMProvider {
   id: string;
@@ -165,10 +166,14 @@ const LLMProvidersContent = ({ onLock }: LLMProvidersContentProps) => {
       </div>
 
       <Tabs defaultValue="providers" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="providers" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             LLM Providers
+          </TabsTrigger>
+          <TabsTrigger value="specialized" className="flex items-center gap-2">
+            <ExternalLink className="h-4 w-4" />
+            Specialized Endpoints
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Lock className="h-4 w-4" />
@@ -203,6 +208,10 @@ const LLMProvidersContent = ({ onLock }: LLMProvidersContentProps) => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="specialized">
+          <SpecializedEndpoints />
         </TabsContent>
 
         <TabsContent value="security">
