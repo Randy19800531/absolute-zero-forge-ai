@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Eye, EyeOff, Save, Check, AlertCircle, Trash2, Settings2 } from 'lucide-react';
+import { Eye, EyeOff, Save, Check, AlertCircle, Trash2, Settings2, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
@@ -104,8 +104,19 @@ const LLMProviderCard = ({
     }
   }, [provider.id]);
 
+  // Mask API key display
+  const getMaskedApiKey = () => {
+    if (!apiKey) return '';
+    if (showKey) return apiKey;
+    return apiKey.length > 8 ? '••••••••' + apiKey.slice(-4) : '••••••••';
+  };
+
   return (
-    <Card className="border-2 hover:shadow-md transition-shadow">
+    <Card className="border-2 hover:shadow-md transition-shadow relative">
+      <div className="absolute top-2 right-2">
+        <Shield className="h-4 w-4 text-green-500" />
+      </div>
+      
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">{provider.name}</CardTitle>
@@ -142,18 +153,19 @@ const LLMProviderCard = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor={`api-key-${provider.id}`}>
+          <Label htmlFor={`api-key-${provider.id}`} className="flex items-center gap-2">
             {provider.apiKeyLabel}
+            <Shield className="h-3 w-3 text-gray-400" />
           </Label>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Input
                 id={`api-key-${provider.id}`}
-                type={showKey ? 'text' : 'password'}
+                type="password"
                 placeholder="Enter your API key..."
-                value={apiKey || ''}
+                value={showKey ? apiKey : getMaskedApiKey()}
                 onChange={(e) => onApiKeyChange(e.target.value)}
-                className="pr-10"
+                className="pr-10 font-mono"
               />
               <Button
                 type="button"
@@ -170,6 +182,9 @@ const LLMProviderCard = ({
               </Button>
             </div>
           </div>
+          <p className="text-xs text-gray-500">
+            🔒 API keys are securely encrypted and stored locally
+          </p>
         </div>
 
         {/* Function Allocation Section */}
@@ -214,7 +229,7 @@ const LLMProviderCard = ({
         <div className="flex gap-2">
           <Button 
             onClick={validateApiKey}
-            className="flex-1"
+            className="flex-1 bg-green-600 hover:bg-green-700"
             disabled={!apiKey?.trim() || isValidating}
           >
             {isValidating ? (
@@ -228,7 +243,7 @@ const LLMProviderCard = ({
             <Button 
               variant="outline"
               onClick={onRemove}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-red-600 hover:text-red-700"
             >
               <Trash2 className="h-4 w-4" />
               Remove
