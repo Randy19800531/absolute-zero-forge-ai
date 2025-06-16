@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Eye, EyeOff, Save, Check, AlertCircle, Trash2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Eye, EyeOff, Save, Check, AlertCircle, Trash2, Settings2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface LLMProvider {
   id: string;
@@ -27,6 +29,17 @@ interface LLMProviderCardProps {
   onRemove: () => void;
 }
 
+const PLATFORM_FUNCTIONS = [
+  { id: 'ai-agents', label: 'AI Agents' },
+  { id: 'low-no-code', label: 'Low/No Code Builder' },
+  { id: 'workflow-builder', label: 'Workflow Builder' },
+  { id: 'vba-generator', label: 'VBA Generator' },
+  { id: 'testing-suite', label: 'Testing Suite' },
+  { id: 'documentation', label: 'Documentation Assistant' },
+  { id: 'code-analysis', label: 'Code Analysis' },
+  { id: 'chat-support', label: 'General Chat Support' }
+];
+
 const LLMProviderCard = ({
   provider,
   apiKey,
@@ -38,6 +51,8 @@ const LLMProviderCard = ({
 }: LLMProviderCardProps) => {
   const { toast } = useToast();
   const [isValidating, setIsValidating] = useState(false);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [selectedFunctions, setSelectedFunctions] = useState<string[]>([]);
 
   const validateApiKey = async () => {
     if (!apiKey?.trim()) {
@@ -56,6 +71,10 @@ const LLMProviderCard = ({
         throw new Error("API key appears to be too short");
       }
       
+      // Save function allocations
+      const allocationKey = `llm-allocations-${provider.id}`;
+      localStorage.setItem(allocationKey, JSON.stringify(selectedFunctions));
+      
       onSave();
     } catch (error) {
       toast({
@@ -68,22 +87,46 @@ const LLMProviderCard = ({
     }
   };
 
+  const handleFunctionToggle = (functionId: string, checked: boolean) => {
+    setSelectedFunctions(prev => 
+      checked 
+        ? [...prev, functionId]
+        : prev.filter(id => id !== functionId)
+    );
+  };
+
+  // Load saved allocations on mount
+  React.useEffect(() => {
+    const allocationKey = `llm-allocations-${provider.id}`;
+    const saved = localStorage.getItem(allocationKey);
+    if (saved) {
+      setSelectedFunctions(JSON.parse(saved));
+    }
+  }, [provider.id]);
+
   return (
     <Card className="border-2 hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">{provider.name}</CardTitle>
-          <Badge 
-            variant={provider.status === 'connected' ? 'default' : 'secondary'}
-            className={provider.status === 'connected' ? 'bg-green-100 text-green-800' : ''}
-          >
-            {provider.status === 'connected' ? (
-              <Check className="h-3 w-3 mr-1" />
-            ) : (
-              <AlertCircle className="h-3 w-3 mr-1" />
+          <div className="flex items-center gap-2">
+            <Badge 
+              variant={provider.status === 'connected' ? 'default' : 'secondary'}
+              className={provider.status === 'connected' ? 'bg-green-100 text-green-800' : ''}
+            >
+              {provider.status === 'connected' ? (
+                <Check className="h-3 w-3 mr-1" />
+              ) : (
+                <AlertCircle className="h-3 w-3 mr-1" />
+              )}
+              {provider.status}
+            </Badge>
+            {selectedFunctions.length > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {selectedFunctions.length} functions
+              </Badge>
             )}
-            {provider.status}
-          </Badge>
+          </div>
         </div>
         <p className="text-sm text-gray-600">{provider.description}</p>
         {provider.website && (
@@ -128,6 +171,46 @@ const LLMProviderCard = ({
             </div>
           </div>
         </div>
+
+        {/* Function Allocation Section */}
+        <Collapsible open={isConfigOpen} onOpenChange={setIsConfigOpen}>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" className="w-full justify-start">
+              <Settings2 className="h-4 w-4 mr-2" />
+              Function Allocation
+              {selectedFunctions.length > 0 && (
+                <Badge variant="secondary" className="ml-auto">
+                  {selectedFunctions.length}
+                </Badge>
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-3 mt-3">
+            <div className="text-sm text-gray-600 mb-2">
+              Select which platform functions this model should handle:
+            </div>
+            <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+              {PLATFORM_FUNCTIONS.map((func) => (
+                <div key={func.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`${provider.id}-${func.id}`}
+                    checked={selectedFunctions.includes(func.id)}
+                    onCheckedChange={(checked) => 
+                      handleFunctionToggle(func.id, checked as boolean)
+                    }
+                  />
+                  <Label 
+                    htmlFor={`${provider.id}-${func.id}`}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {func.label}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
         <div className="flex gap-2">
           <Button 
             onClick={validateApiKey}
@@ -139,7 +222,7 @@ const LLMProviderCard = ({
             ) : (
               <Save className="h-4 w-4 mr-2" />
             )}
-            {isValidating ? 'Validating...' : 'Save'}
+            {isValidating ? 'Saving...' : 'Save & Configure'}
           </Button>
           {provider.status === 'connected' && (
             <Button 
