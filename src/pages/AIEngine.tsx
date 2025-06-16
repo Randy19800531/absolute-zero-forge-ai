@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/layout/AppSidebar';
@@ -8,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AgentCreator from '@/components/ai/AgentCreator';
 import AgentList from '@/components/ai/AgentList';
 import ConversationMemory from '@/components/ai/ConversationMemory';
+import PredefinedAgents from '@/components/ai/PredefinedAgents';
 import { useToast } from '@/hooks/use-toast';
 
 const AIEngine = () => {
@@ -19,6 +19,13 @@ const AIEngine = () => {
     toast({
       title: "Agent Selected",
       description: `Selected agent: ${agent.name}`,
+    });
+  };
+
+  const handlePredefinedAgentSelect = (agent: any) => {
+    toast({
+      title: "Agent Ready",
+      description: `${agent.name} is now available in your agents list!`,
     });
   };
 
@@ -52,19 +59,34 @@ const AIEngine = () => {
                 </p>
               </div>
 
-              <Tabs defaultValue="agents" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="agents">AI Agents</TabsTrigger>
-                  <TabsTrigger value="create">Create Agent</TabsTrigger>
+              <Tabs defaultValue="predefined" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="predefined">Predefined Agents</TabsTrigger>
+                  <TabsTrigger value="agents">My Agents</TabsTrigger>
+                  <TabsTrigger value="create">Create Custom</TabsTrigger>
                   <TabsTrigger value="memory">Conversation Memory</TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="predefined" className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Ready-to-Use Conversational Agents</CardTitle>
+                      <CardDescription>
+                        Choose from our carefully crafted AI personalities, each with unique traits and conversational memory
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <PredefinedAgents onSelectAgent={handlePredefinedAgentSelect} />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
                 <TabsContent value="agents" className="space-y-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Active AI Agents</CardTitle>
+                      <CardTitle>Your AI Agents</CardTitle>
                       <CardDescription>
-                        Manage your deployed AI agents and monitor their performance
+                        Manage your created AI agents and monitor their performance
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -76,7 +98,7 @@ const AIEngine = () => {
                 <TabsContent value="create" className="space-y-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Create New AI Agent</CardTitle>
+                      <CardTitle>Create Custom AI Agent</CardTitle>
                       <CardDescription>
                         Configure and deploy a new AI agent with custom capabilities
                       </CardDescription>
