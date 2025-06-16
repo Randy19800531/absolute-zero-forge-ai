@@ -1,37 +1,35 @@
 
 import { useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { AudioRecorder, AudioQueue, encodeAudioForAPI } from '@/utils/RealtimeAudio';
+import { VoiceAudioRecorder } from '../utils/audioRecorder';
+import { VoiceAudioPlayer } from '../utils/audioPlayer';
 
 export const useAudioManagement = () => {
   const { toast } = useToast();
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   
-  const recorderRef = useRef<AudioRecorder | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const audioQueueRef = useRef<AudioQueue | null>(null);
+  const recorderRef = useRef<VoiceAudioRecorder | null>(null);
+  const playerRef = useRef<VoiceAudioPlayer | null>(null);
 
   const initializeAudio = () => {
-    if (!audioContextRef.current) {
-      audioContextRef.current = new AudioContext({ sampleRate: 24000 });
+    if (!recorderRef.current) {
+      recorderRef.current = new VoiceAudioRecorder();
     }
-    if (!audioQueueRef.current) {
-      audioQueueRef.current = new AudioQueue(audioContextRef.current);
+    if (!playerRef.current) {
+      playerRef.current = new VoiceAudioPlayer();
+      playerRef.current.initialize();
     }
   };
 
   const startRecording = async (onAudioData: (encodedAudio: string) => void) => {
     try {
-      console.log('Starting audio recording...');
-      recorderRef.current = new AudioRecorder((audioData) => {
-        const encodedAudio = encodeAudioForAPI(audioData);
-        onAudioData(encodedAudio);
-      });
+      if (!recorderRef.current) {
+        initializeAudio();
+      }
       
-      await recorderRef.current.start();
+      await recorderRef.current!.start(onAudioData);
       setIsRecording(true);
-      console.log('Recording started successfully');
     } catch (error) {
       console.error('Error starting recording:', error);
       toast({
@@ -43,44 +41,36 @@ export const useAudioManagement = () => {
   };
 
   const stopRecording = () => {
-    console.log('Stopping audio recording...');
     if (recorderRef.current) {
       recorderRef.current.stop();
-      recorderRef.current = null;
     }
     setIsRecording(false);
   };
 
   const playAudioDelta = async (delta: string) => {
-    if (delta && audioQueueRef.current) {
-      try {
-        const binaryString = atob(delta);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        await audioQueueRef.current.addToQueue(bytes);
-        setIsSpeaking(true);
-      } catch (error) {
-        console.error('Error processing audio delta:', error);
-      }
+    if (playerRef.current) {
+      await playerRef.current.playAudioDelta(delta);
+      setIsSpeaking(playerRef.current.getIsSpeaking());
     }
   };
 
   const stopSpeaking = () => {
+    if (playerRef.current) {
+      playerRef.current.stopSpeaking();
+    }
     setIsSpeaking(false);
   };
 
   const cleanup = () => {
     stopRecording();
     
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
-      audioContextRef.current = null;
+    if (playerRef.current) {
+      playerRef.current.cleanup();
+      playerRef.current = null;
     }
     
-    if (audioQueueRef.current) {
-      audioQueueRef.current = null;
+    if (recorderRef.current) {
+      recorderRef.current = null;
     }
     
     setIsSpeaking(false);
