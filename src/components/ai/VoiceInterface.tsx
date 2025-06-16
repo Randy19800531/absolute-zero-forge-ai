@@ -37,10 +37,8 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
       audioContextRef.current = new AudioContext({ sampleRate: 24000 });
       audioQueueRef.current = new AudioQueue(audioContextRef.current);
       
-      // Connect to our Supabase Edge Function
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.hostname === 'localhost' ? 'localhost:54321' : `${window.location.hostname}`;
-      const wsUrl = `${protocol}//${host}/functions/v1/realtime-chat`;
+      // Use the correct WebSocket URL - it needs to be wss for the preview environment
+      const wsUrl = `wss://id-preview--16ea2fbe-9b90-4e68-92fa-d8149422df7b.lovable.app/functions/v1/realtime-chat`;
       
       console.log('Connecting to:', wsUrl);
       wsRef.current = new WebSocket(wsUrl);
@@ -129,7 +127,7 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
       console.error('Error starting recording:', error);
       toast({
         title: "Microphone Error",
-        description: "Unable to access microphone",
+        description: "Unable to access microphone. Please check permissions.",
         variant: "destructive",
       });
     }
