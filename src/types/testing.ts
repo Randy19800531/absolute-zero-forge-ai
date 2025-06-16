@@ -3,7 +3,16 @@ export interface TestStep {
   id: string;
   type: 'click' | 'type' | 'assert' | 'wait' | 'navigate' | 'select' | 'hover';
   name: string;
-  parameters: Record<string, any>;
+  parameters: {
+    url?: string;
+    selector?: string;
+    value?: string;
+    expected?: string;
+    duration?: number;
+    metric?: string;
+    threshold?: number;
+    [key: string]: any;
+  };
   description?: string;
 }
 
