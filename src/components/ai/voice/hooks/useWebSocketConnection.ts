@@ -1,32 +1,22 @@
 
 import { useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { createWebSocketConnection, setupWebSocketHandlers, sendWebSocketMessage, closeWebSocketConnection } from '../utils/connectionManager';
+import { ReconnectionManager } from '../utils/reconnectionManager';
 
 export const useWebSocketConnection = () => {
   const { toast } = useToast();
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const reconnectAttemptsRef = useRef(0);
-  const maxReconnectAttempts = 3;
+  const reconnectionManagerRef = useRef<ReconnectionManager>(new ReconnectionManager(3));
 
-  const attemptReconnect = (connectFn: () => void) => {
-    if (reconnectAttemptsRef.current < maxReconnectAttempts) {
-      reconnectAttemptsRef.current++;
-      console.log(`Attempting reconnect ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`);
-      
-      reconnectTimeoutRef.current = setTimeout(() => {
-        connectFn();
-      }, 2000 * reconnectAttemptsRef.current);
-    } else {
-      console.log('Max reconnection attempts reached');
-      setConnectionStatus('error');
-      toast({
-        title: "Connection Failed",
-        description: "Unable to establish voice connection after multiple attempts. Please try again later.",
-        variant: "destructive",
-      });
-    }
+  const handleMaxAttemptsReached = () => {
+    setConnectionStatus('error');
+    toast({
+      title: "Connection Failed",
+      description: "Unable to establish voice connection after multiple attempts. Please try again later.",
+      variant: "destructive",
+    });
   };
 
   const connect = async (onMessageHandler: (event: MessageEvent) => void) => {
@@ -36,13 +26,12 @@ export const useWebSocketConnection = () => {
       
       const wsUrl = `wss://rnhtpciitjycpqqimgce.supabase.co/functions/v1/realtime-chat`;
       
-      console.log('Connecting to:', wsUrl);
-      wsRef.current = new WebSocket(wsUrl);
+      wsRef.current = createWebSocketConnection(wsUrl);
 
-      wsRef.current.onopen = () => {
+      const handleOpen = () => {
         console.log('WebSocket connected successfully');
         setConnectionStatus('connected');
-        reconnectAttemptsRef.current = 0;
+        reconnectionManagerRef.current.resetAttempts();
         
         toast({
           title: "Voice Chat Connected",
@@ -50,23 +39,32 @@ export const useWebSocketConnection = () => {
         });
       };
 
-      wsRef.current.onmessage = onMessageHandler;
-
-      wsRef.current.onerror = (error) => {
+      const handleError = (error: Event) => {
         console.error('WebSocket error:', error);
         setConnectionStatus('error');
       };
 
-      wsRef.current.onclose = (event) => {
+      const handleClose = (event: CloseEvent) => {
         console.log('WebSocket closed:', event.code, event.reason);
         
         if (event.code !== 1000 && connectionStatus !== 'disconnected') {
           setConnectionStatus('error');
-          attemptReconnect(() => connect(onMessageHandler));
+          reconnectionManagerRef.current.attemptReconnect(
+            () => connect(onMessageHandler),
+            handleMaxAttemptsReached
+          );
         } else {
           setConnectionStatus('disconnected');
         }
       };
+
+      setupWebSocketHandlers(
+        wsRef.current,
+        onMessageHandler,
+        handleOpen,
+        handleError,
+        handleClose
+      );
 
     } catch (error) {
       console.error('Error connecting:', error);
@@ -81,24 +79,14 @@ export const useWebSocketConnection = () => {
 
   const disconnect = () => {
     console.log('Disconnecting voice chat...');
-    reconnectAttemptsRef.current = maxReconnectAttempts;
-    
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-    }
-    
-    if (wsRef.current) {
-      wsRef.current.close(1000, 'User disconnected');
-      wsRef.current = null;
-    }
-    
+    reconnectionManagerRef.current.cleanup();
+    closeWebSocketConnection(wsRef.current);
+    wsRef.current = null;
     setConnectionStatus('disconnected');
   };
 
   const sendMessage = (message: any) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(message));
-    }
+    sendWebSocketMessage(wsRef.current, message);
   };
 
   return {
