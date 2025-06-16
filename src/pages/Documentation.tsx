@@ -3,19 +3,15 @@ import React from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/layout/AppSidebar';
 import Header from '@/components/layout/Header';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import OverviewTab from '@/components/documentation/OverviewTab';
 import FeaturesTab from '@/components/documentation/FeaturesTab';
-import SecurityTab from '@/components/documentation/SecurityTab';
-import UserManualTab from '@/components/documentation/UserManualTab';
 import APIDocsTab from '@/components/documentation/APIDocsTab';
+import UserManualTab from '@/components/documentation/UserManualTab';
+import SecurityTab from '@/components/documentation/SecurityTab';
 
 const Documentation = () => {
-  const navigate = useNavigate();
-
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-gray-50 flex w-full">
@@ -25,55 +21,90 @@ const Documentation = () => {
           
           <main className="flex-1 p-6">
             <div className="max-w-7xl mx-auto">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <div className="flex items-center gap-4 mb-2">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => navigate('/')}
-                      className="flex items-center gap-2"
-                    >
-                      <ArrowLeft className="h-4 w-4" />
-                      Back to Home
-                    </Button>
-                  </div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-                    <BookOpen className="h-8 w-8 text-blue-500" />
-                    Documentation
-                  </h1>
-                  <p className="text-gray-600">
-                    Comprehensive guides, security policies, and feature documentation
-                  </p>
-                </div>
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold">Documentation</h1>
+                <p className="text-muted-foreground mt-2">
+                  Complete guide to using the Absolute-0.AI platform
+                </p>
               </div>
 
-              <Tabs defaultValue="overview" className="space-y-6">
+              <Tabs defaultValue="overview" className="w-full">
                 <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="features">Features</TabsTrigger>
-                  <TabsTrigger value="security">Security</TabsTrigger>
                   <TabsTrigger value="user-manual">User Manual</TabsTrigger>
-                  <TabsTrigger value="api-docs">API Docs</TabsTrigger>
+                  <TabsTrigger value="api">API Docs</TabsTrigger>
+                  <TabsTrigger value="security">Security</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-6">
-                  <OverviewTab />
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Platform Overview</CardTitle>
+                      <CardDescription>
+                        Get started with the Absolute-0.AI platform
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <OverviewTab />
+                    </CardContent>
+                  </Card>
                 </TabsContent>
 
                 <TabsContent value="features" className="space-y-6">
-                  <FeaturesTab />
-                </TabsContent>
-
-                <TabsContent value="security" className="space-y-6">
-                  <SecurityTab />
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Feature Documentation</CardTitle>
+                      <CardDescription>
+                        Detailed documentation for all platform features
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <FeaturesTab />
+                    </CardContent>
+                  </Card>
                 </TabsContent>
 
                 <TabsContent value="user-manual" className="space-y-6">
-                  <UserManualTab />
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>User Manual</CardTitle>
+                      <CardDescription>
+                        Step-by-step instructions for common tasks
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <UserManualTab />
+                    </CardContent>
+                  </Card>
                 </TabsContent>
 
-                <TabsContent value="api-docs" className="space-y-6">
-                  <APIDocsTab />
+                <TabsContent value="api" className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>API Documentation</CardTitle>
+                      <CardDescription>
+                        Complete API reference and examples
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <APIDocsTab />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="security" className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Security & Compliance</CardTitle>
+                      <CardDescription>
+                        Security features and compliance information
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <SecurityTab />
+                    </CardContent>
+                  </Card>
                 </TabsContent>
               </Tabs>
             </div>
