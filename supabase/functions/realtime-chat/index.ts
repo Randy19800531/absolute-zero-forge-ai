@@ -44,7 +44,7 @@ serve(async (req) => {
         return;
       }
       
-      // Connect to OpenAI Realtime API
+      // Connect to OpenAI Realtime API with correct endpoint
       const openaiUrl = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17";
       console.log("Connecting to OpenAI Realtime API...");
       
