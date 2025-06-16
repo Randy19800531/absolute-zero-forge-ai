@@ -14,7 +14,7 @@ export const useWebSocketConnection = () => {
     setConnectionStatus('error');
     toast({
       title: "Connection Failed",
-      description: "Unable to establish voice connection after multiple attempts. Please try again later.",
+      description: "Unable to establish voice connection after multiple attempts. Please check your internet connection and try again.",
       variant: "destructive",
     });
   };
@@ -24,8 +24,16 @@ export const useWebSocketConnection = () => {
       setConnectionStatus('connecting');
       console.log('Starting voice chat connection...');
       
+      // Use the full Supabase project URL
       const wsUrl = `wss://rnhtpciitjycpqqimgce.supabase.co/functions/v1/realtime-chat`;
+      console.log('Connecting to WebSocket URL:', wsUrl);
       
+      // Close any existing connection
+      if (wsRef.current) {
+        closeWebSocketConnection(wsRef.current);
+        wsRef.current = null;
+      }
+
       wsRef.current = createWebSocketConnection(wsUrl);
 
       const handleOpen = () => {
@@ -40,15 +48,18 @@ export const useWebSocketConnection = () => {
       };
 
       const handleError = (error: Event) => {
-        console.error('WebSocket error:', error);
+        console.error('WebSocket error occurred:', error);
+        console.log('WebSocket readyState:', wsRef.current?.readyState);
         setConnectionStatus('error');
       };
 
       const handleClose = (event: CloseEvent) => {
-        console.log('WebSocket closed:', event.code, event.reason);
+        console.log('WebSocket closed with code:', event.code, 'reason:', event.reason);
         
+        // Only attempt reconnection if it wasn't a normal closure and we're not disconnecting
         if (event.code !== 1000 && connectionStatus !== 'disconnected') {
           setConnectionStatus('error');
+          console.log('Attempting reconnection...');
           reconnectionManagerRef.current.attemptReconnect(
             () => connect(onMessageHandler),
             handleMaxAttemptsReached
@@ -67,7 +78,7 @@ export const useWebSocketConnection = () => {
       );
 
     } catch (error) {
-      console.error('Error connecting:', error);
+      console.error('Error connecting to WebSocket:', error);
       setConnectionStatus('error');
       toast({
         title: "Connection Error",
@@ -86,7 +97,10 @@ export const useWebSocketConnection = () => {
   };
 
   const sendMessage = (message: any) => {
-    sendWebSocketMessage(wsRef.current, message);
+    const success = sendWebSocketMessage(wsRef.current, message);
+    if (!success) {
+      console.warn('Failed to send message, WebSocket not ready');
+    }
   };
 
   return {
