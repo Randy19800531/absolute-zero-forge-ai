@@ -57,6 +57,10 @@ serve(async (req) => {
 
       openaiWs.addEventListener("open", () => {
         console.log("Connected to OpenAI Realtime API successfully");
+        socket.send(JSON.stringify({
+          type: "connection_established",
+          message: "Connected to OpenAI Realtime API"
+        }));
       });
 
       openaiWs.addEventListener("message", (event) => {

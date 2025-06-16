@@ -16,14 +16,22 @@ export const useVoiceConnection = () => {
   const recorderRef = useRef<AudioRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioQueueRef = useRef<AudioQueue | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const maxReconnectAttempts = 3;
 
   useEffect(() => {
     return () => {
       disconnect();
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
     };
   }, []);
 
   const handleRealtimeEvent = async (event: RealtimeEvent) => {
+    console.log('Received event:', event.type, event);
+    
     switch (event.type) {
       case 'session.created':
         console.log('Session created successfully');
@@ -119,14 +127,39 @@ export const useVoiceConnection = () => {
     setIsRecording(false);
   };
 
+  const attemptReconnect = () => {
+    if (reconnectAttemptsRef.current < maxReconnectAttempts) {
+      reconnectAttemptsRef.current++;
+      console.log(`Attempting reconnect ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`);
+      
+      reconnectTimeoutRef.current = setTimeout(() => {
+        connect();
+      }, 2000 * reconnectAttemptsRef.current); // Exponential backoff
+    } else {
+      console.log('Max reconnection attempts reached');
+      setConnectionStatus('error');
+      toast({
+        title: "Connection Failed",
+        description: "Unable to establish voice connection after multiple attempts. Please try again later.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const connect = async () => {
     try {
       setConnectionStatus('connecting');
       console.log('Starting voice chat connection...');
       
-      audioContextRef.current = new AudioContext({ sampleRate: 24000 });
-      audioQueueRef.current = new AudioQueue(audioContextRef.current);
+      // Initialize audio context and queue
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContext({ sampleRate: 24000 });
+      }
+      if (!audioQueueRef.current) {
+        audioQueueRef.current = new AudioQueue(audioContextRef.current);
+      }
       
+      // Use the correct Supabase WebSocket URL format
       const wsUrl = `wss://lrhfqdqudnajfcqlmvag.supabase.co/functions/v1/realtime-chat`;
       
       console.log('Connecting to:', wsUrl);
@@ -136,6 +169,7 @@ export const useVoiceConnection = () => {
         console.log('WebSocket connected successfully');
         setIsConnected(true);
         setConnectionStatus('connected');
+        reconnectAttemptsRef.current = 0; // Reset on successful connection
         startRecording();
         
         toast({
@@ -147,7 +181,6 @@ export const useVoiceConnection = () => {
       wsRef.current.onmessage = async (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log('Received message:', data);
           await handleRealtimeEvent(data);
         } catch (error) {
           console.error('Error parsing message:', error);
@@ -157,25 +190,19 @@ export const useVoiceConnection = () => {
       wsRef.current.onerror = (error) => {
         console.error('WebSocket error:', error);
         setConnectionStatus('error');
-        toast({
-          title: "Connection Error",
-          description: "Failed to connect to voice chat. Please check your internet connection.",
-          variant: "destructive",
-        });
       };
 
       wsRef.current.onclose = (event) => {
         console.log('WebSocket closed:', event.code, event.reason);
         setIsConnected(false);
-        setConnectionStatus('disconnected');
         stopRecording();
         
-        if (event.code !== 1000) {
-          toast({
-            title: "Connection Lost",
-            description: "Voice chat connection was lost. You can try reconnecting.",
-            variant: "destructive",
-          });
+        if (event.code !== 1000 && connectionStatus !== 'disconnected') {
+          // Unexpected closure, attempt reconnect
+          setConnectionStatus('error');
+          attemptReconnect();
+        } else {
+          setConnectionStatus('disconnected');
         }
       };
 
@@ -183,7 +210,7 @@ export const useVoiceConnection = () => {
       console.error('Error connecting:', error);
       setConnectionStatus('error');
       toast({
-        title: "Error",
+        title: "Connection Error",
         description: error instanceof Error ? error.message : 'Failed to start voice chat',
         variant: "destructive",
       });
@@ -192,6 +219,12 @@ export const useVoiceConnection = () => {
 
   const disconnect = () => {
     console.log('Disconnecting voice chat...');
+    reconnectAttemptsRef.current = maxReconnectAttempts; // Prevent reconnection
+    
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+    }
+    
     stopRecording();
     
     if (wsRef.current) {
@@ -202,6 +235,10 @@ export const useVoiceConnection = () => {
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
+    }
+    
+    if (audioQueueRef.current) {
+      audioQueueRef.current = null;
     }
     
     setIsConnected(false);
