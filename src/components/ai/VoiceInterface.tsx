@@ -32,19 +32,20 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
   const connect = async () => {
     try {
       setConnectionStatus('connecting');
+      console.log('Starting voice chat connection...');
       
       // Initialize audio context
       audioContextRef.current = new AudioContext({ sampleRate: 24000 });
       audioQueueRef.current = new AudioQueue(audioContextRef.current);
       
-      // Use the correct WebSocket URL - it needs to be wss for the preview environment
-      const wsUrl = `wss://id-preview--16ea2fbe-9b90-4e68-92fa-d8149422df7b.lovable.app/functions/v1/realtime-chat`;
+      // Use the correct WebSocket URL for Supabase edge functions
+      const wsUrl = `wss://lrhfqdqudnajfcqlmvag.supabase.co/functions/v1/realtime-chat`;
       
       console.log('Connecting to:', wsUrl);
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
-        console.log('Connected to voice chat');
+        console.log('WebSocket connected successfully');
         setIsConnected(true);
         setConnectionStatus('connected');
         startRecording();
@@ -56,10 +57,14 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
       };
 
       wsRef.current.onmessage = async (event) => {
-        const data = JSON.parse(event.data);
-        console.log('Received message:', data);
-        
-        handleRealtimeEvent(data);
+        try {
+          const data = JSON.parse(event.data);
+          console.log('Received message:', data);
+          
+          await handleRealtimeEvent(data);
+        } catch (error) {
+          console.error('Error parsing message:', error);
+        }
       };
 
       wsRef.current.onerror = (error) => {
@@ -67,16 +72,24 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
         setConnectionStatus('error');
         toast({
           title: "Connection Error",
-          description: "Failed to connect to voice chat",
+          description: "Failed to connect to voice chat. Please check your internet connection.",
           variant: "destructive",
         });
       };
 
-      wsRef.current.onclose = () => {
-        console.log('WebSocket closed');
+      wsRef.current.onclose = (event) => {
+        console.log('WebSocket closed:', event.code, event.reason);
         setIsConnected(false);
         setConnectionStatus('disconnected');
         stopRecording();
+        
+        if (event.code !== 1000) {
+          toast({
+            title: "Connection Lost",
+            description: "Voice chat connection was lost. You can try reconnecting.",
+            variant: "destructive",
+          });
+        }
       };
 
     } catch (error) {
@@ -91,10 +104,11 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
   };
 
   const disconnect = () => {
+    console.log('Disconnecting voice chat...');
     stopRecording();
     
     if (wsRef.current) {
-      wsRef.current.close();
+      wsRef.current.close(1000, 'User disconnected');
       wsRef.current = null;
     }
     
@@ -106,10 +120,12 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
     setIsConnected(false);
     setConnectionStatus('disconnected');
     setTranscript('');
+    setIsSpeaking(false);
   };
 
   const startRecording = async () => {
     try {
+      console.log('Starting audio recording...');
       recorderRef.current = new AudioRecorder((audioData) => {
         if (wsRef.current?.readyState === WebSocket.OPEN) {
           const encodedAudio = encodeAudioForAPI(audioData);
@@ -122,18 +138,19 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
       
       await recorderRef.current.start();
       setIsRecording(true);
-      console.log('Recording started');
+      console.log('Recording started successfully');
     } catch (error) {
       console.error('Error starting recording:', error);
       toast({
         title: "Microphone Error",
-        description: "Unable to access microphone. Please check permissions.",
+        description: "Unable to access microphone. Please check permissions and try again.",
         variant: "destructive",
       });
     }
   };
 
   const stopRecording = () => {
+    console.log('Stopping audio recording...');
     if (recorderRef.current) {
       recorderRef.current.stop();
       recorderRef.current = null;
@@ -144,7 +161,7 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
   const handleRealtimeEvent = async (event: any) => {
     switch (event.type) {
       case 'session.created':
-        console.log('Session created');
+        console.log('Session created successfully');
         break;
         
       case 'session.updated':
@@ -160,15 +177,18 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
         break;
         
       case 'response.audio.delta':
-        // Play audio chunk
         if (event.delta && audioQueueRef.current) {
-          const binaryString = atob(event.delta);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
+          try {
+            const binaryString = atob(event.delta);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+            await audioQueueRef.current.addToQueue(bytes);
+            setIsSpeaking(true);
+          } catch (error) {
+            console.error('Error processing audio delta:', error);
           }
-          await audioQueueRef.current.addToQueue(bytes);
-          setIsSpeaking(true);
         }
         break;
         
@@ -178,7 +198,6 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
         break;
         
       case 'response.audio_transcript.delta':
-        // Update transcript
         setTranscript(prev => prev + (event.delta || ''));
         break;
         
@@ -190,7 +209,7 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
         console.error('Realtime API error:', event);
         toast({
           title: "API Error",
-          description: event.message || 'An error occurred',
+          description: event.error?.message || 'An error occurred with the AI service',
           variant: "destructive",
         });
         break;
@@ -302,8 +321,9 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
           </div>
         )}
 
-        <div className="text-xs text-gray-500 text-center">
-          Ensure your microphone is enabled and speak clearly for best results
+        <div className="text-xs text-gray-500 text-center space-y-1">
+          <p>Ensure your microphone is enabled and speak clearly for best results</p>
+          <p>Status: {connectionStatus === 'connected' ? '🟢 Connected' : connectionStatus === 'connecting' ? '🟡 Connecting' : '🔴 Disconnected'}</p>
         </div>
       </CardContent>
     </Card>

@@ -9,6 +9,7 @@ export class AudioRecorder {
 
   async start() {
     try {
+      console.log('Requesting microphone access...');
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           sampleRate: 24000,
@@ -19,6 +20,7 @@ export class AudioRecorder {
         }
       });
       
+      console.log('Creating audio context...');
       this.audioContext = new AudioContext({
         sampleRate: 24000,
       });
@@ -33,13 +35,16 @@ export class AudioRecorder {
       
       this.source.connect(this.processor);
       this.processor.connect(this.audioContext.destination);
+      
+      console.log('Audio recording started successfully');
     } catch (error) {
       console.error('Error accessing microphone:', error);
-      throw error;
+      throw new Error(`Microphone access failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   stop() {
+    console.log('Stopping audio recording...');
     if (this.source) {
       this.source.disconnect();
       this.source = null;
