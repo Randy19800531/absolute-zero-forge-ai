@@ -3,7 +3,7 @@ import React from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/layout/AppSidebar';
 import Header from '@/components/layout/Header';
-import SuperUserGuard from '@/components/layout/SuperUserGuard';
+import RestrictedModuleWrapper from '@/components/auth/RestrictedModuleWrapper';
 import TwoFactorAuth from '@/components/admin/TwoFactorAuth';
 import PricingControl from '@/components/admin/PricingControl';
 import UserManagement from '@/components/admin/UserManagement';
@@ -12,22 +12,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, ArrowLeft, Settings, Users, DollarSign, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useUserRole } from '@/hooks/useUserRole';
 
 const Admin = () => {
   const navigate = useNavigate();
-  const { role } = useUserRole();
 
   return (
-    <SuperUserGuard>
-      <SidebarProvider>
-        <div className="min-h-screen bg-gray-50 flex w-full">
-          <AppSidebar />
-          <SidebarInset>
-            <Header />
-            
-            <main className="flex-1 p-6">
-              <div className="max-w-7xl mx-auto">
+    <SidebarProvider>
+      <div className="min-h-screen bg-gray-50 flex w-full">
+        <AppSidebar />
+        <SidebarInset>
+          <Header />
+          
+          <main className="flex-1 p-6">
+            <div className="max-w-7xl mx-auto">
+              <RestrictedModuleWrapper
+                moduleName="Admin Panel"
+                moduleDescription="Access administrative controls, user management, and system settings. Superuser privileges are required."
+                requiredRole="admin"
+              >
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <div className="flex items-center gap-4 mb-2">
@@ -44,13 +46,8 @@ const Admin = () => {
                       <Shield className="h-8 w-8 text-red-500" />
                       Admin Panel
                     </h1>
-                    <p className="text-gray-600 flex items-center gap-2">
+                    <p className="text-gray-600">
                       Superuser management and security controls
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        role === 'superuser' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-                      }`}>
-                        {role}
-                      </span>
                     </p>
                   </div>
                 </div>
@@ -160,12 +157,12 @@ const Admin = () => {
                     </Card>
                   </TabsContent>
                 </Tabs>
-              </div>
-            </main>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
-    </SuperUserGuard>
+              </RestrictedModuleWrapper>
+            </div>
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 };
 
