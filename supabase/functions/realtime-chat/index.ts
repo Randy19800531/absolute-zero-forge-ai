@@ -48,99 +48,119 @@ async function handleSSEConnection(sessionId: string) {
   }
 
   let openaiWs: WebSocket | null = null;
+  let isConnected = false;
   
   const stream = new ReadableStream({
     start(controller) {
       console.log(`Starting SSE connection for session ${sessionId}`);
       
       // Send initial connection event
-      controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
+      const encoder = new TextEncoder();
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({
         type: "connection_established",
         sessionId: sessionId
       })}\n\n`));
 
-      // Connect to OpenAI Realtime API
-      const openaiUrl = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17";
-      console.log("Connecting to OpenAI Realtime API...");
-      
-      try {
-        openaiWs = new WebSocket(openaiUrl, {
-          headers: {
-            "Authorization": `Bearer ${OPENAI_API_KEY}`,
-            "OpenAI-Beta": "realtime=v1"
-          }
-        });
-
-        openaiWs.addEventListener("open", () => {
-          console.log("Connected to OpenAI Realtime API successfully");
-          activeConnections.set(sessionId, openaiWs!);
-          
-          controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
-            type: "openai_connected",
-            message: "Connected to OpenAI Realtime API"
-          })}\n\n`));
-        });
-
-        openaiWs.addEventListener("message", (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            console.log("Received from OpenAI:", data.type);
-            
-            // Handle session.created event - send session update
-            if (data.type === 'session.created') {
-              console.log("Session created, sending session update");
-              const sessionUpdate = {
-                type: "session.update",
-                session: {
-                  modalities: ["text", "audio"],
-                  instructions: "You are a helpful AI assistant. Be conversational, friendly, and engaging. Keep responses concise but informative.",
-                  voice: "alloy",
-                  input_audio_format: "pcm16",
-                  output_audio_format: "pcm16",
-                  input_audio_transcription: {
-                    model: "whisper-1"
-                  },
-                  turn_detection: {
-                    type: "server_vad",
-                    threshold: 0.5,
-                    prefix_padding_ms: 300,
-                    silence_duration_ms: 1000
-                  },
-                  temperature: 0.8,
-                  max_response_output_tokens: "inf"
-                }
-              };
-              openaiWs?.send(JSON.stringify(sessionUpdate));
+      // Connect to OpenAI Realtime API with retry logic
+      const connectToOpenAI = () => {
+        const openaiUrl = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17";
+        console.log("Connecting to OpenAI Realtime API...");
+        
+        try {
+          openaiWs = new WebSocket(openaiUrl, {
+            headers: {
+              "Authorization": `Bearer ${OPENAI_API_KEY}`,
+              "OpenAI-Beta": "realtime=v1"
             }
+          });
+
+          openaiWs.addEventListener("open", () => {
+            console.log("Connected to OpenAI Realtime API successfully");
+            isConnected = true;
+            activeConnections.set(sessionId, openaiWs!);
             
-            // Forward all messages to client via SSE
-            controller.enqueue(new TextEncoder().encode(`data: ${event.data}\n\n`));
-          } catch (error) {
-            console.error("Error processing OpenAI message:", error);
-          }
-        });
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              type: "openai_connected",
+              message: "Connected to OpenAI Realtime API"
+            })}\n\n`));
+          });
 
-        openaiWs.addEventListener("error", (error) => {
-          console.error("OpenAI WebSocket error:", error);
-          controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
+          openaiWs.addEventListener("message", (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              console.log("Received from OpenAI:", data.type);
+              
+              // Handle session.created event - send session update
+              if (data.type === 'session.created') {
+                console.log("Session created, sending session update");
+                const sessionUpdate = {
+                  type: "session.update",
+                  session: {
+                    modalities: ["text", "audio"],
+                    instructions: "You are a helpful AI assistant. Be conversational, friendly, and engaging. Keep responses concise but informative.",
+                    voice: "alloy",
+                    input_audio_format: "pcm16",
+                    output_audio_format: "pcm16",
+                    input_audio_transcription: {
+                      model: "whisper-1"
+                    },
+                    turn_detection: {
+                      type: "server_vad",
+                      threshold: 0.5,
+                      prefix_padding_ms: 300,
+                      silence_duration_ms: 1000
+                    },
+                    temperature: 0.8,
+                    max_response_output_tokens: "inf"
+                  }
+                };
+                openaiWs?.send(JSON.stringify(sessionUpdate));
+              }
+              
+              // Forward all messages to client via SSE
+              controller.enqueue(encoder.encode(`data: ${event.data}\n\n`));
+            } catch (error) {
+              console.error("Error processing OpenAI message:", error);
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                type: "error",
+                error: { message: "Error processing OpenAI message" }
+              })}\n\n`));
+            }
+          });
+
+          openaiWs.addEventListener("error", (error) => {
+            console.error("OpenAI WebSocket error:", error);
+            isConnected = false;
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              type: "error",
+              error: { message: "OpenAI connection error" }
+            })}\n\n`));
+          });
+
+          openaiWs.addEventListener("close", (event) => {
+            console.log("OpenAI WebSocket closed:", event.code, event.reason);
+            isConnected = false;
+            activeConnections.delete(sessionId);
+            
+            // Try to reconnect if it was an unexpected close
+            if (event.code !== 1000 && event.code !== 1001) {
+              console.log("Attempting to reconnect to OpenAI...");
+              setTimeout(connectToOpenAI, 2000);
+            } else {
+              controller.close();
+            }
+          });
+        } catch (error) {
+          console.error("Error creating OpenAI WebSocket:", error);
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({
             type: "error",
-            error: { message: "OpenAI connection error" }
+            error: { message: "Failed to connect to OpenAI" }
           })}\n\n`));
-        });
+        }
+      };
 
-        openaiWs.addEventListener("close", (event) => {
-          console.log("OpenAI WebSocket closed:", event.code, event.reason);
-          activeConnections.delete(sessionId);
-          controller.close();
-        });
-      } catch (error) {
-        console.error("Error creating OpenAI WebSocket:", error);
-        controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
-          type: "error",
-          error: { message: "Failed to connect to OpenAI" }
-        })}\n\n`));
-        controller.close();
-      }
+      // Start connection
+      connectToOpenAI();
     },
     
     cancel() {
