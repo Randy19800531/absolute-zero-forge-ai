@@ -1,254 +1,70 @@
 
-import { useState, useRef, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { AudioRecorder, AudioQueue, encodeAudioForAPI } from '@/utils/RealtimeAudio';
+import { useState, useEffect } from 'react';
+import { useWebSocketConnection } from './hooks/useWebSocketConnection';
+import { useAudioManagement } from './hooks/useAudioManagement';
+import { createEventHandler } from './utils/eventHandlers';
 import { RealtimeEvent } from './types';
 
 export const useVoiceConnection = () => {
-  const { toast } = useToast();
-  
-  // All hooks must be called in the same order every time
-  const [isConnected, setIsConnected] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
-  const [connectionStatus, setConnectionStatus] = useState('disconnected');
   
-  // All refs must be declared at the top level
-  const wsRef = useRef<WebSocket | null>(null);
-  const recorderRef = useRef<AudioRecorder | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const audioQueueRef = useRef<AudioQueue | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const reconnectAttemptsRef = useRef(0);
+  const { 
+    connectionStatus, 
+    connect: connectWs, 
+    disconnect: disconnectWs, 
+    sendMessage,
+    isConnected 
+  } = useWebSocketConnection();
   
-  const maxReconnectAttempts = 3;
+  const {
+    isRecording,
+    isSpeaking,
+    initializeAudio,
+    startRecording,
+    stopRecording,
+    playAudioDelta,
+    stopSpeaking,
+    cleanup: cleanupAudio
+  } = useAudioManagement();
 
-  // Single useEffect for cleanup
   useEffect(() => {
     return () => {
       disconnect();
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
     };
   }, []);
 
-  const handleRealtimeEvent = async (event: RealtimeEvent) => {
-    console.log('Received event:', event.type, event);
-    
-    switch (event.type) {
-      case 'session.created':
-        console.log('Session created successfully');
-        break;
-        
-      case 'session.updated':
-        console.log('Session updated');
-        break;
-        
-      case 'input_audio_buffer.speech_started':
-        console.log('User started speaking');
-        break;
-        
-      case 'input_audio_buffer.speech_stopped':
-        console.log('User stopped speaking');
-        break;
-        
-      case 'response.audio.delta':
-        if (event.delta && audioQueueRef.current) {
-          try {
-            const binaryString = atob(event.delta);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-              bytes[i] = binaryString.charCodeAt(i);
-            }
-            await audioQueueRef.current.addToQueue(bytes);
-            setIsSpeaking(true);
-          } catch (error) {
-            console.error('Error processing audio delta:', error);
-          }
-        }
-        break;
-        
-      case 'response.audio.done':
-        console.log('Audio response completed');
-        setIsSpeaking(false);
-        break;
-        
-      case 'response.audio_transcript.delta':
-        setTranscript(prev => prev + (event.delta || ''));
-        break;
-        
-      case 'response.audio_transcript.done':
-        console.log('Transcript completed');
-        break;
-        
-      case 'error':
-        console.error('Realtime API error:', event);
-        toast({
-          title: "API Error",
-          description: event.error?.message || 'An error occurred with the AI service',
-          variant: "destructive",
-        });
-        break;
-        
-      default:
-        console.log('Unhandled event type:', event.type);
-    }
-  };
-
-  const startRecording = async () => {
+  const handleMessage = async (event: MessageEvent) => {
     try {
-      console.log('Starting audio recording...');
-      recorderRef.current = new AudioRecorder((audioData) => {
-        if (wsRef.current?.readyState === WebSocket.OPEN) {
-          const encodedAudio = encodeAudioForAPI(audioData);
-          wsRef.current.send(JSON.stringify({
-            type: 'input_audio_buffer.append',
-            audio: encodedAudio
-          }));
-        }
-      });
-      
-      await recorderRef.current.start();
-      setIsRecording(true);
-      console.log('Recording started successfully');
+      const data = JSON.parse(event.data);
+      const eventHandler = createEventHandler(playAudioDelta, stopSpeaking, setTranscript);
+      await eventHandler(data);
     } catch (error) {
-      console.error('Error starting recording:', error);
-      toast({
-        title: "Microphone Error",
-        description: "Unable to access microphone. Please check permissions and try again.",
-        variant: "destructive",
-      });
+      console.error('Error parsing message:', error);
     }
   };
 
-  const stopRecording = () => {
-    console.log('Stopping audio recording...');
-    if (recorderRef.current) {
-      recorderRef.current.stop();
-      recorderRef.current = null;
-    }
-    setIsRecording(false);
-  };
-
-  const attemptReconnect = () => {
-    if (reconnectAttemptsRef.current < maxReconnectAttempts) {
-      reconnectAttemptsRef.current++;
-      console.log(`Attempting reconnect ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`);
-      
-      reconnectTimeoutRef.current = setTimeout(() => {
-        connect();
-      }, 2000 * reconnectAttemptsRef.current);
-    } else {
-      console.log('Max reconnection attempts reached');
-      setConnectionStatus('error');
-      toast({
-        title: "Connection Failed",
-        description: "Unable to establish voice connection after multiple attempts. Please try again later.",
-        variant: "destructive",
-      });
-    }
+  const handleAudioData = (encodedAudio: string) => {
+    sendMessage({
+      type: 'input_audio_buffer.append',
+      audio: encodedAudio
+    });
   };
 
   const connect = async () => {
-    try {
-      setConnectionStatus('connecting');
-      console.log('Starting voice chat connection...');
-      
-      // Initialize audio context and queue
-      if (!audioContextRef.current) {
-        audioContextRef.current = new AudioContext({ sampleRate: 24000 });
-      }
-      if (!audioQueueRef.current) {
-        audioQueueRef.current = new AudioQueue(audioContextRef.current);
-      }
-      
-      // Use the correct project ID from the Supabase client
-      const wsUrl = `wss://rnhtpciitjycpqqimgce.supabase.co/functions/v1/realtime-chat`;
-      
-      console.log('Connecting to:', wsUrl);
-      wsRef.current = new WebSocket(wsUrl);
-
-      wsRef.current.onopen = () => {
-        console.log('WebSocket connected successfully');
-        setIsConnected(true);
-        setConnectionStatus('connected');
-        reconnectAttemptsRef.current = 0;
-        startRecording();
-        
-        toast({
-          title: "Voice Chat Connected",
-          description: "You can now speak with the AI agent",
-        });
-      };
-
-      wsRef.current.onmessage = async (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          await handleRealtimeEvent(data);
-        } catch (error) {
-          console.error('Error parsing message:', error);
-        }
-      };
-
-      wsRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        setConnectionStatus('error');
-      };
-
-      wsRef.current.onclose = (event) => {
-        console.log('WebSocket closed:', event.code, event.reason);
-        setIsConnected(false);
-        stopRecording();
-        
-        if (event.code !== 1000 && connectionStatus !== 'disconnected') {
-          setConnectionStatus('error');
-          attemptReconnect();
-        } else {
-          setConnectionStatus('disconnected');
-        }
-      };
-
-    } catch (error) {
-      console.error('Error connecting:', error);
-      setConnectionStatus('error');
-      toast({
-        title: "Connection Error",
-        description: error instanceof Error ? error.message : 'Failed to start voice chat',
-        variant: "destructive",
-      });
+    initializeAudio();
+    
+    await connectWs(handleMessage);
+    
+    if (connectionStatus === 'connected') {
+      await startRecording(handleAudioData);
     }
   };
 
   const disconnect = () => {
-    console.log('Disconnecting voice chat...');
-    reconnectAttemptsRef.current = maxReconnectAttempts;
-    
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-    }
-    
     stopRecording();
-    
-    if (wsRef.current) {
-      wsRef.current.close(1000, 'User disconnected');
-      wsRef.current = null;
-    }
-    
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
-      audioContextRef.current = null;
-    }
-    
-    if (audioQueueRef.current) {
-      audioQueueRef.current = null;
-    }
-    
-    setIsConnected(false);
-    setConnectionStatus('disconnected');
+    cleanupAudio();
+    disconnectWs();
     setTranscript('');
-    setIsSpeaking(false);
   };
 
   return {
