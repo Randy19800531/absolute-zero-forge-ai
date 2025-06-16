@@ -164,7 +164,8 @@ export const useVoiceConnection = () => {
         audioQueueRef.current = new AudioQueue(audioContextRef.current);
       }
       
-      const wsUrl = `wss://lrhfqdqudnajfcqlmvag.supabase.co/functions/v1/realtime-chat`;
+      // Use the correct project ID from the Supabase client
+      const wsUrl = `wss://rnhtpciitjycpqqimgce.supabase.co/functions/v1/realtime-chat`;
       
       console.log('Connecting to:', wsUrl);
       wsRef.current = new WebSocket(wsUrl);
