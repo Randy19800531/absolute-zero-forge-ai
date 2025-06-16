@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/layout/AppSidebar';
@@ -7,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, ArrowLeft, Users, FolderOpen, Clock, Target, BarChart3, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import LLMTaskRouter from '@/components/llm/LLMTaskRouter';
 import ProjectDashboard from '@/components/agency/ProjectDashboard';
 import SprintManagement from '@/components/agency/SprintManagement';
 import TaskBoard from '@/components/agency/TaskBoard';
@@ -50,6 +50,10 @@ const Agency = () => {
                     Complete AGILE project management with sprint planning, task tracking, and team collaboration
                   </p>
                 </div>
+              </div>
+
+              <div className="mb-6">
+                <LLMTaskRouter taskType="workflow-builder" showDetails={true} />
               </div>
 
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

@@ -1,5 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
+import { llmRouter } from './llmRouter';
 
 export interface WorkflowRequirements {
   appType: string;
@@ -29,6 +29,12 @@ export interface WorkflowStep {
 export class WorkflowOrchestrator {
   async createWorkflow(name: string, description: string, requirements: WorkflowRequirements, userId: string) {
     try {
+      // Check LLM availability for workflow tasks
+      const llmStatus = llmRouter.getOptimalLLM('workflow-builder');
+      if (!llmStatus.isAvailable && !llmStatus.fallbackAvailable) {
+        throw new Error('No LLM providers configured for workflow execution. Please configure API keys first.');
+      }
+
       const { data: workflow, error } = await supabase
         .from('workflows')
         .insert({
@@ -89,9 +95,8 @@ export class WorkflowOrchestrator {
 
       if (error) throw error;
 
-      // Execute steps sequentially
+      // Execute steps sequentially using optimal LLM routing
       for (const step of steps) {
-        // Convert database row to WorkflowStep type
         const workflowStep: WorkflowStep = {
           id: step.id,
           workflow_id: step.workflow_id,
@@ -133,14 +138,18 @@ export class WorkflowOrchestrator {
         .eq('id', step.id);
 
       let output;
+      let taskType = 'workflow-builder'; // Default task type
+
       switch (step.agent_specialization) {
         case 'design':
           output = await this.executeDesignAgent(step.input_data);
           break;
         case 'development':
+          taskType = 'low-no-code-builder';
           output = await this.executeDevelopmentAgent(step.input_data);
           break;
         case 'testing':
+          taskType = 'testing-suite';
           output = await this.executeTestingAgent(step.input_data);
           break;
         case 'deployment':
@@ -149,6 +158,12 @@ export class WorkflowOrchestrator {
         default:
           throw new Error(`Unknown agent specialization: ${step.agent_specialization}`);
       }
+
+      // Use LLM router for enhanced processing
+      const prompt = `Process ${step.agent_specialization} step with requirements: ${JSON.stringify(step.input_data)}`;
+      const enhancedOutput = await llmRouter.executeWithOptimalLLM(taskType, prompt);
+      
+      output.llmEnhancement = enhancedOutput;
 
       const executionTime = Date.now() - startTime;
 
@@ -175,7 +190,6 @@ export class WorkflowOrchestrator {
   }
 
   private async executeDesignAgent(input: any) {
-    // Design agent logic - creates UI/UX specifications
     return {
       designSystem: {
         colorPalette: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'],
@@ -192,7 +206,6 @@ export class WorkflowOrchestrator {
   }
 
   private async executeDevelopmentAgent(input: any) {
-    // Development agent logic - generates code structure
     return {
       framework: 'React + TypeScript',
       architecture: 'Component-based with hooks',
@@ -211,7 +224,6 @@ export class WorkflowOrchestrator {
   }
 
   private async executeTestingAgent(input: any) {
-    // Testing agent logic - creates test specifications
     return {
       testFramework: 'Jest + React Testing Library',
       coverage: 'Unit tests for components and hooks',
@@ -229,7 +241,6 @@ export class WorkflowOrchestrator {
   }
 
   private async executeDeploymentAgent(input: any) {
-    // Deployment agent logic - creates deployment configuration
     return {
       platform: 'Vercel',
       buildCommand: 'npm run build',

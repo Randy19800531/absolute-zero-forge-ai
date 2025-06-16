@@ -7,6 +7,7 @@ import BuilderHeader from '@/components/lowcode/BuilderHeader';
 import InputPanel from '@/components/lowcode/InputPanel';
 import PreviewPanel from '@/components/lowcode/PreviewPanel';
 import CodeOutput from '@/components/lowcode/CodeOutput';
+import LLMTaskRouter from '@/components/llm/LLMTaskRouter';
 import { useLowNoCodeBuilder } from '@/hooks/useLowNoCodeBuilder';
 
 const LowNoCodeBuilder = () => {
@@ -34,6 +35,10 @@ const LowNoCodeBuilder = () => {
           <main className="flex-1 p-6">
             <div className="max-w-7xl mx-auto">
               <BuilderHeader />
+
+              <div className="mb-6">
+                <LLMTaskRouter taskType="low-no-code-builder" showDetails={true} />
+              </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <InputPanel

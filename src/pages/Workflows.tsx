@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/layout/AppSidebar';
@@ -9,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Play, Settings, Upload } from 'lucide-react';
 import WorkflowList from '@/components/workflow/WorkflowList';
 import WorkflowToolbar from '@/components/workflow/WorkflowToolbar';
+import LLMTaskRouter from '@/components/llm/LLMTaskRouter';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
@@ -179,6 +179,10 @@ const Workflows = () => {
                     Create Workflow
                   </Button>
                 </div>
+              </div>
+
+              <div className="mb-6">
+                <LLMTaskRouter taskType="workflow-builder" showDetails={true} />
               </div>
 
               <div className="mb-6">

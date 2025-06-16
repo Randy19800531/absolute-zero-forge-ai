@@ -10,6 +10,7 @@ import { Play, Plus, CheckCircle, XCircle, Clock } from 'lucide-react';
 import TestCaseBuilder from '@/components/testing/TestCaseBuilder';
 import TestCaseList from '@/components/testing/TestCaseList';
 import StepLibrary from '@/components/testing/StepLibrary';
+import LLMTaskRouter from '@/components/llm/LLMTaskRouter';
 import { TestCase } from '@/types/testing';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -183,6 +184,10 @@ const Testing = () => {
                   <Plus className="h-4 w-4" />
                   Create Test Suite
                 </Button>
+              </div>
+
+              <div className="mb-6">
+                <LLMTaskRouter taskType="testing-suite" showDetails={true} />
               </div>
 
               <Tabs defaultValue="suites" className="w-full">

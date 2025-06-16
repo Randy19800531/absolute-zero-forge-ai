@@ -4,6 +4,7 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/layout/AppSidebar';
 import Header from '@/components/layout/Header';
 import WorkflowCanvas from '@/components/workflow/WorkflowCanvas';
+import LLMTaskRouter from '@/components/llm/LLMTaskRouter';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -39,6 +40,10 @@ const WorkflowVisualBuilder = () => {
                     Drag and drop workflow components to build your automation
                   </p>
                 </div>
+              </div>
+
+              <div className="mb-6">
+                <LLMTaskRouter taskType="workflow-builder" showDetails={true} />
               </div>
 
               <div className="h-[calc(100vh-200px)]">

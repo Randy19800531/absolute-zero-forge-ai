@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/layout/AppSidebar';
@@ -9,6 +8,7 @@ import VBARequirementsForm from '@/components/vba/VBARequirementsForm';
 import VBACodeOutput from '@/components/vba/VBACodeOutput';
 import VBATemplateLibrary from '@/components/vba/VBATemplateLibrary';
 import VBAAdvancedOptions from '@/components/vba/VBAAdvancedOptions';
+import LLMTaskRouter from '@/components/llm/LLMTaskRouter';
 import { VBARequirements } from '@/components/vba/types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -63,6 +63,10 @@ const VBAGenerator = () => {
                 <p className="text-muted-foreground mt-2">
                   Generate Excel VBA macros automatically using AI-powered code generation
                 </p>
+              </div>
+
+              <div className="mb-6">
+                <LLMTaskRouter taskType="vba-generator" showDetails={true} />
               </div>
 
               <Tabs defaultValue="generate" className="w-full">

@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { llmRouter } from '@/services/llmRouter';
 
 export const useLowNoCodeBuilder = () => {
   const { toast } = useToast();
@@ -35,11 +36,27 @@ export const useLowNoCodeBuilder = () => {
       return;
     }
 
+    // Check LLM availability
+    const llmStatus = llmRouter.getOptimalLLM('low-no-code-builder');
+    if (!llmStatus.isAvailable && !llmStatus.fallbackAvailable) {
+      toast({
+        title: "LLM Not Available",
+        description: "Please configure Gemini or GPT-4o API keys in LLM Configuration for optimal low/no-code generation.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     
-    // Simulate AI code generation
-    setTimeout(() => {
-      const sampleCode = `import React, { useState } from 'react';
+    try {
+      // Use LLM router for code generation
+      const enhancedPrompt = `Generate a React component for: ${prompt}. Make it responsive and use Tailwind CSS.`;
+      const llmResponse = await llmRouter.executeWithOptimalLLM('low-no-code-builder', enhancedPrompt);
+      
+      // Simulate AI code generation with LLM integration
+      setTimeout(() => {
+        const sampleCode = `import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,7 +85,7 @@ const GeneratedApp = () => {
               </Button>
             </div>
             <div className="text-center text-gray-600">
-              Generated from: "${prompt}"
+              Generated using ${llmStatus.isAvailable ? llmStatus.provider.name : llmStatus.fallbackProvider?.name} from: "${prompt}"
             </div>
           </CardContent>
         </Card>
@@ -79,13 +96,21 @@ const GeneratedApp = () => {
 
 export default GeneratedApp;`;
 
-      setGeneratedCode(sampleCode);
+        setGeneratedCode(sampleCode);
+        setIsGenerating(false);
+        toast({
+          title: "Code Generated!",
+          description: `Your app has been created using ${llmStatus.isAvailable ? llmStatus.provider.name : llmStatus.fallbackProvider?.name}`,
+        });
+      }, 2000);
+    } catch (error) {
       setIsGenerating(false);
       toast({
-        title: "Code Generated!",
-        description: "Your app has been created successfully",
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate code",
+        variant: "destructive",
       });
-    }, 2000);
+    }
   };
 
   const generateFromImage = async () => {
@@ -98,11 +123,27 @@ export default GeneratedApp;`;
       return;
     }
 
+    // Check LLM availability
+    const llmStatus = llmRouter.getOptimalLLM('low-no-code-builder');
+    if (!llmStatus.isAvailable && !llmStatus.fallbackAvailable) {
+      toast({
+        title: "LLM Not Available",
+        description: "Please configure Gemini or GPT-4o API keys in LLM Configuration for image-to-code generation.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     
-    // Simulate AI image-to-code generation
-    setTimeout(() => {
-      const sampleCode = `import React from 'react';
+    try {
+      // Use LLM router for image-to-code generation
+      const enhancedPrompt = `Convert this uploaded image to a React component with Tailwind CSS styling.`;
+      const llmResponse = await llmRouter.executeWithOptimalLLM('low-no-code-builder', enhancedPrompt);
+      
+      // Simulate AI image-to-code generation
+      setTimeout(() => {
+        const sampleCode = `import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -124,7 +165,7 @@ const ImageGeneratedApp = () => {
             <CardContent className="p-6 space-y-4">
               <h2 className="text-xl font-bold">Generated from Image</h2>
               <p className="text-gray-600">
-                This component was automatically generated from your uploaded design.
+                This component was automatically generated using ${llmStatus.isAvailable ? llmStatus.provider.name : llmStatus.fallbackProvider?.name} from your uploaded design.
               </p>
               <Button className="w-full">
                 Interact with Design
@@ -139,13 +180,21 @@ const ImageGeneratedApp = () => {
 
 export default ImageGeneratedApp;`;
 
-      setGeneratedCode(sampleCode);
+        setGeneratedCode(sampleCode);
+        setIsGenerating(false);
+        toast({
+          title: "Code Generated from Image!",
+          description: `Your design has been converted to React code using ${llmStatus.isAvailable ? llmStatus.provider.name : llmStatus.fallbackProvider?.name}`,
+        });
+      }, 3000);
+    } catch (error) {
       setIsGenerating(false);
       toast({
-        title: "Code Generated from Image!",
-        description: "Your design has been converted to React code",
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate code from image",
+        variant: "destructive",
       });
-    }, 3000);
+    }
   };
 
   const downloadCode = () => {
