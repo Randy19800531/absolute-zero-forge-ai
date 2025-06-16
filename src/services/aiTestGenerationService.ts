@@ -1,5 +1,5 @@
 
-import { TestCase } from '@/types/testing';
+import { TestCase, TestStep } from '@/types/testing';
 
 interface GenerationParams {
   description: string;
@@ -13,7 +13,7 @@ export const generateTestsWithAI = async (params: GenerationParams): Promise<Arr
   // For now, return mock generated tests based on input
   await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate AI processing
 
-  const baseTests = [
+  const baseTests: Array<Partial<TestCase>> = [
     {
       name: `User Authentication Test - ${params.appType}`,
       description: `Comprehensive authentication testing for ${params.description}`,
@@ -21,28 +21,28 @@ export const generateTestsWithAI = async (params: GenerationParams): Promise<Arr
       steps: [
         {
           id: crypto.randomUUID(),
-          type: 'navigate' as const,
+          type: 'navigate',
           name: 'Navigate to login page',
           parameters: { url: '/login' }
-        },
+        } as TestStep,
         {
           id: crypto.randomUUID(),
-          type: 'type' as const,
+          type: 'type',
           name: 'Enter valid credentials',
           parameters: { selector: '#email', value: 'test@example.com' }
-        },
+        } as TestStep,
         {
           id: crypto.randomUUID(),
-          type: 'click' as const,
+          type: 'click',
           name: 'Click login button',
           parameters: { selector: '#login-btn' }
-        },
+        } as TestStep,
         {
           id: crypto.randomUUID(),
-          type: 'assert' as const,
+          type: 'assert',
           name: 'Verify successful login',
           parameters: { selector: '.dashboard', expected: 'Dashboard' }
-        }
+        } as TestStep
       ]
     },
     {
@@ -52,28 +52,28 @@ export const generateTestsWithAI = async (params: GenerationParams): Promise<Arr
       steps: [
         {
           id: crypto.randomUUID(),
-          type: 'navigate' as const,
+          type: 'navigate',
           name: 'Navigate to form',
           parameters: { url: '/form' }
-        },
+        } as TestStep,
         {
           id: crypto.randomUUID(),
-          type: 'type' as const,
+          type: 'type',
           name: 'Enter invalid data',
           parameters: { selector: '#input-field', value: 'invalid@' }
-        },
+        } as TestStep,
         {
           id: crypto.randomUUID(),
-          type: 'click' as const,
+          type: 'click',
           name: 'Submit form',
           parameters: { selector: '#submit-btn' }
-        },
+        } as TestStep,
         {
           id: crypto.randomUUID(),
-          type: 'assert' as const,
+          type: 'assert',
           name: 'Verify error message',
           parameters: { selector: '.error-message', expected: 'Invalid email format' }
-        }
+        } as TestStep
       ]
     }
   ];
@@ -86,22 +86,22 @@ export const generateTestsWithAI = async (params: GenerationParams): Promise<Arr
       steps: [
         {
           id: crypto.randomUUID(),
-          type: 'navigate' as const,
+          type: 'navigate',
           name: 'Load application',
           parameters: { url: '/' }
-        },
+        } as TestStep,
         {
           id: crypto.randomUUID(),
-          type: 'wait' as const,
+          type: 'wait',
           name: 'Measure load time',
           parameters: { duration: 3000 }
-        },
+        } as TestStep,
         {
           id: crypto.randomUUID(),
-          type: 'assert' as const,
+          type: 'assert',
           name: 'Verify load time under 3s',
           parameters: { metric: 'loadTime', threshold: 3000 }
-        }
+        } as TestStep
       ]
     });
   }
