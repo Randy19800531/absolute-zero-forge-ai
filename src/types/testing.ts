@@ -1,4 +1,3 @@
-
 export interface TestStep {
   id: string;
   type: 'click' | 'type' | 'assert' | 'wait' | 'navigate' | 'select' | 'hover';
