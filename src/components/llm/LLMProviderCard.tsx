@@ -2,13 +2,11 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Eye, EyeOff, Save, Check, AlertCircle, Trash2, Settings2, Shield } from 'lucide-react';
+import { Save, Check, AlertCircle, Trash2, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import ApiKeyInput from './ApiKeyInput';
+import FunctionAllocation from './FunctionAllocation';
 
 interface LLMProvider {
   id: string;
@@ -28,17 +26,6 @@ interface LLMProviderCardProps {
   onSave: () => void;
   onRemove: () => void;
 }
-
-const PLATFORM_FUNCTIONS = [
-  { id: 'ai-agents', label: 'AI Agents' },
-  { id: 'low-no-code', label: 'Low/No Code Builder' },
-  { id: 'workflow-builder', label: 'Workflow Builder' },
-  { id: 'vba-generator', label: 'VBA Generator' },
-  { id: 'testing-suite', label: 'Testing Suite' },
-  { id: 'documentation', label: 'Documentation Assistant' },
-  { id: 'code-analysis', label: 'Code Analysis' },
-  { id: 'chat-support', label: 'General Chat Support' }
-];
 
 const LLMProviderCard = ({
   provider,
@@ -104,13 +91,6 @@ const LLMProviderCard = ({
     }
   }, [provider.id]);
 
-  // Mask API key display
-  const getMaskedApiKey = () => {
-    if (!apiKey) return '';
-    if (showKey) return apiKey;
-    return apiKey.length > 8 ? '••••••••' + apiKey.slice(-4) : '••••••••';
-  };
-
   return (
     <Card className="border-2 hover:shadow-md transition-shadow relative">
       <div className="absolute top-2 right-2">
@@ -152,79 +132,22 @@ const LLMProviderCard = ({
         )}
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor={`api-key-${provider.id}`} className="flex items-center gap-2">
-            {provider.apiKeyLabel}
-            <Shield className="h-3 w-3 text-gray-400" />
-          </Label>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Input
-                id={`api-key-${provider.id}`}
-                type="password"
-                placeholder="Enter your API key..."
-                value={showKey ? apiKey : getMaskedApiKey()}
-                onChange={(e) => onApiKeyChange(e.target.value)}
-                className="pr-10 font-mono"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                onClick={onToggleVisibility}
-              >
-                {showKey ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </div>
-          <p className="text-xs text-gray-500">
-            🔒 API keys are securely encrypted and stored locally
-          </p>
-        </div>
+        <ApiKeyInput
+          providerId={provider.id}
+          apiKeyLabel={provider.apiKeyLabel}
+          apiKey={apiKey}
+          showKey={showKey}
+          onApiKeyChange={onApiKeyChange}
+          onToggleVisibility={onToggleVisibility}
+        />
 
-        {/* Function Allocation Section */}
-        <Collapsible open={isConfigOpen} onOpenChange={setIsConfigOpen}>
-          <CollapsibleTrigger asChild>
-            <Button variant="outline" className="w-full justify-start">
-              <Settings2 className="h-4 w-4 mr-2" />
-              Function Allocation
-              {selectedFunctions.length > 0 && (
-                <Badge variant="secondary" className="ml-auto">
-                  {selectedFunctions.length}
-                </Badge>
-              )}
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-3 mt-3">
-            <div className="text-sm text-gray-600 mb-2">
-              Select which platform functions this model should handle:
-            </div>
-            <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
-              {PLATFORM_FUNCTIONS.map((func) => (
-                <div key={func.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`${provider.id}-${func.id}`}
-                    checked={selectedFunctions.includes(func.id)}
-                    onCheckedChange={(checked) => 
-                      handleFunctionToggle(func.id, checked as boolean)
-                    }
-                  />
-                  <Label 
-                    htmlFor={`${provider.id}-${func.id}`}
-                    className="text-sm font-normal cursor-pointer"
-                  >
-                    {func.label}
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+        <FunctionAllocation
+          providerId={provider.id}
+          selectedFunctions={selectedFunctions}
+          isConfigOpen={isConfigOpen}
+          onConfigOpenChange={setIsConfigOpen}
+          onFunctionToggle={handleFunctionToggle}
+        />
 
         <div className="flex gap-2">
           <Button 
