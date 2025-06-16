@@ -1,16 +1,18 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useTheme } from './useTheme';
+import { useToast } from '@/hooks/use-toast';
 import FontSelector from './FontSelector';
 import FontStyleControls from './FontStyleControls';
 import BackgroundControls from './BackgroundControls';
 import { colorSchemes } from './constants';
+import { Palette } from 'lucide-react';
 
 const ThemeCustomizer = () => {
-  const { theme, updateTheme, resetTheme } = useTheme();
+  const { theme, updateTheme, resetTheme, applyTheme } = useTheme();
+  const { toast } = useToast();
 
   // Get the selected color scheme
   const selectedScheme = colorSchemes.find(scheme => scheme.value === theme.backgroundColorScheme);
@@ -47,6 +49,14 @@ const ThemeCustomizer = () => {
     color: theme.fontColor,
   };
 
+  const handleApplyChanges = () => {
+    applyTheme();
+    toast({
+      title: "Theme Applied",
+      description: "Your theme changes have been applied to the application",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -54,9 +64,15 @@ const ThemeCustomizer = () => {
           <h2 className="text-2xl font-bold">Theme Customizer</h2>
           <p className="text-muted-foreground">Customize fonts, colors, and background settings</p>
         </div>
-        <Button variant="outline" onClick={resetTheme}>
-          Reset to Default
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={resetTheme}>
+            Reset to Default
+          </Button>
+          <Button onClick={handleApplyChanges} className="flex items-center gap-2">
+            <Palette className="h-4 w-4" />
+            Apply Changes
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
