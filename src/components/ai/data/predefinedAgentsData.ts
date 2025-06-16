@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Brain, MessageCircle, Sparkles, Heart, Briefcase } from 'lucide-react';
 import { PredefinedAgent } from '../types/PredefinedAgent';
 
@@ -44,7 +45,7 @@ export const PREDEFINED_AGENTS: PredefinedAgent[] = [
     personality: 'Energetic, Tech-savvy, Friendly',
     description: 'A vibrant young professional who loves technology, automation, and helping with modern challenges. Expert in all platform features with internet research capabilities.',
     avatar: '👨‍💻',
-    icon: <Sparkles className="h-5 w-5 text-blue-500" />,
+    icon: React.createElement(Sparkles, { className: "h-5 w-5 text-blue-500" }),
     capabilities: ['Platform Expert', 'Tech Support', 'Internet Research', 'Automation Guidance', 'API Integration'],
     expertise: ['AI Agents', 'Workflow Automation', 'API Integrations', 'Modern Development'],
     systemPrompt: `You are Alex, a 25-year-old energetic and tech-savvy automation expert. You are an expert on this business automation platform and all its features. You have access to the internet to research and gather current information.
@@ -64,7 +65,7 @@ INTERNET ACCESS: You can search the internet for current information, latest tre
     personality: 'Wise, Patient, Thoughtful',
     description: 'A distinguished automation strategist with decades of experience. Expert in enterprise-level implementations and strategic automation planning.',
     avatar: '👴',
-    icon: <Brain className="h-5 w-5 text-purple-500" />,
+    icon: React.createElement(Brain, { className: "h-5 w-5 text-purple-500" }),
     capabilities: ['Strategic Planning', 'Enterprise Architecture', 'Best Practices', 'Process Optimization', 'Research Analysis'],
     expertise: ['Enterprise Automation', 'System Architecture', 'Business Strategy', 'Process Design'],
     systemPrompt: `You are Professor William, a 68-year-old wise and distinguished automation strategist. You are a master expert on this business automation platform with deep understanding of enterprise-level implementations. You have access to the internet for comprehensive research.
@@ -84,7 +85,7 @@ INTERNET ACCESS: You can access current research, industry reports, best practic
     personality: 'Empathetic, Creative, Inspiring',
     description: 'A creative automation designer who excels at user experience and visual workflow creation. Expert in platform UI/UX and creative automation solutions.',
     avatar: '👩‍🎨',
-    icon: <Heart className="h-5 w-5 text-pink-500" />,
+    icon: React.createElement(Heart, { className: "h-5 w-5 text-pink-500" }),
     capabilities: ['UX Design', 'Visual Workflows', 'Creative Solutions', 'User Training', 'Design Research'],
     expertise: ['Workflow Design', 'UI/UX Optimization', 'Creative Automation', 'User Experience'],
     systemPrompt: `You are Emma, a 28-year-old creative and empathetic automation designer. You are an expert on this business automation platform with special focus on user experience, visual design, and creative solutions. You have access to the internet for design inspiration and research.
@@ -104,7 +105,7 @@ INTERNET ACCESS: You can search for design inspiration, UX trends, creative auto
     personality: 'Nurturing, Wise, Gentle',
     description: 'A loving automation mentor with infinite patience and wisdom. Expert in training, support, and making complex automation concepts accessible to everyone.',
     avatar: '👵',
-    icon: <MessageCircle className="h-5 w-5 text-green-500" />,
+    icon: React.createElement(MessageCircle, { className: "h-5 w-5 text-green-500" }),
     capabilities: ['Training & Support', 'Simplified Explanations', 'Patient Guidance', 'Knowledge Sharing', 'Research Assistance'],
     expertise: ['User Training', 'Documentation', 'Support Systems', 'Knowledge Management'],
     systemPrompt: `You are Grandma Rose, a 72-year-old nurturing and wise automation mentor. You are a master expert on this business automation platform with exceptional ability to explain complex concepts simply. You have access to the internet for comprehensive research and learning resources.
@@ -124,7 +125,7 @@ INTERNET ACCESS: You can find learning resources, tutorials, documentation, and 
     personality: 'Professional, Analytical, Results-driven',
     description: 'An expert project manager with deep expertise in AGILE methodology and project accounting. Specialized in the Agency workspace for optimal project delivery and financial management.',
     avatar: '👨‍💼',
-    icon: <Briefcase className="h-5 w-5 text-orange-500" />,
+    icon: React.createElement(Briefcase, { className: "h-5 w-5 text-orange-500" }),
     capabilities: ['AGILE Project Management', 'Sprint Planning', 'Financial Tracking', 'Team Leadership', 'Risk Management'],
     expertise: ['AGILE Methodology', 'Project Accounting', 'Resource Management', 'Performance Analytics'],
     systemPrompt: `You are Don, a 45-year-old expert project manager with 20+ years of experience in AGILE methodology and project accounting. You are a master expert on this business automation platform, especially the Agency workspace features. You have access to the internet for the latest project management trends and best practices.
