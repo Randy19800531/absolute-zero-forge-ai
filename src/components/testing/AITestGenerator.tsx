@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Wand2, FileText, Target } from 'lucide-react';
+import { Brain, Wand2, FileText, Target, Download, Trash2 } from 'lucide-react';
 import { TestCase } from '@/types/testing';
 
 interface AITestGeneratorProps {
@@ -149,14 +149,71 @@ const AITestGenerator = ({ onTestGenerated }: AITestGeneratorProps) => {
     setGeneratedTests(prev => prev.filter(t => t !== test));
   };
 
+  const handlePurgeOldTests = () => {
+    setGeneratedTests([]);
+    setDescription('');
+    setAppType('');
+    setTestType('');
+    setComplexity('medium');
+  };
+
+  const handleExportTests = () => {
+    const dataToExport = {
+      generatedTests,
+      metadata: {
+        description,
+        appType,
+        testType,
+        complexity,
+        exportDate: new Date().toISOString()
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], {
+      type: 'application/json'
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ai-generated-tests-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5 text-purple-600" />
-            AI Test Generation Parameters
-          </CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5 text-purple-600" />
+              AI Test Generation Parameters
+            </CardTitle>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportTests}
+                disabled={generatedTests.length === 0}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Export Tests
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePurgeOldTests}
+                className="flex items-center gap-2 text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="h-4 w-4" />
+                Clear All
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -245,7 +302,7 @@ const AITestGenerator = ({ onTestGenerated }: AITestGeneratorProps) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-green-600" />
-              AI-Generated Test Cases
+              AI-Generated Test Cases ({generatedTests.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
