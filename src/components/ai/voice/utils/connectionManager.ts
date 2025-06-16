@@ -1,58 +1,72 @@
 
-export const createWebSocketConnection = (wsUrl: string): WebSocket => {
-  console.log('Creating WebSocket connection to:', wsUrl);
-  const ws = new WebSocket(wsUrl);
+export const createSSEConnection = (baseUrl: string, sessionId: string): EventSource => {
+  console.log('Creating SSE connection to:', `${baseUrl}?session=${sessionId}`);
+  const eventSource = new EventSource(`${baseUrl}?session=${sessionId}`);
   
   // Set a connection timeout
   const timeout = setTimeout(() => {
-    if (ws.readyState === WebSocket.CONNECTING) {
-      console.error('WebSocket connection timeout');
-      ws.close();
+    if (eventSource.readyState === EventSource.CONNECTING) {
+      console.error('SSE connection timeout');
+      eventSource.close();
     }
   }, 10000); // 10 second timeout
 
-  ws.addEventListener('open', () => {
+  eventSource.addEventListener('open', () => {
     clearTimeout(timeout);
-    console.log('WebSocket connection opened successfully');
+    console.log('SSE connection opened successfully');
   });
 
-  ws.addEventListener('error', () => {
+  eventSource.addEventListener('error', () => {
     clearTimeout(timeout);
   });
 
-  return ws;
+  return eventSource;
 };
 
-export const setupWebSocketHandlers = (
-  ws: WebSocket,
+export const setupSSEHandlers = (
+  eventSource: EventSource,
   onMessageHandler: (event: MessageEvent) => void,
   onOpen: () => void,
   onError: (error: Event) => void,
-  onClose: (event: CloseEvent) => void
+  onClose: () => void
 ) => {
-  ws.addEventListener('open', onOpen);
-  ws.addEventListener('message', onMessageHandler);
-  ws.addEventListener('error', onError);
-  ws.addEventListener('close', onClose);
+  eventSource.addEventListener('open', onOpen);
+  eventSource.addEventListener('message', onMessageHandler);
+  eventSource.addEventListener('error', onError);
+  
+  // EventSource doesn't have a close event, so we simulate it
+  const originalClose = eventSource.close.bind(eventSource);
+  eventSource.close = () => {
+    originalClose();
+    onClose();
+  };
 };
 
-export const sendWebSocketMessage = (ws: WebSocket | null, message: any): boolean => {
-  if (ws?.readyState === WebSocket.OPEN) {
-    try {
-      ws.send(JSON.stringify(message));
-      return true;
-    } catch (error) {
-      console.error('Error sending WebSocket message:', error);
+export const sendHTTPMessage = async (baseUrl: string, sessionId: string, message: any): Promise<boolean> => {
+  try {
+    const response = await fetch(`${baseUrl}?session=${sessionId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message)
+    });
+    
+    if (!response.ok) {
+      console.error('HTTP message send failed:', response.status, response.statusText);
       return false;
     }
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending HTTP message:', error);
+    return false;
   }
-  console.warn('WebSocket not ready for sending, state:', ws?.readyState);
-  return false;
 };
 
-export const closeWebSocketConnection = (ws: WebSocket | null, code = 1000, reason = 'User disconnected') => {
-  if (ws && ws.readyState !== WebSocket.CLOSED) {
-    console.log('Closing WebSocket connection');
-    ws.close(code, reason);
+export const closeSSEConnection = (eventSource: EventSource | null) => {
+  if (eventSource && eventSource.readyState !== EventSource.CLOSED) {
+    console.log('Closing SSE connection');
+    eventSource.close();
   }
 };

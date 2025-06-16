@@ -4,9 +4,12 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, upgrade, connection',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
+
+// Store active OpenAI WebSocket connections
+const activeConnections = new Map<string, WebSocket>();
 
 serve(async (req) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -15,17 +18,26 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Check for WebSocket upgrade
-  const upgrade = req.headers.get("upgrade") || "";
-  if (upgrade.toLowerCase() !== "websocket") {
-    console.log("Request is not a WebSocket upgrade");
-    return new Response("Expected Upgrade: websocket", { 
-      status: 426,
-      headers: corsHeaders 
-    });
+  const url = new URL(req.url);
+  const sessionId = url.searchParams.get('session') || crypto.randomUUID();
+
+  // GET request - establish SSE connection for receiving messages
+  if (req.method === 'GET') {
+    return handleSSEConnection(sessionId);
   }
 
-  // Get OpenAI API key first
+  // POST request - send message to OpenAI
+  if (req.method === 'POST') {
+    return handleMessageSend(sessionId, req);
+  }
+
+  return new Response("Method not allowed", { 
+    status: 405,
+    headers: corsHeaders 
+  });
+});
+
+async function handleSSEConnection(sessionId: string) {
   const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
   if (!OPENAI_API_KEY) {
     console.error("OPENAI_API_KEY not found in environment");
@@ -35,13 +47,18 @@ serve(async (req) => {
     });
   }
 
-  try {
-    const { socket, response } = Deno.upgradeWebSocket(req);
-    let openaiWs: WebSocket | null = null;
-
-    socket.addEventListener("open", () => {
-      console.log("Client connected to realtime chat");
+  let openaiWs: WebSocket | null = null;
+  
+  const stream = new ReadableStream({
+    start(controller) {
+      console.log(`Starting SSE connection for session ${sessionId}`);
       
+      // Send initial connection event
+      controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
+        type: "connection_established",
+        sessionId: sessionId
+      })}\n\n`));
+
       // Connect to OpenAI Realtime API
       const openaiUrl = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17";
       console.log("Connecting to OpenAI Realtime API...");
@@ -56,10 +73,12 @@ serve(async (req) => {
 
         openaiWs.addEventListener("open", () => {
           console.log("Connected to OpenAI Realtime API successfully");
-          socket.send(JSON.stringify({
-            type: "connection_established",
+          activeConnections.set(sessionId, openaiWs!);
+          
+          controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
+            type: "openai_connected",
             message: "Connected to OpenAI Realtime API"
-          }));
+          })}\n\n`));
         });
 
         openaiWs.addEventListener("message", (event) => {
@@ -94,8 +113,8 @@ serve(async (req) => {
               openaiWs?.send(JSON.stringify(sessionUpdate));
             }
             
-            // Forward all messages to client
-            socket.send(event.data);
+            // Forward all messages to client via SSE
+            controller.enqueue(new TextEncoder().encode(`data: ${event.data}\n\n`));
           } catch (error) {
             console.error("Error processing OpenAI message:", error);
           }
@@ -103,62 +122,70 @@ serve(async (req) => {
 
         openaiWs.addEventListener("error", (error) => {
           console.error("OpenAI WebSocket error:", error);
-          socket.send(JSON.stringify({
+          controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
             type: "error",
             error: { message: "OpenAI connection error" }
-          }));
+          })}\n\n`));
         });
 
         openaiWs.addEventListener("close", (event) => {
           console.log("OpenAI WebSocket closed:", event.code, event.reason);
-          socket.close();
+          activeConnections.delete(sessionId);
+          controller.close();
         });
       } catch (error) {
         console.error("Error creating OpenAI WebSocket:", error);
-        socket.send(JSON.stringify({
+        controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
           type: "error",
           error: { message: "Failed to connect to OpenAI" }
-        }));
-        socket.close();
+        })}\n\n`));
+        controller.close();
       }
-    });
-
-    socket.addEventListener("message", (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log("Received from client:", data.type);
-        
-        // Forward client messages to OpenAI
-        if (openaiWs && openaiWs.readyState === WebSocket.OPEN) {
-          openaiWs.send(event.data);
-        } else {
-          console.warn("OpenAI WebSocket not ready, dropping message");
-        }
-      } catch (error) {
-        console.error("Error processing client message:", error);
+    },
+    
+    cancel() {
+      console.log(`SSE connection cancelled for session ${sessionId}`);
+      const ws = activeConnections.get(sessionId);
+      if (ws) {
+        ws.close();
+        activeConnections.delete(sessionId);
       }
-    });
+    }
+  });
 
-    socket.addEventListener("close", (event) => {
-      console.log("Client disconnected:", event.code, event.reason);
-      if (openaiWs) {
-        openaiWs.close();
-      }
-    });
+  return new Response(stream, {
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  });
+}
 
-    socket.addEventListener("error", (error) => {
-      console.error("Client WebSocket error:", error);
-      if (openaiWs) {
-        openaiWs.close();
-      }
-    });
-
-    return response;
+async function handleMessageSend(sessionId: string, req: Request) {
+  try {
+    const data = await req.json();
+    console.log("Received message for session", sessionId, ":", data.type);
+    
+    const openaiWs = activeConnections.get(sessionId);
+    if (openaiWs && openaiWs.readyState === WebSocket.OPEN) {
+      openaiWs.send(JSON.stringify(data));
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    } else {
+      console.warn("OpenAI WebSocket not ready for session", sessionId);
+      return new Response(JSON.stringify({ error: "Connection not ready" }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
   } catch (error) {
-    console.error("Error setting up WebSocket:", error);
-    return new Response("WebSocket setup failed", { 
+    console.error("Error processing message:", error);
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: corsHeaders 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
-});
+}

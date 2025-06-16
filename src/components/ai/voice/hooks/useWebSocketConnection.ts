@@ -1,13 +1,14 @@
 
 import { useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { createWebSocketConnection, setupWebSocketHandlers, sendWebSocketMessage, closeWebSocketConnection } from '../utils/connectionManager';
+import { createSSEConnection, setupSSEHandlers, sendHTTPMessage, closeSSEConnection } from '../utils/connectionManager';
 import { ReconnectionManager } from '../utils/reconnectionManager';
 
 export const useWebSocketConnection = () => {
   const { toast } = useToast();
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
-  const wsRef = useRef<WebSocket | null>(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
+  const sessionIdRef = useRef<string>(crypto.randomUUID());
   const reconnectionManagerRef = useRef<ReconnectionManager>(new ReconnectionManager(3));
 
   const handleMaxAttemptsReached = () => {
@@ -24,20 +25,22 @@ export const useWebSocketConnection = () => {
       setConnectionStatus('connecting');
       console.log('Starting voice chat connection...');
       
-      // Use the full Supabase project URL
-      const wsUrl = `wss://rnhtpciitjycpqqimgce.supabase.co/functions/v1/realtime-chat`;
-      console.log('Connecting to WebSocket URL:', wsUrl);
+      // Use the full Supabase project URL with HTTP/SSE
+      const baseUrl = `https://rnhtpciitjycpqqimgce.supabase.co/functions/v1/realtime-chat`;
+      console.log('Connecting to SSE URL:', baseUrl);
       
       // Close any existing connection
-      if (wsRef.current) {
-        closeWebSocketConnection(wsRef.current);
-        wsRef.current = null;
+      if (eventSourceRef.current) {
+        closeSSEConnection(eventSourceRef.current);
+        eventSourceRef.current = null;
       }
 
-      wsRef.current = createWebSocketConnection(wsUrl);
+      // Generate new session ID for this connection
+      sessionIdRef.current = crypto.randomUUID();
+      eventSourceRef.current = createSSEConnection(baseUrl, sessionIdRef.current);
 
       const handleOpen = () => {
-        console.log('WebSocket connected successfully');
+        console.log('SSE connected successfully');
         setConnectionStatus('connected');
         reconnectionManagerRef.current.resetAttempts();
         
@@ -48,16 +51,15 @@ export const useWebSocketConnection = () => {
       };
 
       const handleError = (error: Event) => {
-        console.error('WebSocket error occurred:', error);
-        console.log('WebSocket readyState:', wsRef.current?.readyState);
+        console.error('SSE error occurred:', error);
         setConnectionStatus('error');
       };
 
-      const handleClose = (event: CloseEvent) => {
-        console.log('WebSocket closed with code:', event.code, 'reason:', event.reason);
+      const handleClose = () => {
+        console.log('SSE connection closed');
         
-        // Only attempt reconnection if it wasn't a normal closure and we're not disconnecting
-        if (event.code !== 1000 && connectionStatus !== 'disconnected') {
+        // Only attempt reconnection if we're not disconnecting
+        if (connectionStatus !== 'disconnected') {
           setConnectionStatus('error');
           console.log('Attempting reconnection...');
           reconnectionManagerRef.current.attemptReconnect(
@@ -69,16 +71,31 @@ export const useWebSocketConnection = () => {
         }
       };
 
-      setupWebSocketHandlers(
-        wsRef.current,
-        onMessageHandler,
+      const handleMessage = (event: MessageEvent) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('Received SSE message:', data.type);
+          
+          // Create a synthetic MessageEvent for compatibility
+          const syntheticEvent = new MessageEvent('message', {
+            data: event.data
+          });
+          onMessageHandler(syntheticEvent);
+        } catch (error) {
+          console.error('Error parsing SSE message:', error);
+        }
+      };
+
+      setupSSEHandlers(
+        eventSourceRef.current,
+        handleMessage,
         handleOpen,
         handleError,
         handleClose
       );
 
     } catch (error) {
-      console.error('Error connecting to WebSocket:', error);
+      console.error('Error connecting to SSE:', error);
       setConnectionStatus('error');
       toast({
         title: "Connection Error",
@@ -91,16 +108,23 @@ export const useWebSocketConnection = () => {
   const disconnect = () => {
     console.log('Disconnecting voice chat...');
     reconnectionManagerRef.current.cleanup();
-    closeWebSocketConnection(wsRef.current);
-    wsRef.current = null;
+    closeSSEConnection(eventSourceRef.current);
+    eventSourceRef.current = null;
     setConnectionStatus('disconnected');
   };
 
-  const sendMessage = (message: any) => {
-    const success = sendWebSocketMessage(wsRef.current, message);
-    if (!success) {
-      console.warn('Failed to send message, WebSocket not ready');
+  const sendMessage = async (message: any) => {
+    if (!eventSourceRef.current || eventSourceRef.current.readyState !== EventSource.OPEN) {
+      console.warn('SSE connection not ready');
+      return false;
     }
+
+    const baseUrl = `https://rnhtpciitjycpqqimgce.supabase.co/functions/v1/realtime-chat`;
+    const success = await sendHTTPMessage(baseUrl, sessionIdRef.current, message);
+    if (!success) {
+      console.warn('Failed to send message via HTTP');
+    }
+    return success;
   };
 
   return {
