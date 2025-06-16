@@ -18,7 +18,9 @@ const VBAGenerator = () => {
   const [requirements, setRequirements] = useState<VBARequirements>({
     projectName: '',
     description: '',
-    dataTransformations: [],
+    sourceRange: '',
+    targetRange: '',
+    transformations: [],
     formatting: [],
     errorHandling: false,
     optimization: false

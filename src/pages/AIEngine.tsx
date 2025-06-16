@@ -22,7 +22,7 @@ const AIEngine = () => {
     });
   };
 
-  const handleAgentSubmit = (agentData: any) => {
+  const handleAgentSubmit = async (agentData: any) => {
     toast({
       title: "Agent Created",
       description: "Your AI agent has been created successfully!",

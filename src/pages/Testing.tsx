@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/layout/AppSidebar';
@@ -13,9 +12,11 @@ import TestCaseList from '@/components/testing/TestCaseList';
 import StepLibrary from '@/components/testing/StepLibrary';
 import { TestCase } from '@/types/testing';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 const Testing = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [testCases, setTestCases] = useState<TestCase[]>([]);
   const [editingTestCase, setEditingTestCase] = useState<TestCase | undefined>();
   
@@ -44,6 +45,15 @@ const Testing = () => {
   ]);
 
   const handleSaveTestCase = async (testCaseData: Partial<TestCase>) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to save test cases.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const newTestCase: TestCase = {
       id: crypto.randomUUID(),
       name: testCaseData.name || '',
@@ -55,6 +65,7 @@ const Testing = () => {
       conditions: testCaseData.conditions || {},
       data_sources: testCaseData.data_sources || {},
       assertions: testCaseData.assertions || [],
+      user_id: user.id,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
