@@ -6,20 +6,25 @@ import { RealtimeEvent } from './types';
 
 export const useVoiceConnection = () => {
   const { toast } = useToast();
+  
+  // All hooks must be called in the same order every time
   const [isConnected, setIsConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   
+  // All refs must be declared at the top level
   const wsRef = useRef<WebSocket | null>(null);
   const recorderRef = useRef<AudioRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioQueueRef = useRef<AudioQueue | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
+  
   const maxReconnectAttempts = 3;
 
+  // Single useEffect for cleanup
   useEffect(() => {
     return () => {
       disconnect();
@@ -134,7 +139,7 @@ export const useVoiceConnection = () => {
       
       reconnectTimeoutRef.current = setTimeout(() => {
         connect();
-      }, 2000 * reconnectAttemptsRef.current); // Exponential backoff
+      }, 2000 * reconnectAttemptsRef.current);
     } else {
       console.log('Max reconnection attempts reached');
       setConnectionStatus('error');
@@ -159,7 +164,6 @@ export const useVoiceConnection = () => {
         audioQueueRef.current = new AudioQueue(audioContextRef.current);
       }
       
-      // Use the correct Supabase WebSocket URL format
       const wsUrl = `wss://lrhfqdqudnajfcqlmvag.supabase.co/functions/v1/realtime-chat`;
       
       console.log('Connecting to:', wsUrl);
@@ -169,7 +173,7 @@ export const useVoiceConnection = () => {
         console.log('WebSocket connected successfully');
         setIsConnected(true);
         setConnectionStatus('connected');
-        reconnectAttemptsRef.current = 0; // Reset on successful connection
+        reconnectAttemptsRef.current = 0;
         startRecording();
         
         toast({
@@ -198,7 +202,6 @@ export const useVoiceConnection = () => {
         stopRecording();
         
         if (event.code !== 1000 && connectionStatus !== 'disconnected') {
-          // Unexpected closure, attempt reconnect
           setConnectionStatus('error');
           attemptReconnect();
         } else {
@@ -219,7 +222,7 @@ export const useVoiceConnection = () => {
 
   const disconnect = () => {
     console.log('Disconnecting voice chat...');
-    reconnectAttemptsRef.current = maxReconnectAttempts; // Prevent reconnection
+    reconnectAttemptsRef.current = maxReconnectAttempts;
     
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
