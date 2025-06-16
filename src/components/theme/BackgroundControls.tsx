@@ -14,6 +14,29 @@ interface BackgroundControlsProps {
 const BackgroundControls = ({ theme, onThemeChange }: BackgroundControlsProps) => {
   const selectedScheme = colorSchemes.find(scheme => scheme.value === theme.backgroundColorScheme);
 
+  const getPreviewStyle = () => {
+    if (!selectedScheme) return {};
+    
+    const opacity = theme.opacity / 100;
+    const fadeValue = theme.fade / 100;
+    
+    let background;
+    if (theme.gradient > 0) {
+      background = `linear-gradient(${theme.gradient}deg, ${selectedScheme.colors[0]}${Math.round(opacity * 255).toString(16).padStart(2, '0')}, ${selectedScheme.colors[1]}${Math.round(opacity * 255).toString(16).padStart(2, '0')})`;
+    } else {
+      background = `${selectedScheme.colors[0]}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`;
+    }
+
+    const brightnessFilter = theme.backgroundMode === 'light' ? 'brightness(1.2)' : 
+                            theme.backgroundMode === 'dark' ? 'brightness(0.6)' : 'brightness(1)';
+
+    return {
+      background,
+      filter: `${brightnessFilter} opacity(${1 - fadeValue + 0.3})`,
+      transition: 'all 0.3s ease',
+    };
+  };
+
   return (
     <div className="space-y-6">
       {/* Background Mode */}
@@ -52,7 +75,7 @@ const BackgroundControls = ({ theme, onThemeChange }: BackgroundControlsProps) =
                     {scheme.colors.map((color, index) => (
                       <div
                         key={index}
-                        className="w-4 h-4 rounded"
+                        className="w-4 h-4 rounded border border-gray-200"
                         style={{ backgroundColor: color }}
                       />
                     ))}
@@ -75,7 +98,7 @@ const BackgroundControls = ({ theme, onThemeChange }: BackgroundControlsProps) =
           value={[theme.opacity]}
           onValueChange={(value) => onThemeChange({ opacity: value[0] })}
           max={100}
-          min={0}
+          min={10}
           step={5}
           className="w-full"
         />
@@ -84,15 +107,15 @@ const BackgroundControls = ({ theme, onThemeChange }: BackgroundControlsProps) =
       {/* Gradient Slider */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
-          <Label className="text-base font-medium">Gradient Intensity</Label>
-          <span className="text-sm text-muted-foreground">{theme.gradient}%</span>
+          <Label className="text-base font-medium">Gradient Angle</Label>
+          <span className="text-sm text-muted-foreground">{theme.gradient}°</span>
         </div>
         <Slider
           value={[theme.gradient]}
           onValueChange={(value) => onThemeChange({ gradient: value[0] })}
-          max={100}
+          max={360}
           min={0}
-          step={5}
+          step={15}
           className="w-full"
         />
       </div>
@@ -113,17 +136,23 @@ const BackgroundControls = ({ theme, onThemeChange }: BackgroundControlsProps) =
         />
       </div>
 
-      {/* Preview */}
+      {/* Live Preview */}
       {selectedScheme && (
         <div className="space-y-2">
-          <Label className="text-base font-medium">Preview</Label>
+          <Label className="text-base font-medium">Background Preview</Label>
           <div 
-            className="w-full h-20 rounded-lg border"
-            style={{
-              background: `linear-gradient(${theme.gradient}deg, ${selectedScheme.colors[0]}${Math.round(theme.opacity * 2.55).toString(16).padStart(2, '0')}, ${selectedScheme.colors[1]}${Math.round(theme.opacity * 2.55).toString(16).padStart(2, '0')})`,
-              opacity: theme.fade / 100 + 0.3,
-            }}
-          />
+            className="w-full h-24 rounded-lg border border-gray-200 relative overflow-hidden"
+            style={getPreviewStyle()}
+          >
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-white text-sm font-medium bg-black/20 px-2 py-1 rounded">
+                {selectedScheme.name}
+              </span>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Mode: {theme.backgroundMode} | Opacity: {theme.opacity}% | Gradient: {theme.gradient}° | Fade: {theme.fade}%
+          </p>
         </div>
       )}
     </div>

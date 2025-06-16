@@ -15,6 +15,13 @@ import LLMConfig from '@/pages/LLMConfig';
 import VBAGenerator from '@/pages/VBAGenerator';
 import LowNoCodeBuilder from '@/pages/LowNoCodeBuilder';
 import WorkflowVisualBuilder from '@/pages/WorkflowVisualBuilder';
+import ThemeCustomizerPage from '@/pages/ThemeCustomizer';
+import Projects from '@/pages/Projects';
+import Documentation from '@/pages/Documentation';
+import Admin from '@/pages/Admin';
+import Agency from '@/pages/Agency';
+import Testing from '@/pages/Testing';
+import Integrations from '@/pages/Integrations';
 
 const queryClient = new QueryClient();
 
@@ -50,6 +57,13 @@ function AppRoutes() {
         <Route path="/llm-config" element={<ProtectedRoute><LLMConfig /></ProtectedRoute>} />
         <Route path="/vba-generator" element={<ProtectedRoute><VBAGenerator /></ProtectedRoute>} />
         <Route path="/low-no-code-builder" element={<ProtectedRoute><LowNoCodeBuilder /></ProtectedRoute>} />
+        <Route path="/theme-customizer" element={<ProtectedRoute><ThemeCustomizerPage /></ProtectedRoute>} />
+        <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+        <Route path="/documentation" element={<ProtectedRoute><Documentation /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+        <Route path="/agency" element={<ProtectedRoute><Agency /></ProtectedRoute>} />
+        <Route path="/testing" element={<ProtectedRoute><Testing /></ProtectedRoute>} />
+        <Route path="/integrations" element={<ProtectedRoute><Integrations /></ProtectedRoute>} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
         <Route path="/auth" element={<Auth />} />
