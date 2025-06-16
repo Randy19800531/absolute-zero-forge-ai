@@ -7,15 +7,7 @@ import { Save, Check, AlertCircle, Trash2, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ApiKeyInput from './ApiKeyInput';
 import FunctionAllocation from './FunctionAllocation';
-
-interface LLMProvider {
-  id: string;
-  name: string;
-  description: string;
-  apiKeyLabel: string;
-  status: 'connected' | 'disconnected';
-  website?: string;
-}
+import { LLMProvider } from './types';
 
 interface LLMProviderCardProps {
   provider: LLMProvider;
