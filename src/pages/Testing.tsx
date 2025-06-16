@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Plus, CheckCircle, XCircle, Clock, Brain, Zap, Target } from 'lucide-react';
+import { Play, Plus, CheckCircle, XCircle, Clock, Brain, Zap, Target, TestTube } from 'lucide-react';
 import TestCaseBuilder from '@/components/testing/TestCaseBuilder';
 import TestCaseList from '@/components/testing/TestCaseList';
 import StepLibrary from '@/components/testing/StepLibrary';
