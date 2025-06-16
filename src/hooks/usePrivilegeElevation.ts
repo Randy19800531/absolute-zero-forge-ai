@@ -11,8 +11,8 @@ export const usePrivilegeElevation = () => {
     setIsVerifying(true);
     
     try {
-      // Simple master password verification - in production, this should be more secure
-      const MASTER_PASSWORD = 'Admin@2024!';
+      // Get the stored master password (default to original if not set)
+      const MASTER_PASSWORD = localStorage.getItem('admin-master-password') || 'Admin@2024!';
       
       if (password === MASTER_PASSWORD) {
         setIsElevated(true);

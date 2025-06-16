@@ -1,10 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Lock } from 'lucide-react';
+import { Lock, Settings } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LLMProviderCard from './LLMProviderCard';
+import AdminPasswordManager from '@/components/admin/AdminPasswordManager';
 
 interface LLMProvider {
   id: string;
@@ -163,32 +164,51 @@ const LLMProvidersContent = ({ onLock }: LLMProvidersContentProps) => {
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>LLM Provider Configuration</span>
-            <span className="text-sm font-normal text-gray-600">
-              {connectedCount} of {providers.length} connected
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {providers.map((provider) => (
-              <LLMProviderCard
-                key={provider.id}
-                provider={provider}
-                apiKey={apiKeys[provider.id] || ''}
-                showKey={showKeys[provider.id] || false}
-                onApiKeyChange={(value) => handleApiKeyChange(provider.id, value)}
-                onToggleVisibility={() => toggleKeyVisibility(provider.id)}
-                onSave={() => saveApiKey(provider.id)}
-                onRemove={() => removeApiKey(provider.id)}
-              />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="providers" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="providers" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            LLM Providers
+          </TabsTrigger>
+          <TabsTrigger value="security" className="flex items-center gap-2">
+            <Lock className="h-4 w-4" />
+            Security Settings
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="providers">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>LLM Provider Configuration</span>
+                <span className="text-sm font-normal text-gray-600">
+                  {connectedCount} of {providers.length} connected
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {providers.map((provider) => (
+                  <LLMProviderCard
+                    key={provider.id}
+                    provider={provider}
+                    apiKey={apiKeys[provider.id] || ''}
+                    showKey={showKeys[provider.id] || false}
+                    onApiKeyChange={(value) => handleApiKeyChange(provider.id, value)}
+                    onToggleVisibility={() => toggleKeyVisibility(provider.id)}
+                    onSave={() => saveApiKey(provider.id)}
+                    onRemove={() => removeApiKey(provider.id)}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security">
+          <AdminPasswordManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

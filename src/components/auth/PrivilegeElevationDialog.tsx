@@ -44,6 +44,10 @@ const PrivilegeElevationDialog = ({
     onOpenChange(false);
   };
 
+  const getPasswordHint = () => {
+    return localStorage.getItem('admin-password-hint') || '💡 Hint: Admin@2024!';
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
@@ -85,7 +89,7 @@ const PrivilegeElevationDialog = ({
               </Button>
             </div>
             <p className="text-xs text-gray-500">
-              💡 Hint: Admin@2024!
+              {getPasswordHint()}
             </p>
           </div>
           
