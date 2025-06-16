@@ -151,6 +151,16 @@ ${commonTasks.map(task => `- ${task}`).join('\n')}
         'user support strategies',
         'documentation best practices',
         'learning methodologies'
+      ],
+      'don-project-manager': [
+        'AGILE methodology updates',
+        'project management tools',
+        'financial tracking systems',
+        'team performance metrics',
+        'risk management strategies',
+        'budget optimization techniques',
+        'sprint planning best practices',
+        'project accounting standards'
       ]
     };
 
