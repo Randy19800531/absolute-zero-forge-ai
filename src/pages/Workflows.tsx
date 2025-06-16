@@ -54,7 +54,7 @@ const Workflows = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <WorkflowList status="active" />
+                      <WorkflowList />
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -71,7 +71,7 @@ const Workflows = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <WorkflowList status="draft" />
+                      <WorkflowList />
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -85,7 +85,7 @@ const Workflows = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <WorkflowList status="completed" />
+                      <WorkflowList />
                     </CardContent>
                   </Card>
                 </TabsContent>

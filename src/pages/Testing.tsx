@@ -6,15 +6,19 @@ import Header from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Play, Plus, CheckCircle, XCircle, Clock } from 'lucide-react';
 import TestCaseBuilder from '@/components/testing/TestCaseBuilder';
 import TestCaseList from '@/components/testing/TestCaseList';
 import StepLibrary from '@/components/testing/StepLibrary';
+import { TestCase } from '@/types/testing';
+import { useToast } from '@/hooks/use-toast';
 
 const Testing = () => {
+  const { toast } = useToast();
+  const [testCases, setTestCases] = useState<TestCase[]>([]);
+  const [editingTestCase, setEditingTestCase] = useState<TestCase | undefined>();
+  
   const [testSuites] = useState([
     {
       id: '1',
@@ -38,6 +42,88 @@ const Testing = () => {
       lastRun: '2024-01-14',
     },
   ]);
+
+  const handleSaveTestCase = async (testCaseData: Partial<TestCase>) => {
+    const newTestCase: TestCase = {
+      id: crypto.randomUUID(),
+      name: testCaseData.name || '',
+      description: testCaseData.description || '',
+      category: testCaseData.category || 'functional',
+      status: 'draft',
+      version: 1,
+      steps: testCaseData.steps || [],
+      conditions: testCaseData.conditions || {},
+      data_sources: testCaseData.data_sources || {},
+      assertions: testCaseData.assertions || [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    setTestCases(prev => [...prev, newTestCase]);
+    toast({
+      title: "Test Case Saved",
+      description: "Your test case has been saved successfully!",
+    });
+  };
+
+  const handleEditTestCase = (testCase: TestCase) => {
+    setEditingTestCase(testCase);
+  };
+
+  const handleDeleteTestCase = (id: string) => {
+    setTestCases(prev => prev.filter(tc => tc.id !== id));
+    toast({
+      title: "Test Case Deleted",
+      description: "Test case has been deleted.",
+    });
+  };
+
+  const handleRunTestCase = (testCase: TestCase) => {
+    toast({
+      title: "Test Running",
+      description: `Running test case: ${testCase.name}`,
+    });
+  };
+
+  const handleScheduleTestCase = (testCase: TestCase) => {
+    toast({
+      title: "Test Scheduled",
+      description: `Scheduled test case: ${testCase.name}`,
+    });
+  };
+
+  const handleViewVersions = (testCase: TestCase) => {
+    toast({
+      title: "Viewing Versions",
+      description: `Viewing versions for: ${testCase.name}`,
+    });
+  };
+
+  const handleDuplicateTestCase = (testCase: TestCase) => {
+    const duplicated = {
+      ...testCase,
+      id: crypto.randomUUID(),
+      name: `${testCase.name} (Copy)`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    setTestCases(prev => [...prev, duplicated]);
+    toast({
+      title: "Test Case Duplicated",
+      description: `Duplicated: ${testCase.name}`,
+    });
+  };
+
+  const handleAddStep = (step: any) => {
+    toast({
+      title: "Step Added",
+      description: `Added step: ${step.name}`,
+    });
+  };
+
+  const handleCancelTestCase = () => {
+    setEditingTestCase(undefined);
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -137,7 +223,15 @@ const Testing = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <TestCaseList />
+                      <TestCaseList 
+                        testCases={testCases}
+                        onEdit={handleEditTestCase}
+                        onDelete={handleDeleteTestCase}
+                        onRun={handleRunTestCase}
+                        onSchedule={handleScheduleTestCase}
+                        onViewVersions={handleViewVersions}
+                        onDuplicate={handleDuplicateTestCase}
+                      />
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -151,7 +245,11 @@ const Testing = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <TestCaseBuilder />
+                      <TestCaseBuilder 
+                        testCase={editingTestCase}
+                        onSave={handleSaveTestCase}
+                        onCancel={handleCancelTestCase}
+                      />
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -165,7 +263,7 @@ const Testing = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <StepLibrary />
+                      <StepLibrary onAddStep={handleAddStep} />
                     </CardContent>
                   </Card>
                 </TabsContent>

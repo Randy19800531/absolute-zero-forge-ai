@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/layout/AppSidebar';
 import Header from '@/components/layout/Header';
@@ -9,8 +9,44 @@ import VBARequirementsForm from '@/components/vba/VBARequirementsForm';
 import VBACodeOutput from '@/components/vba/VBACodeOutput';
 import VBATemplateLibrary from '@/components/vba/VBATemplateLibrary';
 import VBAAdvancedOptions from '@/components/vba/VBAAdvancedOptions';
+import { VBARequirements } from '@/components/vba/types';
+import { useToast } from '@/hooks/use-toast';
 
 const VBAGenerator = () => {
+  const { toast } = useToast();
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [requirements, setRequirements] = useState<VBARequirements>({
+    projectName: '',
+    description: '',
+    dataTransformations: [],
+    formatting: [],
+    errorHandling: false,
+    optimization: false
+  });
+
+  const handleRequirementsChange = (newRequirements: VBARequirements) => {
+    setRequirements(newRequirements);
+  };
+
+  const handleCodeGenerated = (code: string) => {
+    setGeneratedCode(code);
+    toast({
+      title: "Code Generated",
+      description: "VBA code has been generated successfully!",
+    });
+  };
+
+  const handleTemplateSelect = (template: any) => {
+    toast({
+      title: "Template Selected",
+      description: `Selected template: ${template.name}`,
+    });
+  };
+
+  const handleInputChange = (field: keyof VBARequirements, value: any) => {
+    setRequirements(prev => ({ ...prev, [field]: value }));
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-gray-50 flex w-full">
@@ -44,7 +80,10 @@ const VBAGenerator = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <VBARequirementsForm />
+                      <VBARequirementsForm 
+                        onRequirementsChange={handleRequirementsChange}
+                        onCodeGenerated={handleCodeGenerated}
+                      />
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -58,7 +97,7 @@ const VBAGenerator = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <VBATemplateLibrary />
+                      <VBATemplateLibrary onTemplateSelect={handleTemplateSelect} />
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -72,7 +111,7 @@ const VBAGenerator = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <VBACodeOutput />
+                      <VBACodeOutput code={generatedCode} requirements={requirements} />
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -86,7 +125,10 @@ const VBAGenerator = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <VBAAdvancedOptions />
+                      <VBAAdvancedOptions 
+                        requirements={requirements}
+                        onInputChange={handleInputChange}
+                      />
                     </CardContent>
                   </Card>
                 </TabsContent>

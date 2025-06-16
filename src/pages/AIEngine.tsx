@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/layout/AppSidebar';
 import Header from '@/components/layout/Header';
@@ -8,8 +8,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AgentCreator from '@/components/ai/AgentCreator';
 import AgentList from '@/components/ai/AgentList';
 import ConversationMemory from '@/components/ai/ConversationMemory';
+import { useToast } from '@/hooks/use-toast';
 
 const AIEngine = () => {
+  const { toast } = useToast();
+  const [selectedAgent, setSelectedAgent] = useState(null);
+
+  const handleAgentSelect = (agent: any) => {
+    setSelectedAgent(agent);
+    toast({
+      title: "Agent Selected",
+      description: `Selected agent: ${agent.name}`,
+    });
+  };
+
+  const handleAgentSubmit = (agentData: any) => {
+    toast({
+      title: "Agent Created",
+      description: "Your AI agent has been created successfully!",
+    });
+  };
+
+  const handleAgentCancel = () => {
+    toast({
+      title: "Creation Cancelled",
+      description: "Agent creation was cancelled.",
+    });
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-gray-50 flex w-full">
@@ -42,7 +68,7 @@ const AIEngine = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <AgentList />
+                      <AgentList onAgentSelect={handleAgentSelect} />
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -56,7 +82,7 @@ const AIEngine = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <AgentCreator />
+                      <AgentCreator onSubmit={handleAgentSubmit} onCancel={handleAgentCancel} />
                     </CardContent>
                   </Card>
                 </TabsContent>
