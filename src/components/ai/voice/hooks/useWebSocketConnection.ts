@@ -3,9 +3,11 @@ import { useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createSSEConnection, setupSSEHandlers, sendHTTPMessage, closeSSEConnection } from '../utils/connectionManager';
 import { ReconnectionManager } from '../utils/reconnectionManager';
+import { useAuth } from '@/hooks/useAuth';
 
 export const useWebSocketConnection = () => {
   const { toast } = useToast();
+  const { user, session } = useAuth();
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const eventSourceRef = useRef<EventSource | null>(null);
   const sessionIdRef = useRef<string>(crypto.randomUUID());
@@ -22,6 +24,17 @@ export const useWebSocketConnection = () => {
 
   const connect = async (onMessageHandler: (event: MessageEvent) => void) => {
     try {
+      // Check if user is authenticated before attempting connection
+      if (!user || !session) {
+        setConnectionStatus('error');
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to use voice chat",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setConnectionStatus('connecting');
       console.log('Starting voice chat connection...');
       
