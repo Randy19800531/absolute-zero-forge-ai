@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -39,11 +38,39 @@ serve(async (req) => {
 
 async function handleSSEConnection(sessionId: string) {
   const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+  
+  // Enhanced debugging for API key
+  console.log(`Checking OPENAI_API_KEY for session ${sessionId}`);
+  console.log(`API Key exists: ${!!OPENAI_API_KEY}`);
+  console.log(`API Key length: ${OPENAI_API_KEY?.length || 0}`);
+  console.log(`API Key starts with sk-: ${OPENAI_API_KEY?.startsWith('sk-') || false}`);
+  
   if (!OPENAI_API_KEY) {
-    console.error("OPENAI_API_KEY not found in environment");
-    return new Response("OpenAI API key not configured", { 
+    console.error("OPENAI_API_KEY not found in environment variables");
+    console.error("Available env vars:", Object.keys(Deno.env.toObject()));
+    return new Response(JSON.stringify({
+      error: "OpenAI API key not configured",
+      debug: {
+        hasKey: false,
+        availableEnvVars: Object.keys(Deno.env.toObject())
+      }
+    }), { 
       status: 500,
-      headers: corsHeaders 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+
+  if (!OPENAI_API_KEY.startsWith('sk-')) {
+    console.error("Invalid OPENAI_API_KEY format");
+    return new Response(JSON.stringify({
+      error: "Invalid OpenAI API key format",
+      debug: {
+        hasKey: true,
+        keyFormat: "Invalid - should start with 'sk-'"
+      }
+    }), { 
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 
@@ -58,13 +85,18 @@ async function handleSSEConnection(sessionId: string) {
       const encoder = new TextEncoder();
       controller.enqueue(encoder.encode(`data: ${JSON.stringify({
         type: "connection_established",
-        sessionId: sessionId
+        sessionId: sessionId,
+        debug: {
+          hasValidApiKey: true,
+          keyLength: OPENAI_API_KEY.length
+        }
       })}\n\n`));
 
       // Connect to OpenAI Realtime API with retry logic
       const connectToOpenAI = () => {
         const openaiUrl = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17";
         console.log("Connecting to OpenAI Realtime API...");
+        console.log(`Using API key: ${OPENAI_API_KEY.substring(0, 10)}...`);
         
         try {
           openaiWs = new WebSocket(openaiUrl, {
@@ -81,7 +113,7 @@ async function handleSSEConnection(sessionId: string) {
             
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
               type: "openai_connected",
-              message: "Connected to OpenAI Realtime API"
+              message: "Connected to OpenAI Realtime API successfully"
             })}\n\n`));
           });
 
@@ -120,10 +152,10 @@ async function handleSSEConnection(sessionId: string) {
               // Forward all messages to client via SSE
               controller.enqueue(encoder.encode(`data: ${event.data}\n\n`));
             } catch (error) {
-              console.error("Error processing OpenAI message:", error);
+              console.error("Error parsing OpenAI message:", error);
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({
                 type: "error",
-                error: { message: "Error processing OpenAI message" }
+                error: { message: "Error processing OpenAI message", details: error.message }
               })}\n\n`));
             }
           });
@@ -133,7 +165,10 @@ async function handleSSEConnection(sessionId: string) {
             isConnected = false;
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
               type: "error",
-              error: { message: "OpenAI connection error" }
+              error: { 
+                message: "OpenAI connection error",
+                details: "WebSocket connection failed - check API key validity"
+              }
             })}\n\n`));
           });
 
@@ -142,9 +177,27 @@ async function handleSSEConnection(sessionId: string) {
             isConnected = false;
             activeConnections.delete(sessionId);
             
-            // Try to reconnect if it was an unexpected close
-            if (event.code !== 1000 && event.code !== 1001) {
-              console.log("Attempting to reconnect to OpenAI...");
+            // Log close codes for debugging
+            if (event.code === 4001) {
+              console.error("OpenAI API Key invalid (4001)");
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                type: "error",
+                error: { 
+                  message: "Invalid OpenAI API Key",
+                  details: "The API key is invalid or expired"
+                }
+              })}\n\n`));
+            } else if (event.code === 4009) {
+              console.error("OpenAI API Key insufficient permissions (4009)");
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                type: "error",
+                error: { 
+                  message: "Insufficient API Key permissions",
+                  details: "The API key doesn't have access to the Realtime API"
+                }
+              })}\n\n`));
+            } else if (event.code !== 1000 && event.code !== 1001) {
+              console.log(`Attempting to reconnect to OpenAI... (close code: ${event.code})`);
               setTimeout(connectToOpenAI, 2000);
             } else {
               controller.close();
@@ -154,7 +207,10 @@ async function handleSSEConnection(sessionId: string) {
           console.error("Error creating OpenAI WebSocket:", error);
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({
             type: "error",
-            error: { message: "Failed to connect to OpenAI" }
+            error: { 
+              message: "Failed to connect to OpenAI",
+              details: error.message
+            }
           })}\n\n`));
         }
       };
