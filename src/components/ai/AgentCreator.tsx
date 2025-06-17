@@ -15,7 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 interface AgentConfig {
   name: string;
   description: string;
-  specialization: string;
+  specialization: 'design' | 'development' | 'testing' | 'deployment';
   type: string;
   systemPrompt: string;
   capabilities: string[];
@@ -32,7 +32,7 @@ const AgentCreator = () => {
   const [config, setConfig] = useState<AgentConfig>({
     name: '',
     description: '',
-    specialization: 'general',
+    specialization: 'development',
     type: 'conversational',
     systemPrompt: '',
     capabilities: [],
@@ -40,8 +40,8 @@ const AgentCreator = () => {
     responseStyle: 'detailed'
   });
 
-  const specializations = [
-    'general', 'technical', 'creative', 'analytical', 'support', 'educational'
+  const specializations: Array<'design' | 'development' | 'testing' | 'deployment'> = [
+    'design', 'development', 'testing', 'deployment'
   ];
 
   const personalities = [
@@ -120,7 +120,7 @@ const AgentCreator = () => {
       setConfig({
         name: '',
         description: '',
-        specialization: 'general',
+        specialization: 'development',
         type: 'conversational',
         systemPrompt: '',
         capabilities: [],
@@ -166,7 +166,9 @@ const AgentCreator = () => {
                 <Label htmlFor="specialization">Specialization</Label>
                 <Select
                   value={config.specialization}
-                  onValueChange={(value) => setConfig(prev => ({ ...prev, specialization: value }))}
+                  onValueChange={(value: 'design' | 'development' | 'testing' | 'deployment') => 
+                    setConfig(prev => ({ ...prev, specialization: value }))
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />

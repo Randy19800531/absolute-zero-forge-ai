@@ -2,23 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-
-interface TestCase {
-  id: string;
-  name: string;
-  description?: string;
-  category: string;
-  status: string;
-  steps: any[];
-  assertions: any[];
-  conditions: any;
-  data_sources: any;
-  version?: number;
-  created_at: string;
-  updated_at: string;
-  created_by?: string;
-  user_id: string;
-}
+import { TestCase } from '@/types/testing';
 
 export const useTestCases = () => {
   const { user } = useAuth();
@@ -40,7 +24,17 @@ export const useTestCases = () => {
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      setTestCases(data || []);
+      
+      // Transform the data to ensure arrays are properly typed
+      const transformedData = (data || []).map(tc => ({
+        ...tc,
+        steps: Array.isArray(tc.steps) ? tc.steps : [],
+        assertions: Array.isArray(tc.assertions) ? tc.assertions : [],
+        conditions: tc.conditions || {},
+        data_sources: tc.data_sources || {}
+      })) as TestCase[];
+      
+      setTestCases(transformedData);
     } catch (error) {
       console.error('Error fetching test cases:', error);
     } finally {
@@ -56,29 +50,55 @@ export const useTestCases = () => {
       .insert([{
         ...testCaseData,
         user_id: user.id,
-        created_by: user.id
+        created_by: user.id,
+        steps: testCaseData.steps || [],
+        assertions: testCaseData.assertions || [],
+        conditions: testCaseData.conditions || {},
+        data_sources: testCaseData.data_sources || {}
       }])
       .select()
       .single();
 
     if (error) throw error;
     
-    setTestCases(prev => [data, ...prev]);
-    return data;
+    const transformedData = {
+      ...data,
+      steps: Array.isArray(data.steps) ? data.steps : [],
+      assertions: Array.isArray(data.assertions) ? data.assertions : [],
+      conditions: data.conditions || {},
+      data_sources: data.data_sources || {}
+    } as TestCase;
+    
+    setTestCases(prev => [transformedData, ...prev]);
+    return transformedData;
   };
 
   const updateTestCase = async (id: string, updates: Partial<TestCase>) => {
     const { data, error } = await supabase
       .from('test_cases')
-      .update(updates)
+      .update({
+        ...updates,
+        steps: updates.steps || [],
+        assertions: updates.assertions || [],
+        conditions: updates.conditions || {},
+        data_sources: updates.data_sources || {}
+      })
       .eq('id', id)
       .select()
       .single();
 
     if (error) throw error;
     
-    setTestCases(prev => prev.map(tc => tc.id === id ? data : tc));
-    return data;
+    const transformedData = {
+      ...data,
+      steps: Array.isArray(data.steps) ? data.steps : [],
+      assertions: Array.isArray(data.assertions) ? data.assertions : [],
+      conditions: data.conditions || {},
+      data_sources: data.data_sources || {}
+    } as TestCase;
+    
+    setTestCases(prev => prev.map(tc => tc.id === id ? transformedData : tc));
+    return transformedData;
   };
 
   const deleteTestCase = async (id: string) => {

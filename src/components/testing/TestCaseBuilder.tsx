@@ -10,33 +10,24 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, X, Save, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import TestStepEditor from './TestStepEditor';
+import { TestStep, TestCase } from '@/types/testing';
 
-interface TestStep {
-  id: string;
-  action: string;
-  target: string;
-  value?: string;
-  expected?: string;
+interface TestCaseBuilderProps {
+  testCase?: TestCase;
+  onSave?: (testCase: Partial<TestCase>) => Promise<void>;
+  onCancel?: () => void;
 }
 
-interface TestCase {
-  name: string;
-  description: string;
-  category: string;
-  steps: TestStep[];
-  assertions: string[];
-  conditions: Record<string, any>;
-}
-
-const TestCaseBuilder = () => {
+const TestCaseBuilder: React.FC<TestCaseBuilderProps> = ({ testCase: initialTestCase, onSave, onCancel }) => {
   const { toast } = useToast();
-  const [testCase, setTestCase] = useState<TestCase>({
-    name: '',
-    description: '',
-    category: 'functional',
-    steps: [],
-    assertions: [],
-    conditions: {}
+  const [testCase, setTestCase] = useState<Partial<TestCase>>({
+    name: initialTestCase?.name || '',
+    description: initialTestCase?.description || '',
+    category: initialTestCase?.category || 'functional',
+    steps: initialTestCase?.steps || [],
+    assertions: initialTestCase?.assertions || [],
+    conditions: initialTestCase?.conditions || {},
+    status: initialTestCase?.status || 'draft'
   });
 
   const [newAssertion, setNewAssertion] = useState('');
@@ -53,21 +44,21 @@ const TestCaseBuilder = () => {
   const addStep = () => {
     const newStep: TestStep = {
       id: Date.now().toString(),
-      action: '',
-      target: '',
-      value: '',
-      expected: ''
+      type: 'click',
+      name: 'New Step',
+      parameters: {},
+      description: ''
     };
     setTestCase(prev => ({
       ...prev,
-      steps: [...prev.steps, newStep]
+      steps: [...(prev.steps || []), newStep]
     }));
   };
 
   const updateStep = (stepId: string, updates: Partial<TestStep>) => {
     setTestCase(prev => ({
       ...prev,
-      steps: prev.steps.map(step => 
+      steps: (prev.steps || []).map(step => 
         step.id === stepId ? { ...step, ...updates } : step
       )
     }));
@@ -76,7 +67,7 @@ const TestCaseBuilder = () => {
   const removeStep = (stepId: string) => {
     setTestCase(prev => ({
       ...prev,
-      steps: prev.steps.filter(step => step.id !== stepId)
+      steps: (prev.steps || []).filter(step => step.id !== stepId)
     }));
   };
 
@@ -84,7 +75,7 @@ const TestCaseBuilder = () => {
     if (newAssertion.trim()) {
       setTestCase(prev => ({
         ...prev,
-        assertions: [...prev.assertions, newAssertion.trim()]
+        assertions: [...(prev.assertions || []), newAssertion.trim()]
       }));
       setNewAssertion('');
     }
@@ -93,12 +84,12 @@ const TestCaseBuilder = () => {
   const removeAssertion = (index: number) => {
     setTestCase(prev => ({
       ...prev,
-      assertions: prev.assertions.filter((_, i) => i !== index)
+      assertions: (prev.assertions || []).filter((_, i) => i !== index)
     }));
   };
 
   const saveTestCase = async () => {
-    if (!testCase.name.trim()) {
+    if (!testCase.name?.trim()) {
       toast({
         title: "Missing Information",
         description: "Please provide a test case name",
@@ -107,7 +98,7 @@ const TestCaseBuilder = () => {
       return;
     }
 
-    if (testCase.steps.length === 0) {
+    if (!testCase.steps || testCase.steps.length === 0) {
       toast({
         title: "Missing Steps",
         description: "Please add at least one test step",
@@ -118,23 +109,27 @@ const TestCaseBuilder = () => {
 
     setIsSaving(true);
     try {
-      // TODO: Implement save to Supabase
-      console.log('Saving test case:', testCase);
+      if (onSave) {
+        await onSave(testCase);
+      }
       
       toast({
         title: "Test Case Saved",
         description: `${testCase.name} has been saved successfully`,
       });
 
-      // Reset form
-      setTestCase({
-        name: '',
-        description: '',
-        category: 'functional',
-        steps: [],
-        assertions: [],
-        conditions: {}
-      });
+      // Reset form if it's a new test case
+      if (!initialTestCase) {
+        setTestCase({
+          name: '',
+          description: '',
+          category: 'functional',
+          steps: [],
+          assertions: [],
+          conditions: {},
+          status: 'draft'
+        });
+      }
 
     } catch (error) {
       console.error('Error saving test case:', error);
@@ -159,7 +154,9 @@ const TestCaseBuilder = () => {
     <div className="max-w-6xl mx-auto space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Build New Test Case</CardTitle>
+          <CardTitle>
+            {initialTestCase ? 'Edit Test Case' : 'Build New Test Case'}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Basic Information */}
@@ -169,7 +166,7 @@ const TestCaseBuilder = () => {
                 <Label htmlFor="name">Test Case Name</Label>
                 <Input
                   id="name"
-                  value={testCase.name}
+                  value={testCase.name || ''}
                   onChange={(e) => setTestCase(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Enter test case name"
                 />
@@ -178,7 +175,7 @@ const TestCaseBuilder = () => {
               <div>
                 <Label htmlFor="category">Category</Label>
                 <Select
-                  value={testCase.category}
+                  value={testCase.category || 'functional'}
                   onValueChange={(value) => setTestCase(prev => ({ ...prev, category: value }))}
                 >
                   <SelectTrigger>
@@ -199,7 +196,7 @@ const TestCaseBuilder = () => {
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                value={testCase.description}
+                value={testCase.description || ''}
                 onChange={(e) => setTestCase(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Describe what this test case validates"
                 rows={5}
@@ -218,7 +215,7 @@ const TestCaseBuilder = () => {
             </div>
 
             <div className="space-y-4">
-              {testCase.steps.map((step, index) => (
+              {(testCase.steps || []).map((step, index) => (
                 <TestStepEditor
                   key={step.id}
                   step={step}
@@ -228,7 +225,7 @@ const TestCaseBuilder = () => {
                 />
               ))}
 
-              {testCase.steps.length === 0 && (
+              {(!testCase.steps || testCase.steps.length === 0) && (
                 <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
                   <p className="text-gray-500">No test steps added yet</p>
                   <Button onClick={addStep} variant="outline" className="mt-2">
@@ -255,7 +252,7 @@ const TestCaseBuilder = () => {
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {testCase.assertions.map((assertion, index) => (
+              {(testCase.assertions || []).map((assertion, index) => (
                 <Badge key={index} variant="secondary" className="gap-1">
                   {assertion}
                   <button
@@ -271,10 +268,17 @@ const TestCaseBuilder = () => {
 
           {/* Actions */}
           <div className="flex justify-between pt-6 border-t">
-            <Button onClick={runTestCase} variant="outline">
-              <Play className="h-4 w-4 mr-2" />
-              Run Test
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={runTestCase} variant="outline">
+                <Play className="h-4 w-4 mr-2" />
+                Run Test
+              </Button>
+              {onCancel && (
+                <Button onClick={onCancel} variant="ghost">
+                  Cancel
+                </Button>
+              )}
+            </div>
 
             <Button onClick={saveTestCase} disabled={isSaving}>
               {isSaving ? (

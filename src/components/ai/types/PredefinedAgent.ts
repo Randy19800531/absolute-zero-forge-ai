@@ -13,4 +13,7 @@ export interface PredefinedAgent {
   capabilities: string[];
   systemPrompt: string;
   expertise: string[];
+  useCases: string[];
+  category: string;
+  popular: boolean;
 }

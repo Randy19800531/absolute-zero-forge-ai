@@ -4,9 +4,60 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bot, MessageSquare, Star, ChevronRight } from 'lucide-react';
-import { predefinedAgentsData } from './data/predefinedAgentsData';
 import AgentCard from './components/AgentCard';
 import { PredefinedAgent } from './types/PredefinedAgent';
+
+// Mock data for predefined agents
+const predefinedAgentsData: PredefinedAgent[] = [
+  {
+    id: '1',
+    name: 'Development Assistant',
+    age: '25',
+    gender: 'neutral',
+    personality: 'helpful and technical',
+    description: 'Specialized in software development and coding assistance',
+    avatar: '/placeholder.svg',
+    icon: <Bot className="h-5 w-5" />,
+    capabilities: ['Code Generation', 'Debugging', 'Architecture Design'],
+    systemPrompt: 'You are a software development assistant...',
+    expertise: ['React', 'TypeScript', 'Node.js'],
+    useCases: ['Code review', 'Bug fixing', 'Feature development'],
+    category: 'technical',
+    popular: true
+  },
+  {
+    id: '2',
+    name: 'Business Analyst',
+    age: '30',
+    gender: 'neutral',
+    personality: 'analytical and strategic',
+    description: 'Expert in business analysis and strategic planning',
+    avatar: '/placeholder.svg',
+    icon: <Bot className="h-5 w-5" />,
+    capabilities: ['Market Analysis', 'Requirements Gathering', 'Process Optimization'],
+    systemPrompt: 'You are a business analysis expert...',
+    expertise: ['Business Strategy', 'Data Analysis', 'Project Management'],
+    useCases: ['Requirements analysis', 'Process improvement', 'Strategic planning'],
+    category: 'business',
+    popular: true
+  },
+  {
+    id: '3',
+    name: 'Creative Director',
+    age: '28',
+    gender: 'neutral',
+    personality: 'creative and innovative',
+    description: 'Specialized in creative direction and design thinking',
+    avatar: '/placeholder.svg',
+    icon: <Bot className="h-5 w-5" />,
+    capabilities: ['Design Strategy', 'Brand Development', 'Creative Ideation'],
+    systemPrompt: 'You are a creative director...',
+    expertise: ['UI/UX Design', 'Branding', 'Visual Design'],
+    useCases: ['Design concepts', 'Brand strategy', 'Creative campaigns'],
+    category: 'creative',
+    popular: false
+  }
+];
 
 interface PredefinedAgentsProps {
   onAgentSelect?: (agent: PredefinedAgent) => void;
@@ -124,7 +175,7 @@ const PredefinedAgents: React.FC<PredefinedAgentsProps> = ({ onAgentSelect }) =>
               <AgentCard
                 key={agent.id}
                 agent={agent}
-                isSelected={selectedAgent?.id === agent.id}
+                selected={selectedAgent?.id === agent.id}
                 onSelect={() => handleAgentSelect(agent)}
               />
             ))}

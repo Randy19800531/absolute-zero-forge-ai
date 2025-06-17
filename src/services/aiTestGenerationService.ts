@@ -53,6 +53,42 @@ class AITestGenerationService {
     }
   }
 
+  // New exports for AITestGenerator compatibility
+  async generateTestsWithAI(params: {
+    description: string;
+    appType: string;
+    testType: string;
+    complexity: string;
+  }): Promise<GeneratedTestCase[]> {
+    const request: TestGenerationRequest = {
+      feature: params.appType,
+      userStory: params.description,
+      acceptanceCriteria: ['Basic functionality should work', 'User interface should be responsive'],
+      testType: params.testType as 'functional' | 'integration' | 'performance' | 'security' | 'usability',
+      complexity: params.complexity as 'simple' | 'medium' | 'complex'
+    };
+
+    return this.generateTestCases(request);
+  }
+
+  exportTestsToJSON(tests: GeneratedTestCase[], metadata: any) {
+    const exportData = {
+      metadata,
+      tests,
+      exportedAt: new Date().toISOString()
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `test-cases-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   private generateMockTestCases(request: TestGenerationRequest): GeneratedTestCase[] {
     const mockTestCases: GeneratedTestCase[] = [];
 
@@ -226,3 +262,14 @@ class AITestGenerationService {
 }
 
 export const aiTestGenerationService = new AITestGenerationService();
+
+// Export the individual functions for backward compatibility
+export const generateTestsWithAI = (params: {
+  description: string;
+  appType: string;
+  testType: string;
+  complexity: string;
+}) => aiTestGenerationService.generateTestsWithAI(params);
+
+export const exportTestsToJSON = (tests: GeneratedTestCase[], metadata: any) => 
+  aiTestGenerationService.exportTestsToJSON(tests, metadata);

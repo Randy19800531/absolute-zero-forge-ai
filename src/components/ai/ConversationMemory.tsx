@@ -46,7 +46,14 @@ const ConversationMemory = () => {
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      setConversations(data || []);
+      
+      // Transform the data to ensure messages is an array
+      const transformedData = (data || []).map(conv => ({
+        ...conv,
+        messages: Array.isArray(conv.messages) ? conv.messages : []
+      }));
+      
+      setConversations(transformedData);
     } catch (error) {
       console.error('Error fetching conversations:', error);
       toast({

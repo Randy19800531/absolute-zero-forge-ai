@@ -50,7 +50,7 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               Voice Chat Interface
-              <ConnectionStatusIndicator status={connectionStatus} />
+              <ConnectionStatusIndicator status={connectionStatus as "error" | "disconnected" | "connected" | "connecting"} />
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -60,12 +60,11 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
               <AudioStatusDisplay 
                 isRecording={isRecording}
                 isSpeaking={isSpeaking}
-                isConnected={isConnected}
               />
               
               <VoiceControls
                 isConnected={isConnected}
-                connectionStatus={connectionStatus}
+                connectionStatus={connectionStatus as "error" | "disconnected" | "connected" | "connecting"}
                 onConnect={handleConnect}
                 onDisconnect={handleDisconnect}
               />
