@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/layout/AppSidebar';
@@ -144,6 +143,11 @@ const Testing = () => {
     });
   };
 
+  const handleAddStep = (step: any) => {
+    // This will be implemented when needed by StepLibrary
+    console.log('Add step:', step);
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-gray-50 flex w-full">
@@ -241,7 +245,7 @@ const Testing = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <StepLibrary />
+                      <StepLibrary onAddStep={handleAddStep} />
                     </CardContent>
                   </Card>
                 </TabsContent>
