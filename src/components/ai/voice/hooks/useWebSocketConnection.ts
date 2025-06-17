@@ -14,6 +14,12 @@ export const useWebSocketConnection = () => {
   
   const { user, session } = useAuth();
   console.log('useWebSocketConnection: useAuth called');
+  console.log('Auth state:', { 
+    hasUser: !!user, 
+    userEmail: user?.email, 
+    hasSession: !!session,
+    hasAccessToken: !!session?.access_token 
+  });
   
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   console.log('useWebSocketConnection: useState called');
@@ -34,21 +40,35 @@ export const useWebSocketConnection = () => {
 
   const connect = async (onMessageHandler: (event: MessageEvent) => void) => {
     try {
-      // Check if user is authenticated before attempting connection
+      // Enhanced authentication check with detailed logging
+      console.log('=== AUTHENTICATION CHECK ===');
+      console.log('User object:', user);
+      console.log('Session object:', session);
+      console.log('Access token present:', !!session?.access_token);
+      console.log('Access token length:', session?.access_token?.length || 0);
+      
       if (!user || !session?.access_token) {
+        console.error('❌ Authentication check failed:', {
+          hasUser: !!user,
+          hasSession: !!session,
+          hasAccessToken: !!session?.access_token
+        });
+        
         setConnectionStatus('error');
         toast({
           title: "Authentication Required",
-          description: "Please log in to use voice chat",
+          description: "Please log out and log back in, then try again.",
           variant: "destructive",
         });
         return;
       }
 
       setConnectionStatus('connecting');
+      console.log('✅ Authentication check passed');
       console.log('Starting voice chat connection...');
       console.log('User authenticated:', user.email);
       console.log('Session token available:', !!session.access_token);
+      console.log('Token preview:', session.access_token.substring(0, 20) + '...');
       
       // Use the full Supabase project URL with HTTP/SSE
       const baseUrl = `https://rnhtpciitjycpqqimgce.supabase.co/functions/v1/realtime-chat`;
@@ -64,23 +84,36 @@ export const useWebSocketConnection = () => {
       sessionIdRef.current = crypto.randomUUID();
       
       try {
+        console.log('Creating SSE connection with session ID:', sessionIdRef.current);
         eventSourceRef.current = await createSSEConnection(baseUrl, sessionIdRef.current);
+        console.log('SSE connection created successfully');
       } catch (error) {
-        console.error('Failed to create SSE connection:', error);
+        console.error('❌ Failed to create SSE connection:', error);
         setConnectionStatus('error');
         
         // Show more specific error message based on error type
         if (error instanceof Error) {
+          console.error('Error details:', {
+            message: error.message,
+            stack: error.stack
+          });
+          
           if (error.message.includes('authentication') || error.message.includes('Unauthorized')) {
             toast({
               title: "Authentication Error",
-              description: "Please log out and log back in, then try again.",
+              description: "Your session has expired. Please log out and log back in.",
+              variant: "destructive",
+            });
+          } else if (error.message.includes('User not authenticated')) {
+            toast({
+              title: "Authentication Required",
+              description: "Please ensure you are logged in and try again.",
               variant: "destructive",
             });
           } else {
             toast({
               title: "Connection Error",
-              description: error.message,
+              description: `Failed to connect: ${error.message}`,
               variant: "destructive",
             });
           }
@@ -95,7 +128,7 @@ export const useWebSocketConnection = () => {
       }
 
       const handleOpen = () => {
-        console.log('SSE connected successfully');
+        console.log('✅ SSE connected successfully');
         setConnectionStatus('connected');
         reconnectionManagerRef.current.resetAttempts();
         
@@ -106,7 +139,7 @@ export const useWebSocketConnection = () => {
       };
 
       const handleError = (error: Event) => {
-        console.error('SSE error occurred:', error);
+        console.error('❌ SSE error occurred:', error);
         setConnectionStatus('error');
         
         // Show more specific error message
@@ -118,7 +151,7 @@ export const useWebSocketConnection = () => {
       };
 
       const handleClose = () => {
-        console.log('SSE connection closed');
+        console.log('🔌 SSE connection closed');
         
         // Only attempt reconnection if we're not manually disconnecting
         if (connectionStatus === 'connected' || connectionStatus === 'connecting') {
@@ -136,11 +169,11 @@ export const useWebSocketConnection = () => {
       const handleMessage = (event: MessageEvent) => {
         try {
           const data = JSON.parse(event.data);
-          console.log('Received SSE message:', data.type);
+          console.log('📨 Received SSE message:', data.type);
           
           // Handle specific message types
           if (data.type === 'error') {
-            console.error('Received error from server:', data.error);
+            console.error('❌ Received error from server:', data.error);
             setConnectionStatus('error');
             toast({
               title: "Voice Chat Error",
@@ -156,7 +189,7 @@ export const useWebSocketConnection = () => {
           });
           onMessageHandler(syntheticEvent);
         } catch (error) {
-          console.error('Error parsing SSE message:', error);
+          console.error('❌ Error parsing SSE message:', error);
         }
       };
 
@@ -169,7 +202,7 @@ export const useWebSocketConnection = () => {
       );
 
     } catch (error) {
-      console.error('Error connecting to SSE:', error);
+      console.error('❌ Error in connect function:', error);
       setConnectionStatus('error');
       toast({
         title: "Connection Error",
@@ -189,14 +222,14 @@ export const useWebSocketConnection = () => {
 
   const sendMessage = async (message: any) => {
     if (!eventSourceRef.current || eventSourceRef.current.readyState !== EventSource.OPEN) {
-      console.warn('SSE connection not ready');
+      console.warn('⚠️ SSE connection not ready for session:', sessionIdRef.current);
       return false;
     }
 
     const baseUrl = `https://rnhtpciitjycpqqimgce.supabase.co/functions/v1/realtime-chat`;
     const success = await sendHTTPMessage(baseUrl, sessionIdRef.current, message);
     if (!success) {
-      console.warn('Failed to send message via HTTP');
+      console.warn('❌ Failed to send message via HTTP');
     }
     return success;
   };
