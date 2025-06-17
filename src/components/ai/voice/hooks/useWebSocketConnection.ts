@@ -25,7 +25,7 @@ export const useWebSocketConnection = () => {
   const connect = async (onMessageHandler: (event: MessageEvent) => void) => {
     try {
       // Check if user is authenticated before attempting connection
-      if (!user || !session) {
+      if (!user || !session?.access_token) {
         setConnectionStatus('error');
         toast({
           title: "Authentication Required",
@@ -37,6 +37,8 @@ export const useWebSocketConnection = () => {
 
       setConnectionStatus('connecting');
       console.log('Starting voice chat connection...');
+      console.log('User authenticated:', user.email);
+      console.log('Session token available:', !!session.access_token);
       
       // Use the full Supabase project URL with HTTP/SSE
       const baseUrl = `https://rnhtpciitjycpqqimgce.supabase.co/functions/v1/realtime-chat`;
@@ -56,11 +58,29 @@ export const useWebSocketConnection = () => {
       } catch (error) {
         console.error('Failed to create SSE connection:', error);
         setConnectionStatus('error');
-        toast({
-          title: "Authentication Error",
-          description: error instanceof Error ? error.message : "Failed to authenticate with voice service",
-          variant: "destructive",
-        });
+        
+        // Show more specific error message based on error type
+        if (error instanceof Error) {
+          if (error.message.includes('authentication') || error.message.includes('Unauthorized')) {
+            toast({
+              title: "Authentication Error",
+              description: "Please log out and log back in, then try again.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Connection Error",
+              description: error.message,
+              variant: "destructive",
+            });
+          }
+        } else {
+          toast({
+            title: "Connection Error",
+            description: "Failed to connect to voice service. Please try again.",
+            variant: "destructive",
+          });
+        }
         return;
       }
 
@@ -82,7 +102,7 @@ export const useWebSocketConnection = () => {
         // Show more specific error message
         toast({
           title: "Connection Error",
-          description: "Failed to connect to voice chat. Please check if you're logged in and try again.",
+          description: "Voice chat connection failed. Please check your authentication and try again.",
           variant: "destructive",
         });
       };
