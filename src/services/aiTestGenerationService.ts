@@ -1,133 +1,228 @@
 
-import { TestCase, TestStep } from '@/types/testing';
-
-interface GenerationParams {
-  description: string;
-  appType: string;
-  testType: string;
-  complexity: string;
+export interface TestGenerationRequest {
+  feature: string;
+  userStory: string;
+  acceptanceCriteria: string[];
+  testType: 'functional' | 'integration' | 'performance' | 'security' | 'usability';
+  complexity: 'simple' | 'medium' | 'complex';
 }
 
-export const generateTestsWithAI = async (params: GenerationParams): Promise<Array<Partial<TestCase>>> => {
-  // This would integrate with your AI service
-  // For now, return mock generated tests based on input
-  await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate AI processing
+export interface GeneratedTestCase {
+  name: string;
+  description: string;
+  category: string;
+  steps: TestStep[];
+  assertions: string[];
+  conditions: Record<string, any>;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+}
 
-  const baseTests: Array<Partial<TestCase>> = [
-    {
-      name: `User Authentication Test - ${params.appType}`,
-      description: `Comprehensive authentication testing for ${params.description}`,
-      category: 'functional',
-      steps: [
-        {
-          id: crypto.randomUUID(),
-          type: 'navigate',
-          name: 'Navigate to login page',
-          parameters: { url: '/login' }
-        } as TestStep,
-        {
-          id: crypto.randomUUID(),
-          type: 'type',
-          name: 'Enter valid credentials',
-          parameters: { selector: '#email', value: 'test@example.com' }
-        } as TestStep,
-        {
-          id: crypto.randomUUID(),
-          type: 'click',
-          name: 'Click login button',
-          parameters: { selector: '#login-btn' }
-        } as TestStep,
-        {
-          id: crypto.randomUUID(),
-          type: 'assert',
-          name: 'Verify successful login',
-          parameters: { selector: '.dashboard', expected: 'Dashboard' }
-        } as TestStep
-      ]
-    },
-    {
-      name: `Data Validation Test - ${params.testType}`,
-      description: `Input validation and error handling for ${params.description}`,
-      category: 'functional',
-      steps: [
-        {
-          id: crypto.randomUUID(),
-          type: 'navigate',
-          name: 'Navigate to form',
-          parameters: { url: '/form' }
-        } as TestStep,
-        {
-          id: crypto.randomUUID(),
-          type: 'type',
-          name: 'Enter invalid data',
-          parameters: { selector: '#input-field', value: 'invalid@' }
-        } as TestStep,
-        {
-          id: crypto.randomUUID(),
-          type: 'click',
-          name: 'Submit form',
-          parameters: { selector: '#submit-btn' }
-        } as TestStep,
-        {
-          id: crypto.randomUUID(),
-          type: 'assert',
-          name: 'Verify error message',
-          parameters: { selector: '.error-message', expected: 'Invalid email format' }
-        } as TestStep
-      ]
+export interface TestStep {
+  id: string;
+  action: string;
+  target: string;
+  value?: string;
+  expected?: string;
+  description: string;
+}
+
+class AITestGenerationService {
+  private baseUrl = 'https://rnhtpciitjycpqqimgce.supabase.co/functions/v1';
+
+  async generateTestCases(request: TestGenerationRequest): Promise<GeneratedTestCase[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/generate-tests`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.testCases || [];
+    } catch (error) {
+      console.error('Error generating test cases:', error);
+      
+      // Fallback: Generate mock test cases based on the request
+      return this.generateMockTestCases(request);
     }
-  ];
-
-  if (params.complexity === 'high') {
-    baseTests.push({
-      name: `Performance Test - ${params.appType}`,
-      description: `Load testing and performance validation for ${params.description}`,
-      category: 'performance',
-      steps: [
-        {
-          id: crypto.randomUUID(),
-          type: 'navigate',
-          name: 'Load application',
-          parameters: { url: '/' }
-        } as TestStep,
-        {
-          id: crypto.randomUUID(),
-          type: 'wait',
-          name: 'Measure load time',
-          parameters: { duration: 3000 }
-        } as TestStep,
-        {
-          id: crypto.randomUUID(),
-          type: 'assert',
-          name: 'Verify load time under 3s',
-          parameters: { metric: 'loadTime', threshold: 3000 }
-        } as TestStep
-      ]
-    });
   }
 
-  return baseTests;
-};
+  private generateMockTestCases(request: TestGenerationRequest): GeneratedTestCase[] {
+    const mockTestCases: GeneratedTestCase[] = [];
 
-export const exportTestsToJSON = (generatedTests: Array<Partial<TestCase>>, metadata: any) => {
-  const dataToExport = {
-    generatedTests,
-    metadata: {
-      ...metadata,
-      exportDate: new Date().toISOString()
+    // Generate basic test case based on feature
+    const basicTestCase: GeneratedTestCase = {
+      name: `Test ${request.feature} - Basic Functionality`,
+      description: `Verify that ${request.feature} works as expected according to user story: ${request.userStory}`,
+      category: request.testType,
+      priority: 'high',
+      steps: [
+        {
+          id: '1',
+          action: 'navigate',
+          target: 'application',
+          description: 'Navigate to the application'
+        },
+        {
+          id: '2',
+          action: 'click',
+          target: `${request.feature.toLowerCase()}-button`,
+          description: `Click on ${request.feature} button`
+        },
+        {
+          id: '3',
+          action: 'verify',
+          target: 'result',
+          expected: 'success',
+          description: `Verify ${request.feature} completes successfully`
+        }
+      ],
+      assertions: request.acceptanceCriteria.map(criteria => `Verify: ${criteria}`),
+      conditions: {
+        environment: 'test',
+        prerequisites: [`User must have access to ${request.feature}`],
+        testData: `Sample data for ${request.feature}`
+      }
+    };
+
+    mockTestCases.push(basicTestCase);
+
+    // Generate error case if complexity is medium or higher
+    if (request.complexity !== 'simple') {
+      const errorTestCase: GeneratedTestCase = {
+        name: `Test ${request.feature} - Error Handling`,
+        description: `Verify error handling for ${request.feature}`,
+        category: request.testType,
+        priority: 'medium',
+        steps: [
+          {
+            id: '1',
+            action: 'navigate',
+            target: 'application',
+            description: 'Navigate to the application'
+          },
+          {
+            id: '2',
+            action: 'input',
+            target: 'invalid-data',
+            value: 'invalid input',
+            description: 'Enter invalid data'
+          },
+          {
+            id: '3',
+            action: 'click',
+            target: `${request.feature.toLowerCase()}-button`,
+            description: `Attempt to use ${request.feature} with invalid data`
+          },
+          {
+            id: '4',
+            action: 'verify',
+            target: 'error-message',
+            expected: 'error displayed',
+            description: 'Verify appropriate error message is displayed'
+          }
+        ],
+        assertions: ['Error message should be displayed', 'System should handle invalid input gracefully'],
+        conditions: {
+          environment: 'test',
+          prerequisites: ['Invalid test data prepared'],
+          testData: 'Invalid input samples'
+        }
+      };
+
+      mockTestCases.push(errorTestCase);
     }
-  };
 
-  const blob = new Blob([JSON.stringify(dataToExport, null, 2)], {
-    type: 'application/json'
-  });
+    // Generate performance test if complexity is complex
+    if (request.complexity === 'complex') {
+      const performanceTestCase: GeneratedTestCase = {
+        name: `Test ${request.feature} - Performance`,
+        description: `Verify performance requirements for ${request.feature}`,
+        category: 'performance',
+        priority: 'medium',
+        steps: [
+          {
+            id: '1',
+            action: 'setup',
+            target: 'performance-monitoring',
+            description: 'Setup performance monitoring'
+          },
+          {
+            id: '2',
+            action: 'execute',
+            target: `${request.feature.toLowerCase()}`,
+            description: `Execute ${request.feature} under load`
+          },
+          {
+            id: '3',
+            action: 'measure',
+            target: 'response-time',
+            expected: '< 2 seconds',
+            description: 'Measure response time'
+          }
+        ],
+        assertions: ['Response time should be less than 2 seconds', 'System should remain stable under load'],
+        conditions: {
+          environment: 'performance',
+          prerequisites: ['Performance testing tools configured'],
+          testData: 'Load testing data'
+        }
+      };
 
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `ai-generated-tests-${new Date().toISOString().split('T')[0]}.json`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
+      mockTestCases.push(performanceTestCase);
+    }
+
+    return mockTestCases;
+  }
+
+  async optimizeTestSuite(testCases: GeneratedTestCase[]): Promise<GeneratedTestCase[]> {
+    // Simple optimization: remove duplicates and sort by priority
+    const uniqueTestCases = testCases.filter((testCase, index, self) =>
+      index === self.findIndex(t => t.name === testCase.name)
+    );
+
+    const priorityOrder = { 'critical': 0, 'high': 1, 'medium': 2, 'low': 3 };
+    
+    return uniqueTestCases.sort((a, b) => 
+      priorityOrder[a.priority] - priorityOrder[b.priority]
+    );
+  }
+
+  async validateTestCase(testCase: GeneratedTestCase): Promise<{ valid: boolean; issues: string[] }> {
+    const issues: string[] = [];
+
+    if (!testCase.name || testCase.name.trim().length === 0) {
+      issues.push('Test case name is required');
+    }
+
+    if (!testCase.steps || testCase.steps.length === 0) {
+      issues.push('Test case must have at least one step');
+    }
+
+    if (!testCase.assertions || testCase.assertions.length === 0) {
+      issues.push('Test case must have at least one assertion');
+    }
+
+    testCase.steps.forEach((step, index) => {
+      if (!step.action) {
+        issues.push(`Step ${index + 1}: Action is required`);
+      }
+      if (!step.target) {
+        issues.push(`Step ${index + 1}: Target is required`);
+      }
+    });
+
+    return {
+      valid: issues.length === 0,
+      issues
+    };
+  }
+}
+
+export const aiTestGenerationService = new AITestGenerationService();

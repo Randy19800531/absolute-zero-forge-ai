@@ -1,196 +1,251 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Brain, Clock, Users, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { MessageSquare, Clock, Bot, User, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Conversation {
   id: string;
-  agent: string;
-  user: string;
-  lastMessage: string;
+  title: string;
+  agent_id: string;
+  messages: any[];
+  created_at: string;
+  updated_at: string;
+}
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
   timestamp: string;
-  messages: number;
-  sentiment: 'positive' | 'negative' | 'neutral';
-  context: string[];
 }
 
 const ConversationMemory = () => {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [stats, setStats] = useState({
-    totalConversations: 0,
-    contextRetention: 0,
-    activeUsers: 0,
-  });
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load conversations from localStorage
-    const storedConversations = JSON.parse(localStorage.getItem('ai_conversations') || '[]');
-    setConversations(storedConversations);
-    
-    // Calculate stats
-    const uniqueUsers = new Set(storedConversations.map((c: Conversation) => c.user)).size;
-    setStats({
-      totalConversations: storedConversations.length,
-      contextRetention: storedConversations.length > 0 ? Math.round((storedConversations.filter((c: Conversation) => c.context.length > 0).length / storedConversations.length) * 100) : 0,
-      activeUsers: uniqueUsers,
-    });
-  }, []);
+    if (user) {
+      fetchConversations();
+    }
+  }, [user]);
 
-  const clearAllConversations = () => {
-    localStorage.removeItem('ai_conversations');
-    setConversations([]);
-    setStats({ totalConversations: 0, contextRetention: 0, activeUsers: 0 });
-    toast({
-      title: "Conversations Cleared",
-      description: "All conversation memory has been cleared.",
-    });
-  };
+  const fetchConversations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('updated_at', { ascending: false });
 
-  const deleteConversation = (conversationId: string) => {
-    const updatedConversations = conversations.filter(c => c.id !== conversationId);
-    setConversations(updatedConversations);
-    localStorage.setItem('ai_conversations', JSON.stringify(updatedConversations));
-    
-    const uniqueUsers = new Set(updatedConversations.map(c => c.user)).size;
-    setStats({
-      totalConversations: updatedConversations.length,
-      contextRetention: updatedConversations.length > 0 ? Math.round((updatedConversations.filter(c => c.context.length > 0).length / updatedConversations.length) * 100) : 0,
-      activeUsers: uniqueUsers,
-    });
-    
-    toast({
-      title: "Conversation Deleted",
-      description: "The conversation has been removed from memory.",
-    });
-  };
-
-  const getSentimentColor = (sentiment: string) => {
-    switch (sentiment) {
-      case 'positive': return 'bg-green-100 text-green-800';
-      case 'negative': return 'bg-red-100 text-red-800';
-      case 'neutral': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      if (error) throw error;
+      setConversations(data || []);
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load conversations",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+  const deleteConversation = async (conversationId: string) => {
+    if (!confirm('Are you sure you want to delete this conversation?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('id', conversationId);
+
+      if (error) throw error;
+
+      setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+      if (selectedConversation?.id === conversationId) {
+        setSelectedConversation(null);
+      }
+
+      toast({
+        title: "Conversation Deleted",
+        description: "Conversation has been successfully deleted",
+      });
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete conversation",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const formatTimestamp = (timestamp: string) => {
+    return new Date(timestamp).toLocaleString();
+  };
+
+  const getMessageCount = (conversation: Conversation) => {
+    return conversation.messages?.length || 0;
+  };
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-1">
           <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <MessageSquare className="h-8 w-8 text-blue-500" />
-              <div>
-                <p className="text-2xl font-bold">{stats.totalConversations}</p>
-                <p className="text-sm text-gray-500">Total Conversations</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <Brain className="h-8 w-8 text-purple-500" />
-              <div>
-                <p className="text-2xl font-bold">{stats.contextRetention}%</p>
-                <p className="text-sm text-gray-500">Context Retention</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <Users className="h-8 w-8 text-green-500" />
-              <div>
-                <p className="text-2xl font-bold">{stats.activeUsers}</p>
-                <p className="text-sm text-gray-500">Active Users</p>
-              </div>
+            <div className="animate-pulse space-y-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
       </div>
+    );
+  }
 
-      <Card>
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Conversations List */}
+      <Card className="lg:col-span-1">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Conversation Memory</CardTitle>
-            {conversations.length > 0 && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={clearAllConversations}
-                className="text-red-600"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Clear All
-              </Button>
-            )}
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Conversation History
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          {conversations.length === 0 ? (
-            <div className="text-center py-12">
-              <MessageSquare className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No conversations yet</h3>
-              <p className="text-gray-500">Conversation memory will appear here as your agents interact with users.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {conversations.map((conversation) => (
-                <div key={conversation.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <Brain className="h-5 w-5 text-purple-500" />
-                      <div>
-                        <p className="font-medium">{conversation.agent}</p>
-                        <p className="text-sm text-gray-500">with {conversation.user}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={getSentimentColor(conversation.sentiment)}>
-                        {conversation.sentiment}
-                      </Badge>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <Clock className="h-3 w-3" />
-                        {conversation.timestamp}
-                      </div>
+        <CardContent className="p-0">
+          <ScrollArea className="h-[600px]">
+            {conversations.length === 0 ? (
+              <div className="p-6 text-center">
+                <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p className="text-gray-600">No conversations yet</p>
+              </div>
+            ) : (
+              <div className="space-y-2 p-4">
+                {conversations.map(conversation => (
+                  <div
+                    key={conversation.id}
+                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                      selectedConversation?.id === conversation.id
+                        ? 'bg-blue-50 border border-blue-200'
+                        : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => setSelectedConversation(conversation)}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-medium text-sm truncate">
+                        {conversation.title || 'Untitled Conversation'}
+                      </h4>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
-                        onClick={() => deleteConversation(conversation.id)}
-                        className="text-red-600 ml-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteConversation(conversation.id);
+                        }}
+                        className="p-1 h-6 w-6"
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
-                  </div>
-                  
-                  <p className="text-sm text-gray-600 mb-3">{conversation.lastMessage}</p>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-1">
-                      {conversation.context.map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Clock className="h-3 w-3" />
+                      {formatTimestamp(conversation.updated_at)}
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>{conversation.messages} messages</span>
-                      <Button variant="outline" size="sm">
-                        View Details
-                      </Button>
+                    <div className="mt-2 flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {getMessageCount(conversation)} messages
+                      </Badge>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
+      {/* Conversation Details */}
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <CardTitle>
+            {selectedConversation 
+              ? selectedConversation.title || 'Conversation Details'
+              : 'Select a Conversation'
+            }
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {selectedConversation ? (
+            <ScrollArea className="h-[600px]">
+              <div className="space-y-4">
+                {selectedConversation.messages && selectedConversation.messages.length > 0 ? (
+                  selectedConversation.messages.map((message: Message, index: number) => (
+                    <div
+                      key={index}
+                      className={`flex gap-3 ${
+                        message.role === 'user' ? 'flex-row-reverse' : ''
+                      }`}
+                    >
+                      <div className={`p-2 rounded-full ${
+                        message.role === 'user' 
+                          ? 'bg-blue-100 text-blue-600' 
+                          : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {message.role === 'user' ? (
+                          <User className="h-4 w-4" />
+                        ) : (
+                          <Bot className="h-4 w-4" />
+                        )}
+                      </div>
+                      <div className={`flex-1 max-w-[80%] ${
+                        message.role === 'user' ? 'text-right' : ''
+                      }`}>
+                        <div className={`p-3 rounded-lg ${
+                          message.role === 'user'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-100 text-gray-900'
+                        }`}>
+                          <p className="text-sm whitespace-pre-wrap">
+                            {message.content}
+                          </p>
+                        </div>
+                        {message.timestamp && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            {formatTimestamp(message.timestamp)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <p className="text-gray-600">No messages in this conversation</p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          ) : (
+            <div className="text-center py-12">
+              <MessageSquare className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-semibold mb-2">Select a Conversation</h3>
+              <p className="text-gray-600">
+                Choose a conversation from the left to view its messages and details
+              </p>
             </div>
           )}
         </CardContent>
