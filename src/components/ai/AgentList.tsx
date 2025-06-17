@@ -1,24 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bot, Play, Edit, Trash2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useAgents } from '@/hooks/useAgents';
-
-interface Agent {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  status: string;
-  specialization: string;
-  configuration: any;
-  tasks_completed: number;
-  created_at: string;
-  updated_at: string;
-}
+import { useAgents, Agent } from '@/hooks/useAgents';
 
 interface AgentListProps {
   onAgentSelect?: (agent: Agent) => void;
@@ -109,9 +95,11 @@ const AgentList: React.FC<AgentListProps> = ({ onAgentSelect }) => {
                   <Badge className={getStatusColor(agent.status)}>
                     {agent.status}
                   </Badge>
-                  <Badge variant="outline">
-                    {agent.specialization}
-                  </Badge>
+                  {agent.specialization && (
+                    <Badge variant="outline">
+                      {agent.specialization}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </CardHeader>
