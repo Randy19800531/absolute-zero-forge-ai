@@ -71,6 +71,19 @@ const TestCaseBuilder: React.FC<TestCaseBuilderProps> = ({ testCase: initialTest
     }));
   };
 
+  const moveStep = (stepId: string, direction: 'up' | 'down') => {
+    const steps = [...(testCase.steps || [])];
+    const index = steps.findIndex(step => step.id === stepId);
+    
+    if (direction === 'up' && index > 0) {
+      [steps[index - 1], steps[index]] = [steps[index], steps[index - 1]];
+    } else if (direction === 'down' && index < steps.length - 1) {
+      [steps[index], steps[index + 1]] = [steps[index + 1], steps[index]];
+    }
+    
+    setTestCase(prev => ({ ...prev, steps }));
+  };
+
   const addAssertion = () => {
     if (newAssertion.trim()) {
       setTestCase(prev => ({
@@ -219,9 +232,12 @@ const TestCaseBuilder: React.FC<TestCaseBuilderProps> = ({ testCase: initialTest
                 <TestStepEditor
                   key={step.id}
                   step={step}
-                  stepNumber={index + 1}
-                  onUpdate={(updates) => updateStep(step.id, updates)}
-                  onRemove={() => removeStep(step.id)}
+                  index={index}
+                  onUpdate={updateStep}
+                  onRemove={removeStep}
+                  onMove={moveStep}
+                  canMoveUp={index > 0}
+                  canMoveDown={index < (testCase.steps || []).length - 1}
                 />
               ))}
 

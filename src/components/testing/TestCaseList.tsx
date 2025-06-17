@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +17,7 @@ const TestCaseList = () => {
   const [statusFilter, setStatusFilter] = useState('all');
 
   const categories = ['functional', 'integration', 'performance', 'security', 'usability'];
-  const statuses = ['draft', 'active', 'deprecated'];
+  const statuses = ['draft', 'active', 'archived'];
 
   const filteredTestCases = testCases.filter(testCase => {
     const matchesSearch = testCase.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -32,7 +32,7 @@ const TestCaseList = () => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
       case 'draft': return 'bg-gray-100 text-gray-800';
-      case 'deprecated': return 'bg-red-100 text-red-800';
+      case 'archived': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -213,7 +213,7 @@ const TestCaseList = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => handleRunTest(testCase.id)}
-                        disabled={testCase.status === 'deprecated'}
+                        disabled={testCase.status === 'archived'}
                       >
                         <Play className="h-4 w-4 mr-2" />
                         Run Test

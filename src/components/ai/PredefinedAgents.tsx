@@ -6,58 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Bot, MessageSquare, Star, ChevronRight } from 'lucide-react';
 import AgentCard from './components/AgentCard';
 import { PredefinedAgent } from './types/PredefinedAgent';
-
-// Mock data for predefined agents
-const predefinedAgentsData: PredefinedAgent[] = [
-  {
-    id: '1',
-    name: 'Development Assistant',
-    age: '25',
-    gender: 'neutral',
-    personality: 'helpful and technical',
-    description: 'Specialized in software development and coding assistance',
-    avatar: '/placeholder.svg',
-    icon: <Bot className="h-5 w-5" />,
-    capabilities: ['Code Generation', 'Debugging', 'Architecture Design'],
-    systemPrompt: 'You are a software development assistant...',
-    expertise: ['React', 'TypeScript', 'Node.js'],
-    useCases: ['Code review', 'Bug fixing', 'Feature development'],
-    category: 'technical',
-    popular: true
-  },
-  {
-    id: '2',
-    name: 'Business Analyst',
-    age: '30',
-    gender: 'neutral',
-    personality: 'analytical and strategic',
-    description: 'Expert in business analysis and strategic planning',
-    avatar: '/placeholder.svg',
-    icon: <Bot className="h-5 w-5" />,
-    capabilities: ['Market Analysis', 'Requirements Gathering', 'Process Optimization'],
-    systemPrompt: 'You are a business analysis expert...',
-    expertise: ['Business Strategy', 'Data Analysis', 'Project Management'],
-    useCases: ['Requirements analysis', 'Process improvement', 'Strategic planning'],
-    category: 'business',
-    popular: true
-  },
-  {
-    id: '3',
-    name: 'Creative Director',
-    age: '28',
-    gender: 'neutral',
-    personality: 'creative and innovative',
-    description: 'Specialized in creative direction and design thinking',
-    avatar: '/placeholder.svg',
-    icon: <Bot className="h-5 w-5" />,
-    capabilities: ['Design Strategy', 'Brand Development', 'Creative Ideation'],
-    systemPrompt: 'You are a creative director...',
-    expertise: ['UI/UX Design', 'Branding', 'Visual Design'],
-    useCases: ['Design concepts', 'Brand strategy', 'Creative campaigns'],
-    category: 'creative',
-    popular: false
-  }
-];
+import { PREDEFINED_AGENTS } from './data/predefinedAgentsData';
 
 interface PredefinedAgentsProps {
   onAgentSelect?: (agent: PredefinedAgent) => void;
@@ -68,24 +17,24 @@ const PredefinedAgents: React.FC<PredefinedAgentsProps> = ({ onAgentSelect }) =>
   const [selectedAgent, setSelectedAgent] = useState<PredefinedAgent | null>(null);
 
   const categories = [
-    { id: 'all', name: 'All Agents', count: predefinedAgentsData.length },
-    { id: 'business', name: 'Business', count: predefinedAgentsData.filter(a => a.category === 'business').length },
-    { id: 'technical', name: 'Technical', count: predefinedAgentsData.filter(a => a.category === 'technical').length },
-    { id: 'creative', name: 'Creative', count: predefinedAgentsData.filter(a => a.category === 'creative').length },
-    { id: 'support', name: 'Support', count: predefinedAgentsData.filter(a => a.category === 'support').length },
-    { id: 'education', name: 'Education', count: predefinedAgentsData.filter(a => a.category === 'education').length },
+    { id: 'all', name: 'All Agents', count: PREDEFINED_AGENTS.length },
+    { id: 'business', name: 'Business', count: PREDEFINED_AGENTS.filter(a => a.category === 'business').length },
+    { id: 'technical', name: 'Technical', count: PREDEFINED_AGENTS.filter(a => a.category === 'technical').length },
+    { id: 'creative', name: 'Creative', count: PREDEFINED_AGENTS.filter(a => a.category === 'creative').length },
+    { id: 'support', name: 'Support', count: PREDEFINED_AGENTS.filter(a => a.category === 'support').length },
+    { id: 'education', name: 'Education', count: PREDEFINED_AGENTS.filter(a => a.category === 'education').length },
   ];
 
   const filteredAgents = selectedCategory === 'all' 
-    ? predefinedAgentsData 
-    : predefinedAgentsData.filter(agent => agent.category === selectedCategory);
+    ? PREDEFINED_AGENTS 
+    : PREDEFINED_AGENTS.filter(agent => agent.category === selectedCategory);
 
   const handleAgentSelect = (agent: PredefinedAgent) => {
     setSelectedAgent(agent);
     onAgentSelect?.(agent);
   };
 
-  const popularAgents = predefinedAgentsData.filter(agent => agent.popular);
+  const popularAgents = PREDEFINED_AGENTS.filter(agent => agent.popular);
 
   return (
     <div className="space-y-6">

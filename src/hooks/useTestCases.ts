@@ -4,6 +4,36 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { TestCase } from '@/types/testing';
 
+// Helper function to safely convert Json to arrays
+const safeJsonToArray = (jsonData: any): any[] => {
+  if (Array.isArray(jsonData)) return jsonData;
+  if (typeof jsonData === 'string') {
+    try {
+      const parsed = JSON.parse(jsonData);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
+// Helper function to safely convert Json to object
+const safeJsonToObject = (jsonData: any): Record<string, any> => {
+  if (typeof jsonData === 'object' && jsonData !== null && !Array.isArray(jsonData)) {
+    return jsonData;
+  }
+  if (typeof jsonData === 'string') {
+    try {
+      const parsed = JSON.parse(jsonData);
+      return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+  return {};
+};
+
 export const useTestCases = () => {
   const { user } = useAuth();
   const [testCases, setTestCases] = useState<TestCase[]>([]);
@@ -28,10 +58,10 @@ export const useTestCases = () => {
       // Transform the data to ensure arrays are properly typed
       const transformedData = (data || []).map(tc => ({
         ...tc,
-        steps: Array.isArray(tc.steps) ? tc.steps : [],
-        assertions: Array.isArray(tc.assertions) ? tc.assertions : [],
-        conditions: tc.conditions || {},
-        data_sources: tc.data_sources || {}
+        steps: safeJsonToArray(tc.steps),
+        assertions: safeJsonToArray(tc.assertions),
+        conditions: safeJsonToObject(tc.conditions),
+        data_sources: safeJsonToObject(tc.data_sources)
       })) as TestCase[];
       
       setTestCases(transformedData);
@@ -51,10 +81,10 @@ export const useTestCases = () => {
         ...testCaseData,
         user_id: user.id,
         created_by: user.id,
-        steps: testCaseData.steps || [],
-        assertions: testCaseData.assertions || [],
-        conditions: testCaseData.conditions || {},
-        data_sources: testCaseData.data_sources || {}
+        steps: JSON.stringify(testCaseData.steps || []),
+        assertions: JSON.stringify(testCaseData.assertions || []),
+        conditions: JSON.stringify(testCaseData.conditions || {}),
+        data_sources: JSON.stringify(testCaseData.data_sources || {})
       }])
       .select()
       .single();
@@ -63,10 +93,10 @@ export const useTestCases = () => {
     
     const transformedData = {
       ...data,
-      steps: Array.isArray(data.steps) ? data.steps : [],
-      assertions: Array.isArray(data.assertions) ? data.assertions : [],
-      conditions: data.conditions || {},
-      data_sources: data.data_sources || {}
+      steps: safeJsonToArray(data.steps),
+      assertions: safeJsonToArray(data.assertions),
+      conditions: safeJsonToObject(data.conditions),
+      data_sources: safeJsonToObject(data.data_sources)
     } as TestCase;
     
     setTestCases(prev => [transformedData, ...prev]);
@@ -78,10 +108,10 @@ export const useTestCases = () => {
       .from('test_cases')
       .update({
         ...updates,
-        steps: updates.steps || [],
-        assertions: updates.assertions || [],
-        conditions: updates.conditions || {},
-        data_sources: updates.data_sources || {}
+        steps: JSON.stringify(updates.steps || []),
+        assertions: JSON.stringify(updates.assertions || []),
+        conditions: JSON.stringify(updates.conditions || {}),
+        data_sources: JSON.stringify(updates.data_sources || {})
       })
       .eq('id', id)
       .select()
@@ -91,10 +121,10 @@ export const useTestCases = () => {
     
     const transformedData = {
       ...data,
-      steps: Array.isArray(data.steps) ? data.steps : [],
-      assertions: Array.isArray(data.assertions) ? data.assertions : [],
-      conditions: data.conditions || {},
-      data_sources: data.data_sources || {}
+      steps: safeJsonToArray(data.steps),
+      assertions: safeJsonToArray(data.assertions),
+      conditions: safeJsonToObject(data.conditions),
+      data_sources: safeJsonToObject(data.data_sources)
     } as TestCase;
     
     setTestCases(prev => prev.map(tc => tc.id === id ? transformedData : tc));
