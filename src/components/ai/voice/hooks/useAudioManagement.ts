@@ -1,97 +1,85 @@
 
-import { useRef, useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { VoiceAudioRecorder } from '../utils/audioRecorder';
-import { VoiceAudioPlayer } from '../utils/audioPlayer';
+import { useState, useRef, useCallback } from 'react';
+import { AudioRecorder, encodeAudioForAPI } from '../utils/audioRecorder';
+import { AudioPlayer } from '../utils/audioPlayer';
 
 export const useAudioManagement = () => {
-  console.log('useAudioManagement: Starting hook execution');
-  
-  // All hooks at the top level - consistent order
-  const { toast } = useToast();
-  console.log('useAudioManagement: useToast called');
-  
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  console.log('useAudioManagement: useState calls completed');
-  
-  const recorderRef = useRef<VoiceAudioRecorder | null>(null);
-  const playerRef = useRef<VoiceAudioPlayer | null>(null);
-  console.log('useAudioManagement: useRef calls completed');
+  const audioRecorderRef = useRef<AudioRecorder | null>(null);
+  const audioPlayerRef = useRef<AudioPlayer | null>(null);
 
-  const initializeAudio = () => {
-    if (!recorderRef.current) {
-      recorderRef.current = new VoiceAudioRecorder();
-    }
-    if (!playerRef.current) {
-      playerRef.current = new VoiceAudioPlayer();
-      playerRef.current.initialize();
-    }
-  };
-
-  const startRecording = async (onAudioData: (encodedAudio: string) => void) => {
+  const startRecording = useCallback(async (onAudioData: (data: Float32Array) => void) => {
     try {
-      if (!recorderRef.current) {
-        initializeAudio();
+      if (audioRecorderRef.current) {
+        audioRecorderRef.current.stop();
       }
-      
-      await recorderRef.current!.start(onAudioData);
+
+      audioRecorderRef.current = new AudioRecorder(onAudioData);
+      await audioRecorderRef.current.start();
       setIsRecording(true);
+      console.log('🎤 Audio recording started');
     } catch (error) {
-      console.error('Error starting recording:', error);
-      toast({
-        title: "Microphone Error",
-        description: "Unable to access microphone. Please check permissions and try again.",
-        variant: "destructive",
-      });
+      console.error('❌ Failed to start audio recording:', error);
+      setIsRecording(false);
+      throw error;
     }
-  };
+  }, []);
 
-  const stopRecording = () => {
-    if (recorderRef.current) {
-      recorderRef.current.stop();
+  const stopRecording = useCallback(() => {
+    if (audioRecorderRef.current) {
+      audioRecorderRef.current.stop();
+      audioRecorderRef.current = null;
+      setIsRecording(false);
+      console.log('🛑 Audio recording stopped');
     }
-    setIsRecording(false);
-  };
+  }, []);
 
-  const playAudioDelta = async (delta: string) => {
-    if (playerRef.current) {
-      await playerRef.current.playAudioDelta(delta);
-      setIsSpeaking(playerRef.current.getIsSpeaking());
+  const initializeAudioPlayer = useCallback(async () => {
+    if (!audioPlayerRef.current) {
+      audioPlayerRef.current = new AudioPlayer();
+      await audioPlayerRef.current.init();
+      console.log('🔊 Audio player initialized');
     }
-  };
+  }, []);
 
-  const stopSpeaking = () => {
-    if (playerRef.current) {
-      playerRef.current.stopSpeaking();
+  const playAudioChunk = useCallback(async (audioData: Uint8Array) => {
+    if (!audioPlayerRef.current) {
+      await initializeAudioPlayer();
+    }
+    
+    if (audioPlayerRef.current) {
+      await audioPlayerRef.current.playAudioChunk(audioData);
+      setIsSpeaking(true);
+    }
+  }, [initializeAudioPlayer]);
+
+  const stopSpeaking = useCallback(() => {
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.stop();
     }
     setIsSpeaking(false);
-  };
+  }, []);
 
-  const cleanup = () => {
+  const cleanup = useCallback(() => {
     stopRecording();
+    stopSpeaking();
     
-    if (playerRef.current) {
-      playerRef.current.cleanup();
-      playerRef.current = null;
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.destroy();
+      audioPlayerRef.current = null;
     }
-    
-    if (recorderRef.current) {
-      recorderRef.current = null;
-    }
-    
-    setIsSpeaking(false);
-  };
+  }, [stopRecording, stopSpeaking]);
 
-  console.log('useAudioManagement: Returning values');
   return {
     isRecording,
     isSpeaking,
-    initializeAudio,
     startRecording,
     stopRecording,
-    playAudioDelta,
+    initializeAudioPlayer,
+    playAudioChunk,
     stopSpeaking,
-    cleanup
+    cleanup,
+    setIsSpeaking
   };
 };

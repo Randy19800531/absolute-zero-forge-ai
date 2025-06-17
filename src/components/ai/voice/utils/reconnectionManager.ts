@@ -1,40 +1,58 @@
 
 export class ReconnectionManager {
-  private reconnectTimeoutRef: NodeJS.Timeout | null = null;
-  private reconnectAttemptsRef = 0;
-  private maxReconnectAttempts: number;
+  private attempts = 0;
+  private maxAttempts: number;
+  private timeoutId: number | null = null;
+  private baseDelay = 1000; // Start with 1 second
+  private maxDelay = 30000; // Max 30 seconds
 
-  constructor(maxAttempts = 3) {
-    this.maxReconnectAttempts = maxAttempts;
+  constructor(maxAttempts: number = 3) {
+    this.maxAttempts = maxAttempts;
   }
 
-  attemptReconnect(connectFn: () => void, onMaxAttemptsReached: () => void): void {
-    if (this.reconnectAttemptsRef < this.maxReconnectAttempts) {
-      this.reconnectAttemptsRef++;
-      console.log(`Attempting reconnect ${this.reconnectAttemptsRef}/${this.maxReconnectAttempts}`);
-      
-      this.reconnectTimeoutRef = setTimeout(() => {
-        connectFn();
-      }, 2000 * this.reconnectAttemptsRef);
-    } else {
-      console.log('Max reconnection attempts reached');
+  attemptReconnect(
+    reconnectFn: () => Promise<void>,
+    onMaxAttemptsReached: () => void
+  ) {
+    if (this.attempts >= this.maxAttempts) {
+      console.error(`❌ Max reconnection attempts (${this.maxAttempts}) reached`);
       onMaxAttemptsReached();
+      return;
+    }
+
+    this.attempts++;
+    const delay = Math.min(this.baseDelay * Math.pow(2, this.attempts - 1), this.maxDelay);
+    
+    console.log(`🔄 Reconnection attempt ${this.attempts}/${this.maxAttempts} in ${delay}ms`);
+
+    this.timeoutId = window.setTimeout(async () => {
+      try {
+        await reconnectFn();
+        this.resetAttempts();
+      } catch (error) {
+        console.error(`❌ Reconnection attempt ${this.attempts} failed:`, error);
+        this.attemptReconnect(reconnectFn, onMaxAttemptsReached);
+      }
+    }, delay);
+  }
+
+  resetAttempts() {
+    this.attempts = 0;
+    this.cleanup();
+  }
+
+  cleanup() {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
     }
   }
 
-  resetAttempts(): void {
-    this.reconnectAttemptsRef = 0;
+  getAttemptCount() {
+    return this.attempts;
   }
 
-  cleanup(): void {
-    if (this.reconnectTimeoutRef) {
-      clearTimeout(this.reconnectTimeoutRef);
-      this.reconnectTimeoutRef = null;
-    }
-    this.reconnectAttemptsRef = this.maxReconnectAttempts;
-  }
-
-  getAttemptCount(): number {
-    return this.reconnectAttemptsRef;
+  getMaxAttempts() {
+    return this.maxAttempts;
   }
 }

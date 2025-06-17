@@ -1,467 +1,275 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Palette, Code, Globe, Shield, Upload, Download } from 'lucide-react';
+import { Palette, Figma, Component, Download, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface DesignToken {
   name: string;
   value: string;
-  category: 'color' | 'typography' | 'spacing' | 'component';
-  scope: 'global' | 'component' | 'theme';
+  type: 'color' | 'spacing' | 'typography' | 'border-radius';
+  category: string;
 }
 
-interface ComplianceRequirement {
-  jurisdiction: string;
-  coverage: number;
-  automatedControls: number;
-  manualProcesses: number;
-  gdpCoverage: string;
-  language: string;
-  script: string;
-  culturalAdaptations: string[];
+interface DesignSystem {
+  id: string;
+  name: string;
+  source: 'figma' | 'sketch' | 'local';
+  status: 'synced' | 'outdated' | 'error';
+  lastSync?: string;
+  tokensCount: number;
 }
 
 const DesignSystemIntegration = () => {
   const { toast } = useToast();
-  const [designTokens, setDesignTokens] = useState<DesignToken[]>([]);
-  const [selectedFramework, setSelectedFramework] = useState<string>('');
-  const [complianceMatrix, setComplianceMatrix] = useState<ComplianceRequirement[]>([]);
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
-
-  useEffect(() => {
-    initializeComplianceMatrix();
-    loadDefaultTokens();
-  }, []);
-
-  const initializeComplianceMatrix = () => {
-    const matrix: ComplianceRequirement[] = [
-      {
-        jurisdiction: 'GDPR (EU)',
-        coverage: 100,
-        automatedControls: 90,
-        manualProcesses: 10,
-        gdpCoverage: '$17.1T',
-        language: 'Multi-language EU',
-        script: 'Latin',
-        culturalAdaptations: ['GDPR adequacy decision monitoring', 'Multi-language EU regulation support', 'European Payment Services Directive compliance']
-      },
-      {
-        jurisdiction: 'UK GDPR',
-        coverage: 100,
-        automatedControls: 90,
-        manualProcesses: 10,
-        gdpCoverage: '$3.1T',
-        language: 'English',
-        script: 'Latin',
-        culturalAdaptations: ['Brexit transition considerations', 'UK-specific data protection requirements']
-      },
-      {
-        jurisdiction: 'CCPA/CPRA (US)',
-        coverage: 100,
-        automatedControls: 85,
-        manualProcesses: 15,
-        gdpCoverage: '$3.6T',
-        language: 'English/Spanish',
-        script: 'Latin',
-        culturalAdaptations: ['California-specific privacy rights', 'Multi-state compliance framework']
-      },
-      {
-        jurisdiction: 'PIPL (China)',
-        coverage: 95,
-        automatedControls: 80,
-        manualProcesses: 20,
-        gdpCoverage: '$17.9T',
-        language: 'Chinese (Simplified)',
-        script: 'Chinese',
-        culturalAdaptations: ['Social credit system integration', 'Chinese encryption standards (SM2, SM3, SM4)', 'Integration with Chinese payment systems']
-      },
-      {
-        jurisdiction: 'APPI (Japan)',
-        coverage: 95,
-        automatedControls: 80,
-        manualProcesses: 20,
-        gdpCoverage: '$4.3T',
-        language: 'Japanese',
-        script: 'Japanese',
-        culturalAdaptations: ['Japanese business culture considerations', 'Integration with Japanese payment systems']
-      },
-      {
-        jurisdiction: 'DPDP (India)',
-        coverage: 90,
-        automatedControls: 75,
-        manualProcesses: 25,
-        gdpCoverage: '$3.7T',
-        language: 'Hindi/English',
-        script: 'Devanagari/Latin',
-        culturalAdaptations: ['Multi-script support', 'Aadhaar identity system integration', 'UPI payment system support', 'Regional data localization']
-      },
-      {
-        jurisdiction: 'LGPD (Brazil)',
-        coverage: 95,
-        automatedControls: 80,
-        manualProcesses: 20,
-        gdpCoverage: '$2.1T',
-        language: 'Portuguese',
-        script: 'Latin',
-        culturalAdaptations: ['Brazilian regulatory framework', 'Local data processing requirements']
-      }
-    ];
-    setComplianceMatrix(matrix);
-  };
-
-  const loadDefaultTokens = () => {
-    const defaultTokens: DesignToken[] = [
-      { name: 'primary-color', value: '#3B82F6', category: 'color', scope: 'global' },
-      { name: 'secondary-color', value: '#10B981', category: 'color', scope: 'global' },
-      { name: 'danger-color', value: '#EF4444', category: 'color', scope: 'global' },
-      { name: 'warning-color', value: '#F59E0B', category: 'color', scope: 'global' },
-      { name: 'font-family-primary', value: 'Inter, system-ui, sans-serif', category: 'typography', scope: 'global' },
-      { name: 'font-size-base', value: '16px', category: 'typography', scope: 'global' },
-      { name: 'spacing-unit', value: '8px', category: 'spacing', scope: 'global' },
-      { name: 'border-radius-base', value: '8px', category: 'component', scope: 'global' }
-    ];
-    setDesignTokens(defaultTokens);
-  };
-
-  const handleFrameworkSync = async () => {
-    if (!selectedFramework) {
-      toast({
-        title: "Framework Required",
-        description: "Please select a design framework to sync with.",
-        variant: "destructive"
-      });
-      return;
+  const [designSystems, setDesignSystems] = useState<DesignSystem[]>([
+    {
+      id: '1',
+      name: 'Company Design System',
+      source: 'figma',
+      status: 'synced',
+      lastSync: '2024-01-15T10:30:00Z',
+      tokensCount: 156
     }
+  ]);
 
-    setSyncStatus('syncing');
-    
-    try {
-      // Simulate framework sync
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      setSyncStatus('success');
-      toast({
-        title: "Design System Synced",
-        description: `Successfully synced with ${selectedFramework} design system.`
-      });
-    } catch (error) {
-      setSyncStatus('error');
-      toast({
-        title: "Sync Failed",
-        description: "Failed to sync with design system. Please try again.",
-        variant: "destructive"
-      });
+  const [designTokens] = useState<DesignToken[]>([
+    { name: 'primary-500', value: '#3b82f6', type: 'color', category: 'Brand Colors' },
+    { name: 'gray-100', value: '#f3f4f6', type: 'color', category: 'Neutral Colors' },
+    { name: 'spacing-4', value: '1rem', type: 'spacing', category: 'Spacing' },
+    { name: 'text-lg', value: '1.125rem', type: 'typography', category: 'Typography' },
+    { name: 'rounded-md', value: '0.375rem', type: 'border-radius', category: 'Border Radius' }
+  ]);
+
+  const getSourceIcon = (source: string) => {
+    switch (source) {
+      case 'figma':
+        return <Figma className="h-4 w-4" />;
+      default:
+        return <Component className="h-4 w-4" />;
     }
   };
 
-  const handleTokenImport = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const tokens = JSON.parse(e.target?.result as string);
-            setDesignTokens([...designTokens, ...tokens]);
-            toast({
-              title: "Tokens Imported",
-              description: `Successfully imported ${tokens.length} design tokens.`
-            });
-          } catch (error) {
-            toast({
-              title: "Import Failed",
-              description: "Invalid token file format.",
-              variant: "destructive"
-            });
-          }
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      synced: 'default',
+      outdated: 'secondary',
+      error: 'destructive'
+    } as const;
+
+    return <Badge variant={variants[status as keyof typeof variants]}>{status}</Badge>;
+  };
+
+  const handleSync = (id: string) => {
+    setDesignSystems(prev => prev.map(system => 
+      system.id === id 
+        ? { ...system, status: 'synced', lastSync: new Date().toISOString() }
+        : system
+    ));
+
+    toast({
+      title: "Design System Synced",
+      description: "Design tokens have been updated successfully",
+    });
+  };
+
+  const handleExportTokens = () => {
+    const tokens = {
+      version: "1.0.0",
+      tokens: designTokens.reduce((acc, token) => {
+        acc[token.name] = {
+          value: token.value,
+          type: token.type,
+          category: token.category
         };
-        reader.readAsText(file);
-      }
+        return acc;
+      }, {} as any)
     };
-    input.click();
-  };
 
-  const handleTokenExport = () => {
-    const dataStr = JSON.stringify(designTokens, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'design-tokens.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const blob = new Blob([JSON.stringify(tokens, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'design-tokens.json';
+    a.click();
     URL.revokeObjectURL(url);
+
+    toast({
+      title: "Tokens Exported",
+      description: "Design tokens have been exported successfully",
+    });
   };
 
-  const calculateOverallCompliance = () => {
-    const totalCoverage = complianceMatrix.reduce((sum, req) => sum + req.coverage, 0);
-    return Math.round(totalCoverage / complianceMatrix.length);
-  };
-
-  const calculateAutomationRate = () => {
-    const totalAutomation = complianceMatrix.reduce((sum, req) => sum + req.automatedControls, 0);
-    return Math.round(totalAutomation / complianceMatrix.length);
+  const getTokenPreview = (token: DesignToken) => {
+    switch (token.type) {
+      case 'color':
+        return (
+          <div 
+            className="w-4 h-4 rounded border"
+            style={{ backgroundColor: token.value }}
+          />
+        );
+      case 'spacing':
+        return (
+          <div 
+            className="bg-blue-200 h-2 border"
+            style={{ width: token.value }}
+          />
+        );
+      default:
+        return <span className="text-xs text-muted-foreground">{token.value}</span>;
+    }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Enterprise Design System Integration</h2>
-          <p className="text-gray-600">Integrate with your enterprise design system and ensure global compliance</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleTokenImport} variant="outline">
-            <Upload className="h-4 w-4 mr-2" />
-            Import Tokens
-          </Button>
-          <Button onClick={handleTokenExport} variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export Tokens
+      {/* Design Systems */}
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Connected Design Systems</h3>
+          <Button className="flex items-center gap-2">
+            <Component className="h-4 w-4" />
+            Connect System
           </Button>
         </div>
-      </div>
-
-      <Tabs defaultValue="design-system" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="design-system">Design System</TabsTrigger>
-          <TabsTrigger value="compliance">Global Compliance</TabsTrigger>
-          <TabsTrigger value="tokens">Design Tokens</TabsTrigger>
-          <TabsTrigger value="frameworks">Framework Sync</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="design-system">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="h-5 w-5" />
-                Design System Configuration
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="framework">Framework</Label>
-                  <Select value={selectedFramework} onValueChange={setSelectedFramework}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select design framework" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="material-ui">Material-UI</SelectItem>
-                      <SelectItem value="ant-design">Ant Design</SelectItem>
-                      <SelectItem value="chakra-ui">Chakra UI</SelectItem>
-                      <SelectItem value="mantine">Mantine</SelectItem>
-                      <SelectItem value="carbon">IBM Carbon</SelectItem>
-                      <SelectItem value="fluent">Microsoft Fluent UI</SelectItem>
-                      <SelectItem value="custom">Custom Design System</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="sync-status">Sync Status</Label>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant={syncStatus === 'success' ? 'default' : syncStatus === 'error' ? 'destructive' : 'secondary'}>
-                      {syncStatus === 'idle' ? 'Not Synced' : 
-                       syncStatus === 'syncing' ? 'Syncing...' :
-                       syncStatus === 'success' ? 'Synced' : 'Error'}
-                    </Badge>
-                    <Button onClick={handleFrameworkSync} disabled={syncStatus === 'syncing'}>
-                      Sync Framework
+        
+        <div className="grid gap-4">
+          {designSystems.map((system) => (
+            <Card key={system.id}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {getSourceIcon(system.source)}
+                    <div>
+                      <h4 className="font-semibold">{system.name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {system.tokensCount} tokens • {system.source}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(system.status)}
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleSync(system.id)}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      Sync
                     </Button>
                   </div>
                 </div>
-              </div>
+                
+                {system.lastSync && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Last sync: {new Date(system.lastSync).toLocaleString()}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{designTokens.length}</div>
-                  <div className="text-sm text-gray-600">Design Tokens</div>
-                </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">4</div>
-                  <div className="text-sm text-gray-600">Component Libraries</div>
-                </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">12</div>
-                  <div className="text-sm text-gray-600">Theme Variants</div>
-                </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600">98%</div>
-                  <div className="text-sm text-gray-600">Consistency Score</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="compliance">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Global Compliance Coverage Matrix
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">47</div>
-                  <div className="text-sm text-blue-700">Jurisdictions Covered</div>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{calculateAutomationRate()}%</div>
-                  <div className="text-sm text-green-700">Average Automation</div>
-                </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">$89.7T</div>
-                  <div className="text-sm text-purple-700">GDP Coverage</div>
-                </div>
-                <div className="text-center p-4 bg-orange-50 rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600">2.95B</div>
-                  <div className="text-sm text-orange-700">People Covered</div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {complianceMatrix.map((req, index) => (
-                  <Card key={index} className="border-l-4 border-l-blue-500">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h4 className="font-semibold">{req.jurisdiction}</h4>
-                          <p className="text-sm text-gray-600">{req.language} • {req.gdpCoverage}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Badge>{req.coverage}% Coverage</Badge>
-                          <Badge variant="outline">{req.automatedControls}% Automated</Badge>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2 mb-3">
-                        <div className="flex justify-between text-sm">
-                          <span>Automated Controls</span>
-                          <span>{req.automatedControls}%</span>
-                        </div>
-                        <Progress value={req.automatedControls} className="h-2" />
-                      </div>
-
-                      <div>
-                        <h5 className="text-sm font-medium mb-2">Cultural Adaptations:</h5>
-                        <div className="flex flex-wrap gap-1">
-                          {req.culturalAdaptations.map((adaptation, adaptIndex) => (
-                            <Badge key={adaptIndex} variant="secondary" className="text-xs">
-                              {adaptation}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="tokens">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Code className="h-5 w-5" />
-                Design Tokens Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {designTokens.map((token, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded border" style={{
-                        backgroundColor: token.category === 'color' ? token.value : '#f3f4f6'
-                      }}></div>
-                      <div>
-                        <div className="font-medium">{token.name}</div>
-                        <div className="text-sm text-gray-600">{token.value}</div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Badge variant="outline">{token.category}</Badge>
-                      <Badge variant="secondary">{token.scope}</Badge>
+      {/* Design Tokens */}
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Design Tokens</h3>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleExportTokens}>
+              <Download className="h-4 w-4 mr-1" />
+              Export
+            </Button>
+            <Button variant="outline">
+              <Upload className="h-4 w-4 mr-1" />
+              Import
+            </Button>
+          </div>
+        </div>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="space-y-3">
+              {designTokens.map((token, index) => (
+                <div key={index} className="flex items-center justify-between p-2 border rounded">
+                  <div className="flex items-center gap-3">
+                    {getTokenPreview(token)}
+                    <div>
+                      <p className="font-mono text-sm">{token.name}</p>
+                      <p className="text-xs text-muted-foreground">{token.category}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="frameworks">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Framework Integration Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-4">
-                  <h4 className="font-semibold">Supported Frameworks</h4>
-                  {[
-                    { name: 'Material-UI', status: 'active', version: '5.x' },
-                    { name: 'Ant Design', status: 'active', version: '5.x' },
-                    { name: 'Chakra UI', status: 'active', version: '2.x' },
-                    { name: 'Mantine', status: 'active', version: '7.x' },
-                    { name: 'IBM Carbon', status: 'beta', version: '11.x' },
-                    { name: 'Microsoft Fluent UI', status: 'beta', version: '9.x' }
-                  ].map((framework, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <div className="font-medium">{framework.name}</div>
-                        <div className="text-sm text-gray-600">Version {framework.version}</div>
-                      </div>
-                      <Badge variant={framework.status === 'active' ? 'default' : 'secondary'}>
-                        {framework.status}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="font-semibold">Integration Features</h4>
-                  <div className="space-y-2">
-                    {[
-                      'Automatic theme generation',
-                      'Component mapping',
-                      'Token synchronization',
-                      'Brand asset integration',
-                      'Custom component creation',
-                      'Real-time preview'
-                    ].map((feature, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span className="text-sm">{feature}</span>
-                      </div>
-                    ))}
+                  
+                  <div className="text-right">
+                    <p className="font-mono text-sm">{token.value}</p>
+                    <p className="text-xs text-muted-foreground">{token.type}</p>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Figma Integration */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Figma className="h-5 w-5" />
+            Figma Integration
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="figma-token">Personal Access Token</Label>
+            <Input
+              id="figma-token"
+              type="password"
+              placeholder="Enter your Figma personal access token"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="figma-file">File Key</Label>
+            <Input
+              id="figma-file"
+              placeholder="Enter Figma file key"
+            />
+          </div>
+          
+          <div className="flex gap-2">
+            <Button>Connect Figma</Button>
+            <Button variant="outline">Test Connection</Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Theme Generation */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="h-5 w-5" />
+            Theme Generation
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Generate CSS custom properties and Tailwind configuration from your design tokens.
+          </p>
+          
+          <div className="flex gap-2">
+            <Button>Generate CSS</Button>
+            <Button variant="outline">Generate Tailwind Config</Button>
+            <Button variant="outline">Generate Sass Variables</Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

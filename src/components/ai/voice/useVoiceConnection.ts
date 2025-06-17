@@ -1,84 +1,107 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useWebSocketConnection } from './hooks/useWebSocketConnection';
 import { useAudioManagement } from './hooks/useAudioManagement';
-import { createEventHandler } from './utils/eventHandlers';
-import { RealtimeEvent } from './types';
+import { VoiceEventManager, VoiceEventHandlers, createAudioMessage } from './utils/eventHandlers';
 
 export const useVoiceConnection = () => {
-  console.log('useVoiceConnection: Starting hook execution');
-  
-  // All hooks at the top level - consistent order
   const [transcript, setTranscript] = useState('');
-  console.log('useVoiceConnection: useState called');
+  const eventManagerRef = useRef<VoiceEventManager | null>(null);
   
-  const { 
-    connectionStatus, 
-    connect: connectWs, 
-    disconnect: disconnectWs, 
+  const {
+    connectionStatus,
+    connect: connectWebSocket,
+    disconnect: disconnectWebSocket,
     sendMessage,
-    isConnected 
+    isConnected
   } = useWebSocketConnection();
-  console.log('useVoiceConnection: useWebSocketConnection called');
-  
+
   const {
     isRecording,
     isSpeaking,
-    initializeAudio,
     startRecording,
     stopRecording,
-    playAudioDelta,
+    initializeAudioPlayer,
+    playAudioChunk,
     stopSpeaking,
-    cleanup: cleanupAudio
+    cleanup: cleanupAudio,
+    setIsSpeaking
   } = useAudioManagement();
-  console.log('useVoiceConnection: useAudioManagement called');
 
-  // Define disconnect function before useEffect
-  const disconnect = () => {
-    console.log('useVoiceConnection: disconnect called');
-    stopRecording();
-    cleanupAudio();
-    disconnectWs();
-    setTranscript('');
+  const handleAudioData = useCallback((audioData: Float32Array) => {
+    if (isConnected) {
+      const message = createAudioMessage(audioData);
+      sendMessage(message);
+    }
+  }, [isConnected, sendMessage]);
+
+  const eventHandlers: VoiceEventHandlers = {
+    onConnectionOpen: () => {
+      console.log('✅ Voice connection opened');
+    },
+    onConnectionClose: () => {
+      console.log('🔌 Voice connection closed');
+      stopRecording();
+      stopSpeaking();
+    },
+    onConnectionError: (error) => {
+      console.error('❌ Voice connection error:', error);
+      stopRecording();
+      stopSpeaking();
+    },
+    onAudioDelta: async (audioData) => {
+      const binaryString = atob(audioData);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      await playAudioChunk(bytes);
+    },
+    onTranscriptDelta: (text) => {
+      setTranscript(prev => prev + text);
+    },
+    onSpeakingStart: () => {
+      setIsSpeaking(true);
+    },
+    onSpeakingEnd: () => {
+      setIsSpeaking(false);
+    }
   };
+
+  const connect = useCallback(async () => {
+    try {
+      await initializeAudioPlayer();
+      
+      if (!eventManagerRef.current) {
+        eventManagerRef.current = new VoiceEventManager(eventHandlers);
+        await eventManagerRef.current.initialize();
+      }
+
+      await connectWebSocket((event: MessageEvent) => {
+        eventManagerRef.current?.handleSSEMessage(event);
+      });
+
+      await startRecording(handleAudioData);
+    } catch (error) {
+      console.error('❌ Failed to connect voice interface:', error);
+      throw error;
+    }
+  }, [connectWebSocket, startRecording, handleAudioData, initializeAudioPlayer]);
+
+  const disconnect = useCallback(() => {
+    stopRecording();
+    stopSpeaking();
+    disconnectWebSocket();
+    setTranscript('');
+  }, [stopRecording, stopSpeaking, disconnectWebSocket]);
 
   useEffect(() => {
-    console.log('useVoiceConnection: useEffect called');
     return () => {
-      console.log('useVoiceConnection: cleanup effect running');
-      disconnect();
+      cleanupAudio();
+      eventManagerRef.current?.destroy();
     };
-  }, []); // Empty dependency array to run only once
+  }, [cleanupAudio]);
 
-  const handleMessage = async (event: MessageEvent) => {
-    try {
-      const data = JSON.parse(event.data);
-      const eventHandler = createEventHandler(playAudioDelta, stopSpeaking, setTranscript);
-      await eventHandler(data);
-    } catch (error) {
-      console.error('Error parsing message:', error);
-    }
-  };
-
-  const handleAudioData = (encodedAudio: string) => {
-    sendMessage({
-      type: 'input_audio_buffer.append',
-      audio: encodedAudio
-    });
-  };
-
-  const connect = async () => {
-    console.log('useVoiceConnection: connect called');
-    initializeAudio();
-    
-    await connectWs(handleMessage);
-    
-    if (connectionStatus === 'connected') {
-      await startRecording(handleAudioData);
-    }
-  };
-
-  console.log('useVoiceConnection: Returning values');
   return {
     isConnected,
     isRecording,
