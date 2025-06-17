@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -54,10 +53,19 @@ serve(async (req) => {
 
 async function authenticateUser(req: Request, url: URL) {
   try {
+    console.log('=== AUTHENTICATION START ===');
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
+    console.log('Environment check:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      supabaseUrl: supabaseUrl?.substring(0, 30) + '...'
+    });
+    
     if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('❌ Missing Supabase environment variables');
       return {
         success: false,
         error: "Supabase configuration missing",
@@ -69,13 +77,23 @@ async function authenticateUser(req: Request, url: URL) {
     
     // Try to get token from Authorization header first (for POST requests)
     let token = req.headers.get('Authorization')?.replace('Bearer ', '');
+    let tokenSource = 'header';
     
     // If no token in header, try query parameter (for SSE GET requests)
     if (!token) {
       token = url.searchParams.get('token');
+      tokenSource = 'query';
     }
 
+    console.log('Token extraction:', {
+      source: tokenSource,
+      hasToken: !!token,
+      tokenLength: token?.length || 0,
+      method: req.method
+    });
+
     if (!token) {
+      console.error('❌ No authentication token found in header or query params');
       return {
         success: false,
         error: "No authentication token provided",
@@ -83,13 +101,46 @@ async function authenticateUser(req: Request, url: URL) {
       };
     }
 
-    console.log(`🔑 Authenticating with token: ${token.substring(0, 20)}...`);
+    // Enhanced token logging
+    console.log(`🔑 Authenticating with token from ${tokenSource}: ${token.substring(0, 10)}...${token.substring(token.length - 10)} (length: ${token.length})`);
+
+    // Decode JWT payload for debugging (be careful with sensitive data)
+    try {
+      const tokenParts = token.split('.');
+      if (tokenParts.length === 3) {
+        const payload = JSON.parse(atob(tokenParts[1]));
+        console.log('JWT payload preview:', {
+          iss: payload.iss,
+          sub: payload.sub,
+          exp: payload.exp,
+          expDate: new Date(payload.exp * 1000).toISOString(),
+          isExpired: Date.now() / 1000 > payload.exp
+        });
+      }
+    } catch (e) {
+      console.warn('⚠️ Could not decode JWT payload:', e.message);
+    }
+
+    console.log('🔍 Verifying token with Supabase...');
 
     // Verify the token with Supabase
     const { data: { user }, error } = await supabase.auth.getUser(token);
     
-    if (error || !user) {
-      console.error("❌ Token verification failed:", error);
+    if (error) {
+      console.error("❌ Token verification failed:", {
+        message: error.message,
+        status: error.status,
+        code: error.name
+      });
+      return {
+        success: false,
+        error: "Invalid or expired token",
+        details: "Please log out and log back in"
+      };
+    }
+    
+    if (!user) {
+      console.error("❌ No user returned from token verification");
       return {
         success: false,
         error: "Invalid or expired token",
@@ -97,12 +148,21 @@ async function authenticateUser(req: Request, url: URL) {
       };
     }
 
+    console.log('✅ Token verification successful:', {
+      userId: user.id,
+      email: user.email,
+      lastSignIn: user.last_sign_in_at
+    });
+
     return {
       success: true,
       user: user
     };
   } catch (error) {
-    console.error("❌ Authentication error:", error);
+    console.error("❌ Authentication error:", {
+      message: error.message,
+      stack: error.stack
+    });
     return {
       success: false,
       error: "Authentication failed",
