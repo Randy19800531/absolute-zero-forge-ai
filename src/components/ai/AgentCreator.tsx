@@ -7,54 +7,49 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, X, Save, Bot } from 'lucide-react';
+import { Plus, X, Save, Brain } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAgents } from '@/hooks/useAgents';
 
-interface AgentConfig {
-  name: string;
-  description: string;
-  specialization: 'design' | 'development' | 'testing' | 'deployment';
-  type: string;
-  systemPrompt: string;
-  capabilities: string[];
-  personality: string;
-  responseStyle: string;
+interface AgentCreatorProps {
+  onSubmit?: (agentData: any) => Promise<void>;
+  onCancel?: () => void;
 }
 
-const AgentCreator = () => {
-  const { user } = useAuth();
+const AgentCreator: React.FC<AgentCreatorProps> = ({ onSubmit, onCancel }) => {
   const { toast } = useToast();
-  const [isCreating, setIsCreating] = useState(false);
-  const [newCapability, setNewCapability] = useState('');
-  
-  const [config, setConfig] = useState<AgentConfig>({
+  const { createAgent } = useAgents();
+  const [agentData, setAgentData] = useState({
     name: '',
     description: '',
-    specialization: 'development',
     type: 'conversational',
+    specialization: 'design' as 'design' | 'development' | 'testing' | 'deployment',
     systemPrompt: '',
-    capabilities: [],
-    personality: 'professional',
-    responseStyle: 'detailed'
+    capabilities: [] as string[],
+    personality: '',
+    responseStyle: ''
   });
 
-  const specializations: Array<'design' | 'development' | 'testing' | 'deployment'> = [
-    'design', 'development', 'testing', 'deployment'
+  const [newCapability, setNewCapability] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const agentTypes = [
+    'conversational',
+    'task-oriented',
+    'analytical',
+    'creative'
   ];
 
-  const personalities = [
-    'professional', 'friendly', 'formal', 'casual', 'enthusiastic', 'calm'
+  const specializations = [
+    'design',
+    'development', 
+    'testing',
+    'deployment'
   ];
 
-  const responseStyles = [
-    'detailed', 'concise', 'bullet-points', 'conversational', 'technical'
-  ];
-
-  const handleAddCapability = () => {
-    if (newCapability.trim() && !config.capabilities.includes(newCapability.trim())) {
-      setConfig(prev => ({
+  const addCapability = () => {
+    if (newCapability.trim() && !agentData.capabilities.includes(newCapability.trim())) {
+      setAgentData(prev => ({
         ...prev,
         capabilities: [...prev.capabilities, newCapability.trim()]
       }));
@@ -62,70 +57,71 @@ const AgentCreator = () => {
     }
   };
 
-  const handleRemoveCapability = (capability: string) => {
-    setConfig(prev => ({
+  const removeCapability = (capability: string) => {
+    setAgentData(prev => ({
       ...prev,
       capabilities: prev.capabilities.filter(c => c !== capability)
     }));
   };
 
-  const handleCreateAgent = async () => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to create agents",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!config.name.trim() || !config.description.trim()) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!agentData.name.trim()) {
       toast({
         title: "Missing Information",
-        description: "Please provide both name and description",
+        description: "Please provide an agent name",
         variant: "destructive"
       });
       return;
     }
 
-    setIsCreating(true);
+    if (!agentData.description.trim()) {
+      toast({
+        title: "Missing Information", 
+        description: "Please provide an agent description",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSaving(true);
     try {
-      const agentData = {
-        name: config.name,
-        description: config.description,
-        type: config.type,
-        specialization: config.specialization,
-        user_id: user.id,
+      const agentPayload = {
+        name: agentData.name,
+        description: agentData.description,
+        type: agentData.type,
+        specialization: agentData.specialization,
         status: 'idle',
         configuration: {
-          systemPrompt: config.systemPrompt,
-          capabilities: config.capabilities,
-          personality: config.personality,
-          responseStyle: config.responseStyle
+          systemPrompt: agentData.systemPrompt,
+          capabilities: agentData.capabilities,
+          personality: agentData.personality,
+          responseStyle: agentData.responseStyle
         }
       };
 
-      const { error } = await supabase
-        .from('ai_agents')
-        .insert([agentData]);
-
-      if (error) throw error;
+      if (onSubmit) {
+        await onSubmit(agentPayload);
+      } else {
+        await createAgent(agentPayload);
+      }
 
       toast({
         title: "Agent Created",
-        description: `${config.name} has been created successfully`,
+        description: `${agentData.name} has been created successfully!`,
       });
 
       // Reset form
-      setConfig({
+      setAgentData({
         name: '',
         description: '',
-        specialization: 'development',
         type: 'conversational',
+        specialization: 'design',
         systemPrompt: '',
         capabilities: [],
-        personality: 'professional',
-        responseStyle: 'detailed'
+        personality: '',
+        responseStyle: ''
       });
 
     } catch (error) {
@@ -136,39 +132,58 @@ const AgentCreator = () => {
         variant: "destructive"
       });
     } finally {
-      setIsCreating(false);
+      setIsSaving(false);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5" />
-            Create Custom AI Agent
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+    <Card className="max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Brain className="h-5 w-5" />
+          Create New AI Agent
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
                 <Label htmlFor="name">Agent Name</Label>
                 <Input
                   id="name"
-                  value={config.name}
-                  onChange={(e) => setConfig(prev => ({ ...prev, name: e.target.value }))}
+                  value={agentData.name}
+                  onChange={(e) => setAgentData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Enter agent name"
                 />
               </div>
 
               <div>
+                <Label htmlFor="type">Agent Type</Label>
+                <Select
+                  value={agentData.type}
+                  onValueChange={(value) => setAgentData(prev => ({ ...prev, type: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {agentTypes.map(type => (
+                      <SelectItem key={type} value={type}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
                 <Label htmlFor="specialization">Specialization</Label>
                 <Select
-                  value={config.specialization}
+                  value={agentData.specialization}
                   onValueChange={(value: 'design' | 'development' | 'testing' | 'deployment') => 
-                    setConfig(prev => ({ ...prev, specialization: value }))
-                  }
+                    setAgentData(prev => ({ ...prev, specialization: value }))}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -182,120 +197,108 @@ const AgentCreator = () => {
                   </SelectContent>
                 </Select>
               </div>
-
-              <div>
-                <Label htmlFor="personality">Personality</Label>
-                <Select
-                  value={config.personality}
-                  onValueChange={(value) => setConfig(prev => ({ ...prev, personality: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {personalities.map(personality => (
-                      <SelectItem key={personality} value={personality}>
-                        {personality.charAt(0).toUpperCase() + personality.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="responseStyle">Response Style</Label>
-                <Select
-                  value={config.responseStyle}
-                  onValueChange={(value) => setConfig(prev => ({ ...prev, responseStyle: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {responseStyles.map(style => (
-                      <SelectItem key={style} value={style}>
-                        {style.charAt(0).toUpperCase() + style.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={config.description}
-                  onChange={(e) => setConfig(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Describe what this agent does"
-                  rows={4}
-                />
-              </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={agentData.description}
+                onChange={(e) => setAgentData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Describe what this agent does"
+                rows={6}
+              />
+            </div>
+          </div>
 
-              <div>
-                <Label>Capabilities</Label>
-                <div className="flex gap-2 mb-2">
-                  <Input
-                    value={newCapability}
-                    onChange={(e) => setNewCapability(e.target.value)}
-                    placeholder="Add capability"
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddCapability()}
-                  />
-                  <Button
+          {/* Capabilities */}
+          <div>
+            <Label>Capabilities</Label>
+            <div className="flex gap-2 mb-2">
+              <Input
+                value={newCapability}
+                onChange={(e) => setNewCapability(e.target.value)}
+                placeholder="Add capability (e.g., Natural Language Processing)"
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCapability())}
+              />
+              <Button type="button" onClick={addCapability} variant="outline" size="sm">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {agentData.capabilities.map((capability, index) => (
+                <Badge key={index} variant="secondary" className="gap-1">
+                  {capability}
+                  <button
                     type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddCapability}
+                    onClick={() => removeCapability(capability)}
+                    className="ml-1 hover:text-red-500"
                   >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {config.capabilities.map(capability => (
-                    <Badge key={capability} variant="secondary" className="gap-1">
-                      {capability}
-                      <button
-                        onClick={() => handleRemoveCapability(capability)}
-                        className="ml-1 hover:text-red-500"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          {/* Advanced Configuration */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="personality">Personality</Label>
+              <Textarea
+                id="personality"
+                value={agentData.personality}
+                onChange={(e) => setAgentData(prev => ({ ...prev, personality: e.target.value }))}
+                placeholder="Describe the agent's personality traits"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="responseStyle">Response Style</Label>
+              <Textarea
+                id="responseStyle"
+                value={agentData.responseStyle}
+                onChange={(e) => setAgentData(prev => ({ ...prev, responseStyle: e.target.value }))}
+                placeholder="How should the agent respond to users?"
+                rows={3}
+              />
             </div>
           </div>
 
           <div>
-            <Label htmlFor="systemPrompt">System Prompt (Optional)</Label>
+            <Label htmlFor="systemPrompt">System Prompt</Label>
             <Textarea
               id="systemPrompt"
-              value={config.systemPrompt}
-              onChange={(e) => setConfig(prev => ({ ...prev, systemPrompt: e.target.value }))}
-              placeholder="Enter custom system prompt to define agent behavior"
-              rows={6}
+              value={agentData.systemPrompt}
+              onChange={(e) => setAgentData(prev => ({ ...prev, systemPrompt: e.target.value }))}
+              placeholder="Define the agent's core instructions and behavior"
+              rows={4}
             />
           </div>
 
-          <div className="flex justify-end">
-            <Button 
-              onClick={handleCreateAgent}
-              disabled={isCreating || !config.name.trim() || !config.description.trim()}
-            >
-              {isCreating ? (
+          {/* Actions */}
+          <div className="flex justify-between pt-6 border-t">
+            <div>
+              {onCancel && (
+                <Button type="button" onClick={onCancel} variant="ghost">
+                  Cancel
+                </Button>
+              )}
+            </div>
+
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              {isCreating ? 'Creating...' : 'Create Agent'}
+              {isSaving ? 'Creating...' : 'Create Agent'}
             </Button>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

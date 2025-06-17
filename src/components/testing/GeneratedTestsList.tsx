@@ -4,12 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Target } from 'lucide-react';
-import { TestCase } from '@/types/testing';
+import { GeneratedTestCase } from '@/services/aiTestGenerationService';
 
 interface GeneratedTestsListProps {
-  generatedTests: Array<Partial<TestCase>>;
-  onAcceptTest: (test: Partial<TestCase>) => void;
-  onRejectTest: (test: Partial<TestCase>) => void;
+  generatedTests: GeneratedTestCase[];
+  onAcceptTest: (test: GeneratedTestCase) => void;
+  onRejectTest: (test: GeneratedTestCase) => void;
 }
 
 const GeneratedTestsList = ({ generatedTests, onAcceptTest, onRejectTest }: GeneratedTestsListProps) => {
@@ -36,6 +36,7 @@ const GeneratedTestsList = ({ generatedTests, onAcceptTest, onRejectTest }: Gene
                   <div className="flex items-center gap-2 mt-2">
                     <Badge variant="outline">{test.category}</Badge>
                     <Badge variant="secondary">{test.steps?.length || 0} steps</Badge>
+                    <Badge variant="outline">{test.priority}</Badge>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -65,7 +66,7 @@ const GeneratedTestsList = ({ generatedTests, onAcceptTest, onRejectTest }: Gene
                       <span className="text-xs bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center mt-0.5">
                         {stepIndex + 1}
                       </span>
-                      <span>{step.name}</span>
+                      <span>{step.action} - {step.description}</span>
                     </li>
                   ))}
                   {(test.steps?.length || 0) > 3 && (

@@ -74,11 +74,15 @@ export const useTestCases = () => {
 
   const createTestCase = async (testCaseData: Partial<TestCase>) => {
     if (!user) throw new Error('User not authenticated');
+    if (!testCaseData.name) throw new Error('Test case name is required');
 
     const { data, error } = await supabase
       .from('test_cases')
       .insert([{
-        ...testCaseData,
+        name: testCaseData.name,
+        description: testCaseData.description,
+        category: testCaseData.category,
+        status: testCaseData.status,
         user_id: user.id,
         created_by: user.id,
         steps: JSON.stringify(testCaseData.steps || []),
@@ -107,7 +111,10 @@ export const useTestCases = () => {
     const { data, error } = await supabase
       .from('test_cases')
       .update({
-        ...updates,
+        name: updates.name,
+        description: updates.description,
+        category: updates.category,
+        status: updates.status,
         steps: JSON.stringify(updates.steps || []),
         assertions: JSON.stringify(updates.assertions || []),
         conditions: JSON.stringify(updates.conditions || {}),

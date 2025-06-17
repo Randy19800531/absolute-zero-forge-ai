@@ -8,13 +8,35 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Play, Edit, Trash2, Search, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTestCases } from '@/hooks/useTestCases';
+import { TestCase } from '@/types/testing';
 
-const TestCaseList = () => {
+interface TestCaseListProps {
+  testCases?: TestCase[];
+  onEdit?: (testCase: TestCase) => void;
+  onDelete?: (id: string) => Promise<void>;
+  onRun?: (testCase: TestCase) => void;
+  onSchedule?: (testCase: TestCase) => void;
+  onViewVersions?: (testCase: TestCase) => void;
+  onDuplicate?: (testCase: TestCase) => void;
+}
+
+const TestCaseList: React.FC<TestCaseListProps> = ({
+  testCases: propTestCases,
+  onEdit,
+  onDelete,
+  onRun,
+  onSchedule,
+  onViewVersions,
+  onDuplicate
+}) => {
   const { toast } = useToast();
-  const { testCases, loading, deleteTestCase, runTestCase } = useTestCases();
+  const { testCases: hookTestCases, loading, deleteTestCase, runTestCase } = useTestCases();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Use prop testCases if provided, otherwise use hook testCases
+  const testCases = propTestCases || hookTestCases;
 
   const categories = ['functional', 'integration', 'performance', 'security', 'usability'];
   const statuses = ['draft', 'active', 'archived'];
@@ -48,9 +70,13 @@ const TestCaseList = () => {
     }
   };
 
-  const handleRunTest = async (testCaseId: string) => {
+  const handleRunTest = async (testCase: TestCase) => {
     try {
-      await runTestCase(testCaseId);
+      if (onRun) {
+        onRun(testCase);
+      } else {
+        await runTestCase(testCase.id);
+      }
       toast({
         title: "Test Started",
         description: "Test case execution has been initiated",
@@ -68,7 +94,11 @@ const TestCaseList = () => {
     if (!confirm('Are you sure you want to delete this test case?')) return;
 
     try {
-      await deleteTestCase(testCaseId);
+      if (onDelete) {
+        await onDelete(testCaseId);
+      } else {
+        await deleteTestCase(testCaseId);
+      }
       toast({
         title: "Test Deleted",
         description: "Test case has been successfully deleted",
@@ -82,7 +112,13 @@ const TestCaseList = () => {
     }
   };
 
-  if (loading) {
+  const handleEditTest = (testCase: TestCase) => {
+    if (onEdit) {
+      onEdit(testCase);
+    }
+  };
+
+  if (loading && !propTestCases) {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map(i => (
@@ -212,13 +248,17 @@ const TestCaseList = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleRunTest(testCase.id)}
+                        onClick={() => handleRunTest(testCase)}
                         disabled={testCase.status === 'archived'}
                       >
                         <Play className="h-4 w-4 mr-2" />
                         Run Test
                       </Button>
-                      <Button variant="outline" size="sm" disabled>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleEditTest(testCase)}
+                      >
                         <Edit className="h-4 w-4 mr-2" />
                         Edit
                       </Button>
