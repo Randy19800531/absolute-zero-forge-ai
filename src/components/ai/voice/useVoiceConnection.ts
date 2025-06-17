@@ -6,7 +6,11 @@ import { createEventHandler } from './utils/eventHandlers';
 import { RealtimeEvent } from './types';
 
 export const useVoiceConnection = () => {
+  console.log('useVoiceConnection: Starting hook execution');
+  
+  // All hooks at the top level - consistent order
   const [transcript, setTranscript] = useState('');
+  console.log('useVoiceConnection: useState called');
   
   const { 
     connectionStatus, 
@@ -15,6 +19,7 @@ export const useVoiceConnection = () => {
     sendMessage,
     isConnected 
   } = useWebSocketConnection();
+  console.log('useVoiceConnection: useWebSocketConnection called');
   
   const {
     isRecording,
@@ -26,12 +31,24 @@ export const useVoiceConnection = () => {
     stopSpeaking,
     cleanup: cleanupAudio
   } = useAudioManagement();
+  console.log('useVoiceConnection: useAudioManagement called');
+
+  // Define disconnect function before useEffect
+  const disconnect = () => {
+    console.log('useVoiceConnection: disconnect called');
+    stopRecording();
+    cleanupAudio();
+    disconnectWs();
+    setTranscript('');
+  };
 
   useEffect(() => {
+    console.log('useVoiceConnection: useEffect called');
     return () => {
+      console.log('useVoiceConnection: cleanup effect running');
       disconnect();
     };
-  }, []);
+  }, []); // Empty dependency array to run only once
 
   const handleMessage = async (event: MessageEvent) => {
     try {
@@ -51,6 +68,7 @@ export const useVoiceConnection = () => {
   };
 
   const connect = async () => {
+    console.log('useVoiceConnection: connect called');
     initializeAudio();
     
     await connectWs(handleMessage);
@@ -60,13 +78,7 @@ export const useVoiceConnection = () => {
     }
   };
 
-  const disconnect = () => {
-    stopRecording();
-    cleanupAudio();
-    disconnectWs();
-    setTranscript('');
-  };
-
+  console.log('useVoiceConnection: Returning values');
   return {
     isConnected,
     isRecording,

@@ -5,12 +5,19 @@ import { VoiceAudioRecorder } from '../utils/audioRecorder';
 import { VoiceAudioPlayer } from '../utils/audioPlayer';
 
 export const useAudioManagement = () => {
+  console.log('useAudioManagement: Starting hook execution');
+  
+  // All hooks at the top level - consistent order
   const { toast } = useToast();
+  console.log('useAudioManagement: useToast called');
+  
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  console.log('useAudioManagement: useState calls completed');
   
   const recorderRef = useRef<VoiceAudioRecorder | null>(null);
   const playerRef = useRef<VoiceAudioPlayer | null>(null);
+  console.log('useAudioManagement: useRef calls completed');
 
   const initializeAudio = () => {
     if (!recorderRef.current) {
@@ -76,6 +83,7 @@ export const useAudioManagement = () => {
     setIsSpeaking(false);
   };
 
+  console.log('useAudioManagement: Returning values');
   return {
     isRecording,
     isSpeaking,

@@ -6,12 +6,22 @@ import { ReconnectionManager } from '../utils/reconnectionManager';
 import { useAuth } from '@/hooks/useAuth';
 
 export const useWebSocketConnection = () => {
+  console.log('useWebSocketConnection: Starting hook execution');
+  
+  // All hooks at the top level - consistent order
   const { toast } = useToast();
+  console.log('useWebSocketConnection: useToast called');
+  
   const { user, session } = useAuth();
+  console.log('useWebSocketConnection: useAuth called');
+  
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  console.log('useWebSocketConnection: useState called');
+  
   const eventSourceRef = useRef<EventSource | null>(null);
   const sessionIdRef = useRef<string>(crypto.randomUUID());
   const reconnectionManagerRef = useRef<ReconnectionManager>(new ReconnectionManager(3));
+  console.log('useWebSocketConnection: useRef calls completed');
 
   const handleMaxAttemptsReached = () => {
     setConnectionStatus('error');
@@ -191,6 +201,7 @@ export const useWebSocketConnection = () => {
     return success;
   };
 
+  console.log('useWebSocketConnection: Returning values');
   return {
     connectionStatus,
     connect,
