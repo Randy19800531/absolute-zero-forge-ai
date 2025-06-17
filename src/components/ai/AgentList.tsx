@@ -1,21 +1,22 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bot, Play, Edit, Trash2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useAgents, Agent } from '@/hooks/useAgents';
+import { useAgents, Agent as AgentFromHook } from '@/hooks/useAgents';
 
 interface AgentListProps {
-  onAgentSelect?: (agent: Agent) => void;
+  onAgentSelect?: (agent: AgentFromHook) => void;
 }
 
 const AgentList: React.FC<AgentListProps> = ({ onAgentSelect }) => {
   const { toast } = useToast();
   const { agents, loading, deleteAgent } = useAgents();
-  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<AgentFromHook | null>(null);
 
-  const handleAgentSelect = (agent: Agent) => {
+  const handleAgentSelect = (agent: AgentFromHook) => {
     setSelectedAgent(agent);
     onAgentSelect?.(agent);
   };
