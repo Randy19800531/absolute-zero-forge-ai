@@ -1,6 +1,7 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,6 +22,20 @@ serve(async (req) => {
   const url = new URL(req.url);
   const sessionId = url.searchParams.get('session') || crypto.randomUUID();
 
+  // Authenticate user
+  const authResult = await authenticateUser(req, url);
+  if (!authResult.success) {
+    return new Response(JSON.stringify({
+      error: authResult.error,
+      details: authResult.details
+    }), { 
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+
+  console.log(`✅ User authenticated: ${authResult.user.email}`);
+
   // GET request - establish SSE connection for receiving messages
   if (req.method === 'GET') {
     return handleSSEConnection(sessionId);
@@ -36,6 +51,65 @@ serve(async (req) => {
     headers: corsHeaders 
   });
 });
+
+async function authenticateUser(req: Request, url: URL) {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return {
+        success: false,
+        error: "Supabase configuration missing",
+        details: "Server configuration error"
+      };
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Try to get token from Authorization header first (for POST requests)
+    let token = req.headers.get('Authorization')?.replace('Bearer ', '');
+    
+    // If no token in header, try query parameter (for SSE GET requests)
+    if (!token) {
+      token = url.searchParams.get('token');
+    }
+
+    if (!token) {
+      return {
+        success: false,
+        error: "No authentication token provided",
+        details: "Please log in and try again"
+      };
+    }
+
+    console.log(`🔑 Authenticating with token: ${token.substring(0, 20)}...`);
+
+    // Verify the token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    
+    if (error || !user) {
+      console.error("❌ Token verification failed:", error);
+      return {
+        success: false,
+        error: "Invalid or expired token",
+        details: "Please log out and log back in"
+      };
+    }
+
+    return {
+      success: true,
+      user: user
+    };
+  } catch (error) {
+    console.error("❌ Authentication error:", error);
+    return {
+      success: false,
+      error: "Authentication failed",
+      details: error.message
+    };
+  }
+}
 
 async function handleSSEConnection(sessionId: string) {
   const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');

@@ -37,7 +37,19 @@ export const useWebSocketConnection = () => {
 
       // Generate new session ID for this connection
       sessionIdRef.current = crypto.randomUUID();
-      eventSourceRef.current = createSSEConnection(baseUrl, sessionIdRef.current);
+      
+      try {
+        eventSourceRef.current = await createSSEConnection(baseUrl, sessionIdRef.current);
+      } catch (error) {
+        console.error('Failed to create SSE connection:', error);
+        setConnectionStatus('error');
+        toast({
+          title: "Authentication Error",
+          description: error instanceof Error ? error.message : "Failed to authenticate with voice service",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const handleOpen = () => {
         console.log('SSE connected successfully');
@@ -57,7 +69,7 @@ export const useWebSocketConnection = () => {
         // Show more specific error message
         toast({
           title: "Connection Error",
-          description: "Failed to connect to voice chat. Please check if the OpenAI API key is configured and try again.",
+          description: "Failed to connect to voice chat. Please check if you're logged in and try again.",
           variant: "destructive",
         });
       };
