@@ -114,8 +114,19 @@ async function authenticateUser(req: Request, url: URL) {
           sub: payload.sub,
           exp: payload.exp,
           expDate: new Date(payload.exp * 1000).toISOString(),
-          isExpired: Date.now() / 1000 > payload.exp
+          isExpired: Date.now() / 1000 > payload.exp,
+          sessionId: payload.session_id // Log the session_id claim
         });
+        
+        // Check if token is expired
+        if (Date.now() / 1000 > payload.exp) {
+          console.error('❌ Token is expired');
+          return {
+            success: false,
+            error: "Token expired",
+            details: "Please log out and log back in to refresh your session"
+          };
+        }
       }
     } catch (e) {
       console.warn('⚠️ Could not decode JWT payload:', e.message);
@@ -132,6 +143,17 @@ async function authenticateUser(req: Request, url: URL) {
         status: error.status,
         code: error.name
       });
+      
+      // Handle specific session_id error
+      if (error.message?.includes('session_id claim in JWT does not exist') || 
+          error.message?.includes('Session from session_id claim')) {
+        return {
+          success: false,
+          error: "Session expired or invalid",
+          details: "Your session has expired. Please log out completely and log back in to get a fresh session."
+        };
+      }
+      
       return {
         success: false,
         error: "Invalid or expired token",
