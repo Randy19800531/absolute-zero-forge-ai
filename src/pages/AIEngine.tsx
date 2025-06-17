@@ -112,7 +112,7 @@ const AIEngine = () => {
                       <CardDescription>
                         Manage your created AI agents and select them for voice conversations
                       </CardDescription>
-                    </Card>
+                    </CardHeader>
                     <CardContent>
                       <AgentList onAgentSelect={handleAgentSelect} />
                     </CardContent>
@@ -126,7 +126,7 @@ const AIEngine = () => {
                       <CardDescription>
                         Configure and deploy a new AI agent with custom capabilities for voice conversations
                       </CardDescription>
-                    </Card>
+                    </CardHeader>
                     <CardContent>
                       <AgentCreator onSubmit={handleAgentSubmit} onCancel={handleAgentCancel} />
                     </CardContent>
@@ -140,7 +140,7 @@ const AIEngine = () => {
                       <CardDescription>
                         View and manage conversation history and memory for your AI agents
                       </CardDescription>
-                    </Card>
+                    </CardHeader>
                     <CardContent>
                       <ConversationMemory />
                     </CardContent>
