@@ -9,7 +9,10 @@ import AgentSelector from './voice/AgentSelector';
 import { useVoiceConnection } from './voice/useVoiceConnection';
 import { VoiceInterfaceProps } from './voice/types';
 
-const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
+// Add React.memo to prevent unnecessary re-renders
+const VoiceInterface: React.FC<VoiceInterfaceProps> = React.memo(({ selectedAgent }) => {
+  console.log('VoiceInterface: Component rendering, selectedAgent:', selectedAgent?.name || 'none');
+  
   const {
     isConnected,
     isRecording,
@@ -52,6 +55,8 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ selectedAgent }) => {
       </CardContent>
     </Card>
   );
-};
+});
+
+VoiceInterface.displayName = 'VoiceInterface';
 
 export default VoiceInterface;

@@ -72,17 +72,7 @@ const AIEngine = () => {
                 </TabsList>
 
                 <TabsContent value="voice-chat" className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Voice Conversation</CardTitle>
-                      <CardDescription>
-                        Have real-time voice conversations with your AI agents using advanced speech technology
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <VoiceInterface selectedAgent={selectedAgent} />
-                    </CardContent>
-                  </Card>
+                  <VoiceInterface selectedAgent={selectedAgent} />
                   
                   {!selectedAgent && (
                     <Card>
@@ -122,7 +112,7 @@ const AIEngine = () => {
                       <CardDescription>
                         Manage your created AI agents and select them for voice conversations
                       </CardDescription>
-                    </CardHeader>
+                    </Card>
                     <CardContent>
                       <AgentList onAgentSelect={handleAgentSelect} />
                     </CardContent>
@@ -136,7 +126,7 @@ const AIEngine = () => {
                       <CardDescription>
                         Configure and deploy a new AI agent with custom capabilities for voice conversations
                       </CardDescription>
-                    </CardHeader>
+                    </Card>
                     <CardContent>
                       <AgentCreator onSubmit={handleAgentSubmit} onCancel={handleAgentCancel} />
                     </CardContent>
@@ -150,7 +140,7 @@ const AIEngine = () => {
                       <CardDescription>
                         View and manage conversation history and memory for your AI agents
                       </CardDescription>
-                    </CardHeader>
+                    </Card>
                     <CardContent>
                       <ConversationMemory />
                     </CardContent>
