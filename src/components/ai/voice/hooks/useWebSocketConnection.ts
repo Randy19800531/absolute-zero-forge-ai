@@ -33,7 +33,7 @@ export const useWebSocketConnection = () => {
     setConnectionStatus('error');
     toast({
       title: "Connection Failed",
-      description: "Unable to establish voice connection after multiple attempts. Please check your internet connection and try again.",
+      description: "Unable to establish voice connection after multiple attempts. Please try logging out and back in, then try again.",
       variant: "destructive",
     });
   };
@@ -112,15 +112,15 @@ export const useWebSocketConnection = () => {
             });
           } else {
             toast({
-              title: "Connection Error",
-              description: `Failed to connect: ${error.message}`,
+              title: "Connection Error",  
+              description: `Failed to connect: ${error.message}. Please check if the OpenAI API key is configured.`,
               variant: "destructive",
             });
           }
         } else {
           toast({
             title: "Connection Error",
-            description: "Failed to connect to voice service. Please try again.",
+            description: "Failed to connect to voice service. Please check if all required API keys are configured and try again.",
             variant: "destructive",
           });
         }
@@ -145,7 +145,7 @@ export const useWebSocketConnection = () => {
         // Show more specific error message
         toast({
           title: "Connection Error",
-          description: "Voice chat connection failed. Please check your authentication and try again.",
+          description: "Voice chat connection failed. Please check your authentication and ensure the OpenAI API key is configured, then try again.",
           variant: "destructive",
         });
       };
@@ -175,9 +175,17 @@ export const useWebSocketConnection = () => {
           if (data.type === 'error') {
             console.error('❌ Received error from server:', data.error);
             setConnectionStatus('error');
+            
+            let errorMessage = "An error occurred with the voice connection";
+            if (data.error?.details?.includes('API key')) {
+              errorMessage = "OpenAI API key is not configured or invalid. Please check the configuration.";
+            } else if (data.error?.message) {
+              errorMessage = data.error.message;
+            }
+            
             toast({
               title: "Voice Chat Error",
-              description: data.error?.message || "An error occurred with the voice connection",
+              description: errorMessage,
               variant: "destructive",
             });
             return;

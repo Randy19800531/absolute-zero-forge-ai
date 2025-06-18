@@ -21,7 +21,7 @@ export const createSSEConnection = async (baseUrl: string, sessionId: string): P
   
   if (!session?.access_token) {
     console.error('❌ No access token in session:', session);
-    throw new Error('User not authenticated - please log in first');
+    throw new Error('User not authenticated - please log out and log back in');
   }
 
   const accessToken = session.access_token;
