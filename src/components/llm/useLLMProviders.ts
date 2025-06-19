@@ -49,6 +49,17 @@ export const useLLMProviders = () => {
     }
   ]);
 
+  const [conversationalProviders, setConversationalProviders] = useState<LLMProvider[]>([
+    {
+      id: 'openai-realtime',
+      name: 'OpenAI Realtime API',
+      description: 'Real-time voice conversation with GPT models',
+      apiKeyLabel: 'OpenAI API Key (Realtime)',
+      status: 'disconnected',
+      website: 'https://platform.openai.com/api-keys'
+    }
+  ]);
+
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
 
@@ -61,6 +72,11 @@ export const useLLMProviders = () => {
       
       // Update provider status based on saved keys
       setProviders(prev => prev.map(provider => ({
+        ...provider,
+        status: keys[provider.id] ? 'connected' : 'disconnected'
+      })));
+
+      setConversationalProviders(prev => prev.map(provider => ({
         ...provider,
         status: keys[provider.id] ? 'connected' : 'disconnected'
       })));
@@ -96,9 +112,16 @@ export const useLLMProviders = () => {
           : provider
       ));
 
+      setConversationalProviders(prev => prev.map(provider => 
+        provider.id === providerId 
+          ? { ...provider, status: 'connected' }
+          : provider
+      ));
+
+      const allProviders = [...providers, ...conversationalProviders];
       toast({
         title: "API Key Saved",
-        description: `${providers.find(p => p.id === providerId)?.name} API key has been saved securely.`,
+        description: `${allProviders.find(p => p.id === providerId)?.name} API key has been saved securely.`,
       });
     } else {
       toast({
@@ -122,19 +145,29 @@ export const useLLMProviders = () => {
         : provider
     ));
 
+    setConversationalProviders(prev => prev.map(provider => 
+      provider.id === providerId 
+        ? { ...provider, status: 'disconnected' }
+        : provider
+    ));
+
+    const allProviders = [...providers, ...conversationalProviders];
     toast({
       title: "API Key Removed",
-      description: `${providers.find(p => p.id === providerId)?.name} API key has been removed.`,
+      description: `${allProviders.find(p => p.id === providerId)?.name} API key has been removed.`,
     });
   };
 
   const connectedCount = providers.filter(p => p.status === 'connected').length;
+  const conversationalConnectedCount = conversationalProviders.filter(p => p.status === 'connected').length;
 
   return {
     providers,
+    conversationalProviders,
     apiKeys,
     showKeys,
     connectedCount,
+    conversationalConnectedCount,
     handleApiKeyChange,
     toggleKeyVisibility,
     saveApiKey,

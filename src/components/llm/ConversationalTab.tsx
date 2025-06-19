@@ -1,0 +1,89 @@
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Mic, MessageCircle, Volume2 } from 'lucide-react';
+import LLMProviderCard from './LLMProviderCard';
+import { LLMProvider } from './types';
+
+interface ConversationalTabProps {
+  providers: LLMProvider[];
+  apiKeys: Record<string, string>;
+  showKeys: Record<string, boolean>;
+  connectedCount: number;
+  onApiKeyChange: (providerId: string, value: string) => void;
+  onToggleVisibility: (providerId: string) => void;
+  onSave: (providerId: string) => void;
+  onRemove: (providerId: string) => void;
+}
+
+const ConversationalTab = ({
+  providers,
+  apiKeys,
+  showKeys,
+  connectedCount,
+  onApiKeyChange,
+  onToggleVisibility,
+  onSave,
+  onRemove
+}: ConversationalTabProps) => {
+  return (
+    <div className="space-y-6">
+      <Card className="border-blue-200 bg-blue-50/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-800">
+            <MessageCircle className="h-5 w-5" />
+            Voice Chat & Conversational AI
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-start gap-4 text-sm text-blue-700">
+            <div className="flex items-center gap-2">
+              <Mic className="h-4 w-4" />
+              <span>Real-time voice conversations</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Volume2 className="h-4 w-4" />
+              <span>Speech-to-speech AI interactions</span>
+            </div>
+          </div>
+          <div className="mt-3 p-3 bg-blue-100 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> This configuration is specifically for the Voice Chat feature in the AI Engine. 
+              Use the same OpenAI API key you use for text models, but this enables real-time voice conversations.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Conversational AI Configuration</span>
+            <Badge variant={connectedCount > 0 ? "default" : "secondary"}>
+              {connectedCount} of {providers.length} connected
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-6">
+            {providers.map((provider) => (
+              <LLMProviderCard
+                key={provider.id}
+                provider={provider}
+                apiKey={apiKeys[provider.id] || ''}
+                showKey={showKeys[provider.id] || false}
+                onApiKeyChange={(value) => onApiKeyChange(provider.id, value)}
+                onToggleVisibility={() => onToggleVisibility(provider.id)}
+                onSave={() => onSave(provider.id)}
+                onRemove={() => onRemove(provider.id)}
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default ConversationalTab;

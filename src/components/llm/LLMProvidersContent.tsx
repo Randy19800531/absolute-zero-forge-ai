@@ -1,20 +1,23 @@
 
 import React from 'react';
-import { Settings, ExternalLink, Lock } from 'lucide-react';
+import { Settings, ExternalLink, Lock, MessageCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AdminPasswordManager from '@/components/admin/AdminPasswordManager';
 import SpecializedEndpoints from './SpecializedEndpoints';
 import SessionStatus from './SessionStatus';
 import ProvidersTab from './ProvidersTab';
+import ConversationalTab from './ConversationalTab';
 import { useLLMProviders } from './useLLMProviders';
 import { LLMProvidersContentProps } from './types';
 
 const LLMProvidersContent = ({ onLock }: LLMProvidersContentProps) => {
   const {
     providers,
+    conversationalProviders,
     apiKeys,
     showKeys,
     connectedCount,
+    conversationalConnectedCount,
     handleApiKeyChange,
     toggleKeyVisibility,
     saveApiKey,
@@ -26,10 +29,14 @@ const LLMProvidersContent = ({ onLock }: LLMProvidersContentProps) => {
       <SessionStatus onLock={onLock} />
 
       <Tabs defaultValue="providers" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="providers" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             LLM Providers
+          </TabsTrigger>
+          <TabsTrigger value="conversational" className="flex items-center gap-2">
+            <MessageCircle className="h-4 w-4" />
+            Voice Chat
           </TabsTrigger>
           <TabsTrigger value="specialized" className="flex items-center gap-2">
             <ExternalLink className="h-4 w-4" />
@@ -47,6 +54,19 @@ const LLMProvidersContent = ({ onLock }: LLMProvidersContentProps) => {
             apiKeys={apiKeys}
             showKeys={showKeys}
             connectedCount={connectedCount}
+            onApiKeyChange={handleApiKeyChange}
+            onToggleVisibility={toggleKeyVisibility}
+            onSave={saveApiKey}
+            onRemove={removeApiKey}
+          />
+        </TabsContent>
+
+        <TabsContent value="conversational">
+          <ConversationalTab
+            providers={conversationalProviders}
+            apiKeys={apiKeys}
+            showKeys={showKeys}
+            connectedCount={conversationalConnectedCount}
             onApiKeyChange={handleApiKeyChange}
             onToggleVisibility={toggleKeyVisibility}
             onSave={saveApiKey}
