@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -194,18 +195,19 @@ async function authenticateUser(req: Request, url: URL) {
 }
 
 async function handleSSEConnection(sessionId: string) {
-  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+  // Use the custom API key name from Supabase secrets
+  const OPENAI_API_KEY = Deno.env.get('Absolute-0.AI-Conversational API Key');
   
   // Comprehensive API key validation
   console.log(`=== API Key Validation for session ${sessionId} ===`);
   console.log(`Environment variables available:`, Object.keys(Deno.env.toObject()));
-  console.log(`OPENAI_API_KEY exists:`, !!OPENAI_API_KEY);
+  console.log(`Absolute-0.AI-Conversational API Key exists:`, !!OPENAI_API_KEY);
   
   if (!OPENAI_API_KEY) {
-    console.error("❌ OPENAI_API_KEY not found in environment");
+    console.error("❌ Absolute-0.AI-Conversational API Key not found in environment");
     return new Response(JSON.stringify({
       error: "OpenAI API key not configured in Supabase secrets",
-      details: "Please add OPENAI_API_KEY to your Supabase project secrets",
+      details: "Please add 'Absolute-0.AI-Conversational API Key' to your Supabase project secrets",
       debug: {
         availableSecrets: Object.keys(Deno.env.toObject()).filter(key => key.includes('API') || key.includes('KEY'))
       }
@@ -217,7 +219,7 @@ async function handleSSEConnection(sessionId: string) {
 
   // Validate API key format
   if (!OPENAI_API_KEY.startsWith('sk-')) {
-    console.error("❌ Invalid OPENAI_API_KEY format - must start with 'sk-'");
+    console.error("❌ Invalid API key format - must start with 'sk-'");
     return new Response(JSON.stringify({
       error: "Invalid OpenAI API key format",
       details: "API key must start with 'sk-'",
