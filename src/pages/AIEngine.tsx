@@ -10,6 +10,7 @@ import AgentList from '@/components/ai/AgentList';
 import ConversationMemory from '@/components/ai/ConversationMemory';
 import PredefinedAgents from '@/components/ai/PredefinedAgents';
 import VoiceInterface from '@/components/ai/VoiceInterface';
+import SupabaseSetupAssistant from '@/components/ai/SupabaseSetupAssistant';
 import { useToast } from '@/hooks/use-toast';
 
 const AIEngine = () => {
@@ -63,12 +64,13 @@ const AIEngine = () => {
               </div>
 
               <Tabs defaultValue="voice-chat" className="w-full">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-6">
                   <TabsTrigger value="voice-chat">Voice Chat</TabsTrigger>
                   <TabsTrigger value="predefined">Predefined Agents</TabsTrigger>
                   <TabsTrigger value="agents">My Agents</TabsTrigger>
                   <TabsTrigger value="create">Create Custom</TabsTrigger>
                   <TabsTrigger value="memory">Conversation Memory</TabsTrigger>
+                  <TabsTrigger value="supabase">Supabase Setup</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="voice-chat" className="space-y-6">
@@ -143,6 +145,20 @@ const AIEngine = () => {
                     </CardHeader>
                     <CardContent>
                       <ConversationMemory />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="supabase" className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Supabase Setup & Configuration</CardTitle>
+                      <CardDescription>
+                        Complete Supabase diagnostics, setup assistance, and automated troubleshooting
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <SupabaseSetupAssistant />
                     </CardContent>
                   </Card>
                 </TabsContent>
