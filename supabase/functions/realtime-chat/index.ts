@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -195,19 +194,19 @@ async function authenticateUser(req: Request, url: URL) {
 }
 
 async function handleSSEConnection(sessionId: string) {
-  // Use the custom API key name from Supabase secrets
-  const OPENAI_API_KEY = Deno.env.get('Absolute-0.AI-Conversational API Key');
+  // Use the correct environment variable name (underscores instead of spaces and hyphens)
+  const OPENAI_API_KEY = Deno.env.get('ABSOLUTE_0_AI_CONVERSATIONAL_API_KEY');
   
   // Comprehensive API key validation
   console.log(`=== API Key Validation for session ${sessionId} ===`);
   console.log(`Environment variables available:`, Object.keys(Deno.env.toObject()));
-  console.log(`Absolute-0.AI-Conversational API Key exists:`, !!OPENAI_API_KEY);
+  console.log(`ABSOLUTE_0_AI_CONVERSATIONAL_API_KEY exists:`, !!OPENAI_API_KEY);
   
   if (!OPENAI_API_KEY) {
-    console.error("❌ Absolute-0.AI-Conversational API Key not found in environment");
+    console.error("❌ ABSOLUTE_0_AI_CONVERSATIONAL_API_KEY not found in environment");
     return new Response(JSON.stringify({
       error: "OpenAI API key not configured in Supabase secrets",
-      details: "Please add 'Absolute-0.AI-Conversational API Key' to your Supabase project secrets",
+      details: "Please add 'ABSOLUTE_0_AI_CONVERSATIONAL_API_KEY' to your Supabase project secrets",
       debug: {
         availableSecrets: Object.keys(Deno.env.toObject()).filter(key => key.includes('API') || key.includes('KEY'))
       }

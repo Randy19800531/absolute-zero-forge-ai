@@ -49,7 +49,7 @@ const ConversationalTab = ({
           </div>
           <div className="mt-3 p-3 bg-blue-100 rounded-lg">
             <p className="text-sm text-blue-800">
-              <strong>Configuration Status:</strong> Your custom API key "Absolute-0.AI-Conversational API Key" 
+              <strong>Configuration Status:</strong> Your custom API key "ABSOLUTE_0_AI_CONVERSATIONAL_API_KEY" 
               is configured in Supabase secrets and ready for voice chat functionality.
             </p>
           </div>
@@ -88,7 +88,7 @@ const ConversationalTab = ({
           </div>
           <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-sm text-amber-800">
-              <strong>Note:</strong> Your API key "Absolute-0.AI-Conversational API Key" is already configured 
+              <strong>Note:</strong> Your API key "ABSOLUTE_0_AI_CONVERSATIONAL_API_KEY" is already configured 
               in Supabase secrets. The voice chat functionality will use this key automatically.
             </p>
           </div>
