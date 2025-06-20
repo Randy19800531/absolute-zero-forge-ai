@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Mic, MessageCircle, Volume2 } from 'lucide-react';
 import LLMProviderCard from './LLMProviderCard';
+import SystemStatusIndicator from '../ai/voice/SystemStatusIndicator';
 import { LLMProvider } from './types';
 
 interface ConversationalTabProps {
@@ -33,7 +34,7 @@ const ConversationalTab = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-blue-800">
             <MessageCircle className="h-5 w-5" />
-            Voice Chat & Conversational AI
+            Absolute-0.AI Voice Chat & Conversational AI
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -49,23 +50,26 @@ const ConversationalTab = ({
           </div>
           <div className="mt-3 p-3 bg-blue-100 rounded-lg">
             <p className="text-sm text-blue-800">
-              <strong>Configuration Status:</strong> Your custom API key "ABSOLUTE_0_AI_CONVERSATIONAL_API_KEY" 
+              <strong>Configuration Status:</strong> Your Absolute-0.AI custom API key "ABSOLUTE_0_AI_CONVERSATIONAL_API_KEY" 
               is configured in Supabase secrets and ready for voice chat functionality.
             </p>
           </div>
           <div className="mt-3 p-3 bg-green-100 rounded-lg">
             <p className="text-sm text-green-800">
-              <strong>✅ Ready:</strong> The OpenAI Realtime API is configured with your custom key. 
+              <strong>✅ Ready:</strong> The OpenAI Realtime API is configured with your Absolute-0.AI custom key. 
               You can now use the Voice Chat feature in the AI Engine.
             </p>
           </div>
         </CardContent>
       </Card>
 
+      {/* System Status Diagnostics */}
+      <SystemStatusIndicator />
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Conversational AI Configuration</span>
+            <span>Absolute-0.AI Conversational Configuration</span>
             <Badge variant="default" className="bg-green-100 text-green-800">
               API Key Configured in Supabase
             </Badge>
@@ -88,7 +92,7 @@ const ConversationalTab = ({
           </div>
           <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-sm text-amber-800">
-              <strong>Note:</strong> Your API key "ABSOLUTE_0_AI_CONVERSATIONAL_API_KEY" is already configured 
+              <strong>Note:</strong> Your Absolute-0.AI API key "ABSOLUTE_0_AI_CONVERSATIONAL_API_KEY" is already configured 
               in Supabase secrets. The voice chat functionality will use this key automatically.
             </p>
           </div>
